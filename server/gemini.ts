@@ -1,0 +1,225 @@
+/**
+ * ZENTRA AI — Gemini Agent with Memory + RAG
+ */
+
+import { GoogleGenerativeAI, type Content } from "@google/generative-ai";
+import { storage } from "./storage";
+import {
+  addConversationTurn,
+  getRecentConversation,
+  buildMemoryContext,
+  extractAndStoreFacts,
+  createEpisodicMemory,
+  type ConversationTurn,
+} from "./memory";
+import { buildRAGContext, indexStoreData, seedDefaultKnowledge } from "./rag";
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyCdm1zk0R-YEoCy-vxLBQdvB5E73GQ70Vc";
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+
+// Track which stores have been indexed
+const indexedStores = new Set<number>();
+
+// System prompts for each AI Agent type
+const agentSystemPrompts: Record<string, (storeName: string) => string> = {
+  shopping_assistant: (storeName) => `คุณคือ Shopping Assistant AI ของร้าน "${storeName}" บนแพลตฟอร์ม ZENTRA AI
+คุณเป็นผู้ช่วยช้อปปิ้งที่เป็นมิตร เชี่ยวชาญในการแนะนำสินค้าตาม lifestyle ของลูกค้า
+
+หน้าที่:
+1. แนะนำสินค้าที่เหมาะกับลูกค้า โดยอ้างอิงจากข้อมูลสินค้าจริงที่ให้มา
+2. ตอบคำถามเกี่ยวกับสินค้า ราคา โปรโมชั่น
+3. ช่วยเปรียบเทียบสินค้า
+4. ใช้ข้อมูลที่จำได้เกี่ยวกับลูกค้า (Memory) เพื่อแนะนำสินค้าที่ตรงใจ
+5. พูดภาษาไทยเป็นหลัก สุภาพและเป็นมิตร`,
+
+  recommendation: (storeName) => `คุณคือ Recommendation Engine AI ของร้าน "${storeName}" บนแพลตฟอร์ม ZENTRA AI
+คุณเป็นระบบแนะนำสินค้าอัจฉริยะที่ใช้ Collaborative Filtering + Memory
+
+หน้าที่:
+1. วิเคราะห์พฤติกรรมลูกค้าจากข้อมูลที่จำได้ (Memory) และแนะนำสินค้า
+2. ให้เหตุผลว่าทำไมถึงแนะนำสินค้านั้น
+3. แนะนำ cross-sell และ upsell opportunities
+4. วิเคราะห์ trend สินค้ายอดนิยม
+5. ตอบเป็นภาษาไทย ใช้ข้อมูลเชิงตัวเลขประกอบ`,
+
+  dynamic_pricing: (storeName) => `คุณคือ Dynamic Pricing AI ของร้าน "${storeName}" บนแพลตฟอร์ม ZENTRA AI
+คุณเป็นระบบปรับราคาอัตโนมัติที่วิเคราะห์ตลาดและอุปสงค์
+
+หน้าที่:
+1. วิเคราะห์และแนะนำกลยุทธ์ราคาจากข้อมูลจริง
+2. แนะนำว่าสินค้าไหนควรปรับราคาขึ้น/ลง พร้อมเหตุผล
+3. วิเคราะห์ margin, demand elasticity
+4. แนะนำโปรโมชั่นและ bundle pricing
+5. ตอบเป็นภาษาไทย ใช้ตัวเลขและ % ประกอบ`,
+
+  customer_support: (storeName) => `คุณคือ Customer Support AI ของร้าน "${storeName}" บนแพลตฟอร์ม ZENTRA AI
+คุณให้บริการลูกค้า 24/7 ด้วยความเป็นมิตรและมืออาชีพ
+
+หน้าที่:
+1. ตอบคำถามเกี่ยวกับสถานะคำสั่งซื้อ การจัดส่ง โดยใช้ข้อมูลจริง
+2. ช่วยเรื่องการคืนสินค้า/เปลี่ยนสินค้า ตามนโยบายร้าน
+3. ใช้ข้อมูลที่จำได้เกี่ยวกับลูกค้า (Memory) เพื่อให้บริการที่ดีขึ้น
+4. อ้างอิงนโยบายร้านจาก Knowledge Base
+5. พูดภาษาไทยสุภาพ เป็นมิตร ใจเย็น
+6. ถ้าเรื่องซับซ้อนเกินไป แนะนำให้ติดต่อ support@zentra.ai`,
+
+  inventory_forecast: (storeName) => `คุณคือ Inventory Forecast AI ของร้าน "${storeName}" บนแพลตฟอร์ม ZENTRA AI
+คุณเป็นระบบพยากรณ์สต็อกสินค้าอัจฉริยะ
+
+หน้าที่:
+1. วิเคราะห์และพยากรณ์ว่าสินค้าไหนจะหมดก่อน
+2. แนะนำปริมาณการสั่งซื้อเพิ่มเติม
+3. ระบุสินค้าที่ขายช้า (dead stock)
+4. แนะนำ safety stock ที่เหมาะสม
+5. ตอบเป็นภาษาไทย ใช้ตัวเลขและตารางข้อมูล`,
+
+  visual_search: (storeName) => `คุณคือ Visual Search AI ของร้าน "${storeName}" บนแพลตฟอร์ม ZENTRA AI
+คุณเป็นระบบค้นหาสินค้าด้วยการอธิบาย
+
+หน้าที่:
+1. เมื่อลูกค้าอธิบายลักษณะสินค้าที่ต้องการ ให้ค้นหาสินค้าที่ตรงกัน
+2. แนะนำสินค้าที่มีลักษณะคล้ายกัน
+3. ช่วยจำแนกหมวดหมู่สินค้า
+4. ให้คำแนะนำเรื่อง style matching
+5. ตอบเป็นภาษาไทย`,
+};
+
+// Ensure store data is indexed for RAG
+async function ensureStoreIndexed(storeId: number): Promise<void> {
+  if (!indexedStores.has(storeId)) {
+    seedDefaultKnowledge(storeId);
+    await indexStoreData(storeId);
+    indexedStores.add(storeId);
+  }
+}
+
+// Main chat function with Memory + RAG
+export async function chatWithAgent(
+  agentType: string,
+  userMessage: string,
+  storeId: number = 1,
+  customerId?: string
+): Promise<{
+  reply: string;
+  agentName: string;
+  memoryUsed: boolean;
+  ragSources: Array<{ title: string; source: string; score: number }>;
+  factsExtracted: number;
+}> {
+  // Ensure RAG index is ready
+  await ensureStoreIndexed(storeId);
+
+  // Get store and agent info
+  const store = await storage.getStore(storeId);
+  const agents = await storage.getAiAgentsByStore(storeId);
+  const agent = agents.find(a => a.type === agentType);
+  if (!agent) throw new Error(`Agent type "${agentType}" not found`);
+  if (!agent.enabled) throw new Error(`Agent "${agent.name}" is currently disabled`);
+
+  const storeName = store?.name || "ZentraMart";
+  const sessionId = customerId || `session-${storeId}`;
+
+  // 1. Get base system prompt
+  const getSystemPrompt = agentSystemPrompts[agentType];
+  if (!getSystemPrompt) throw new Error(`No system prompt for agent type "${agentType}"`);
+  let systemPrompt = getSystemPrompt(storeName);
+
+  // 2. Build Memory context
+  const memoryContext = buildMemoryContext(sessionId, agentType);
+  const memoryUsed = memoryContext.length > 0;
+  if (memoryUsed) {
+    systemPrompt += `\n\n=== MEMORY (ข้อมูลที่คุณจำได้เกี่ยวกับลูกค้าคนนี้) ===\n${memoryContext}\n\nใช้ข้อมูลเหล่านี้เพื่อให้บริการที่เป็นส่วนตัวมากขึ้น อ้างอิงสิ่งที่จำได้เมื่อเหมาะสม`;
+  }
+
+  // 3. Build RAG context
+  const ragResult = await buildRAGContext(userMessage, storeId, agentType);
+  if (ragResult.context) {
+    systemPrompt += `\n\n=== KNOWLEDGE BASE (ข้อมูลอ้างอิง) ===\n${ragResult.context}\n\nใช้ข้อมูลนี้ในการตอบคำถาม อ้างอิงข้อมูลเมื่อเกี่ยวข้อง`;
+  }
+
+  // 4. Get recent conversation history for this agent
+  const recentTurns = getRecentConversation(sessionId, agentType, 10);
+  const geminiHistory: Content[] = recentTurns.map(t => ({
+    role: t.role,
+    parts: [{ text: t.content }],
+  }));
+
+  // 5. Call Gemini
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: systemPrompt,
+    });
+
+    const chat = model.startChat({ history: geminiHistory });
+    const result = await chat.sendMessage(userMessage);
+    const reply = result.response.text();
+
+    // 6. Save to short-term memory
+    const userTurn: ConversationTurn = {
+      role: "user",
+      content: userMessage,
+      timestamp: new Date().toISOString(),
+      agentType,
+    };
+    const modelTurn: ConversationTurn = {
+      role: "model",
+      content: reply,
+      timestamp: new Date().toISOString(),
+      agentType,
+    };
+    addConversationTurn(sessionId, userTurn);
+    addConversationTurn(sessionId, modelTurn);
+
+    // 7. Background: extract facts and create episodic memory
+    const allTurns = getRecentConversation(sessionId, agentType, 6);
+    let factsExtracted = 0;
+
+    // Extract facts every 3 exchanges (6 turns)
+    if (allTurns.length >= 6 && allTurns.length % 6 === 0) {
+      extractAndStoreFacts(sessionId, allTurns.slice(-6), agentType)
+        .then(facts => { factsExtracted = facts.length; })
+        .catch(console.error);
+    }
+
+    // Create episodic memory every 4 exchanges (8 turns)
+    if (allTurns.length >= 8 && allTurns.length % 8 === 0) {
+      createEpisodicMemory(sessionId, allTurns.slice(-8), agentType)
+        .catch(console.error);
+    }
+
+    return {
+      reply,
+      agentName: agent.name,
+      memoryUsed,
+      ragSources: ragResult.sources,
+      factsExtracted,
+    };
+  } catch (error: any) {
+    console.error("Gemini API error:", error);
+    throw new Error(`AI Error: ${error.message || "ไม่สามารถเชื่อมต่อ Gemini AI ได้"}`);
+  }
+}
+
+// --- Chat History (backed by short-term memory) ---
+
+export function getChatHistory(agentType: string, storeId: number = 1) {
+  const sessionId = `session-${storeId}`;
+  const turns = getRecentConversation(sessionId, agentType, 50);
+  return turns.map((t, i) => ({
+    id: i + 1,
+    agentType: t.agentType,
+    role: t.role,
+    content: t.content,
+    timestamp: t.timestamp,
+  }));
+}
+
+export function clearChatHistory(agentType: string, storeId: number = 1) {
+  const sessionId = `session-${storeId}`;
+  clearCustomerMemory(sessionId, agentType);
+}
+
+// Re-export for routes
+export { getRecentConversation, getCustomerFacts, getEpisodicMemories, getFullCustomerMemory, clearCustomerMemory, getMemoryStats } from "./memory";
+export { getKnowledgeEntries, addKnowledgeEntry, deleteKnowledgeEntry, getRAGStats, indexStoreData as reindexStore } from "./rag";

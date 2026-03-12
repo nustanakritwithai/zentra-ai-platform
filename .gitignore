@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.log
+supabase/
+.supabase/
+setup-db.mjs
+supabase-rest-setup.mjs
