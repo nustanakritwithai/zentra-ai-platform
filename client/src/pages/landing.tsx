@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Bot, Sparkles, TrendingUp, ShoppingBag, Eye, BarChart3, Headphones, ArrowRight, Zap } from "lucide-react";
+import { Check, Bot, Sparkles, TrendingUp, ShoppingBag, Eye, BarChart3, Headphones, ArrowRight, Zap, Rocket, Store, Globe, Shield } from "lucide-react";
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
 
 const features = [
@@ -12,6 +12,12 @@ const features = [
   { icon: ShoppingBag, title: "Shopping Assistant", desc: "ผู้ช่วยช้อปปิ้งส่วนตัวที่เข้าใจภาษาธรรมชาติ แนะนำสินค้าตรงใจ" },
   { icon: Eye, title: "Visual Search", desc: "ค้นหาสินค้าด้วยรูปภาพ ใช้ Computer Vision ขั้นสูง" },
   { icon: BarChart3, title: "AI Analytics", desc: "วิเคราะห์ยอดขาย พยากรณ์เทรนด์ และแนะนำกลยุทธ์ด้วย AI" },
+];
+
+const howItWorks = [
+  { step: "1", icon: Rocket, title: "สมัครฟรี", desc: "สร้างบัญชีใน 30 วินาที ไม่ต้องใช้บัตรเครดิต" },
+  { step: "2", icon: Store, title: "ตั้งค่าร้านค้า", desc: "ตั้งชื่อร้าน เลือกประเภทธุรกิจ AI จะตั้งค่าให้อัตโนมัติ" },
+  { step: "3", icon: Globe, title: "เปิดร้านออนไลน์", desc: "เพิ่มสินค้า แชร์ลิงก์ร้าน ลูกค้าสั่งซื้อได้ทันที" },
 ];
 
 const stats = [
@@ -33,7 +39,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth"><Button variant="ghost" data-testid="nav-login" className="text-sm">เข้าสู่ระบบ</Button></Link>
-            <Link href="/auth"><Button data-testid="nav-signup" className="bg-primary text-sm">เริ่มต้นฟรี</Button></Link>
+            <Link href="/auth"><Button data-testid="nav-signup" className="bg-gradient-to-r from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] text-white text-sm">เปิดร้านฟรี</Button></Link>
           </div>
         </div>
       </nav>
@@ -44,22 +50,22 @@ export default function LandingPage() {
         <div className="absolute top-20 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 -right-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl" />
         <div className="max-w-4xl mx-auto px-4 py-20 text-center relative z-10">
-          <Badge variant="outline" className="mb-4 text-xs px-3 py-1"><Sparkles className="w-3 h-3 mr-1" />AI-Powered E-Commerce Platform รุ่นใหม่ 2026</Badge>
+          <Badge variant="outline" className="mb-4 text-xs px-3 py-1"><Sparkles className="w-3 h-3 mr-1" />AI-Powered E-Commerce Platform 2026</Badge>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-            สร้างร้านค้าออนไลน์<br />
-            <span className="bg-gradient-to-r from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] bg-clip-text text-transparent">ด้วย AI ที่ชาญฉลาด</span>
+            เปิดร้านค้าออนไลน์<br />
+            <span className="bg-gradient-to-r from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] bg-clip-text text-transparent">ด้วย AI ที่ชาญฉลาดที่สุด</span>
           </h1>
           <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-sm sm:text-base">
-            แพลตฟอร์มสร้างเว็บไซต์ E-Commerce ที่มี AI Agent 6 ตัว ช่วยออกแบบ จัดการสินค้า วิเคราะห์ยอดขาย และทำการตลาดอัตโนมัติ — เพิ่มยอดขายได้ถึง 40%
+            สร้างร้านค้าออนไลน์ใน 2 นาที มี AI Agent 6 ตัวช่วยขาย วิเคราะห์ข้อมูล และทำการตลาดอัตโนมัติ — เพิ่มยอดขายได้ถึง 40%
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
             <Link href="/auth">
               <Button data-testid="hero-cta" size="lg" className="bg-gradient-to-r from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] text-white px-8">
-                เริ่มสร้างร้านค้าฟรี <ArrowRight className="w-4 h-4 ml-1" />
+                เปิดร้านฟรี <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
-            <Link href="/dashboard">
-              <Button variant="outline" size="lg">ดูตัวอย่าง Dashboard</Button>
+            <Link href="/shop/zentramart">
+              <Button variant="outline" size="lg">ดูตัวอย่างร้านค้า</Button>
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
@@ -70,6 +76,28 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="max-w-5xl mx-auto px-4 py-16">
+        <div className="text-center mb-10">
+          <Badge variant="outline" className="mb-3"><Rocket className="w-3 h-3 mr-1" />ง่ายมาก</Badge>
+          <h2 className="text-2xl font-bold">เปิดร้านใน 3 ขั้นตอน</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {howItWorks.map(item => (
+            <Card key={item.step} className="border-border/50 text-center">
+              <CardContent className="p-6">
+                <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <item.icon className="w-6 h-6 text-primary" />
+                </div>
+                <div className="text-sm font-bold text-primary mb-1">ขั้นตอนที่ {item.step}</div>
+                <h3 className="font-bold text-base mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
@@ -98,12 +126,13 @@ export default function LandingPage() {
       <section className="max-w-5xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
           <h2 className="text-2xl font-bold">แผนราคาที่เหมาะกับทุกธุรกิจ</h2>
+          <p className="text-sm text-muted-foreground mt-2">เริ่มฟรี อัปเกรดเมื่อพร้อม</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { name: "Free", price: "฿0", period: "ตลอดไป", features: ["1 ร้านค้า", "50 สินค้า", "100 AI Credits", "SSL"], highlight: false },
-            { name: "Pro", price: "฿990", period: "/เดือน", features: ["5 ร้านค้า", "ไม่จำกัดสินค้า", "5,000 AI Credits", "AI Agent ครบ 6 ตัว", "Custom Domain"], highlight: true },
-            { name: "Enterprise", price: "฿4,990", period: "/เดือน", features: ["ไม่จำกัดทุกอย่าง", "White-label", "Dedicated AI", "99.9% SLA"], highlight: false },
+            { name: "Free", price: "฿0", period: "ตลอดไป", features: ["1 ร้านค้า", "50 สินค้า", "100 AI Credits/เดือน", "SSL", "หน้าร้านออนไลน์"], highlight: false },
+            { name: "Pro", price: "฿990", period: "/เดือน", features: ["5 ร้านค้า", "ไม่จำกัดสินค้า", "5,000 AI Credits/เดือน", "AI Agent ครบ 6 ตัว", "Custom Domain", "Priority Support"], highlight: true },
+            { name: "Enterprise", price: "฿4,990", period: "/เดือน", features: ["ไม่จำกัดทุกอย่าง", "White-label", "Dedicated AI Server", "99.9% SLA", "Dedicated Account Manager"], highlight: false },
           ].map(p => (
             <Card key={p.name} className={`border-border/50 ${p.highlight ? "ring-2 ring-primary relative" : ""}`}>
               {p.highlight && <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-xs">ยอดนิยม</Badge>}
@@ -111,10 +140,12 @@ export default function LandingPage() {
                 <h3 className="font-bold text-lg">{p.name}</h3>
                 <div className="mt-2"><span className="text-3xl font-bold">{p.price}</span><span className="text-sm text-muted-foreground">{p.period}</span></div>
                 <ul className="mt-4 space-y-2">
-                  {p.features.map(f => (<li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-primary" />{f}</li>))}
+                  {p.features.map(f => (<li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-primary shrink-0" />{f}</li>))}
                 </ul>
                 <Link href="/auth">
-                  <Button className={`w-full mt-6 ${p.highlight ? "bg-primary" : ""}`} variant={p.highlight ? "default" : "outline"}>เริ่มต้นเลย</Button>
+                  <Button className={`w-full mt-6 ${p.highlight ? "bg-primary" : ""}`} variant={p.highlight ? "default" : "outline"}>
+                    {p.name === "Free" ? "เปิดร้านฟรี" : "เริ่มต้นเลย"}
+                  </Button>
                 </Link>
               </CardContent>
             </Card>
@@ -122,13 +153,26 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Trust */}
+      <section className="max-w-3xl mx-auto px-4 py-12">
+        <div className="p-6 rounded-2xl border border-border/50 bg-card/50 flex flex-col sm:flex-row items-center gap-6">
+          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+            <Shield className="w-6 h-6 text-green-500" />
+          </div>
+          <div>
+            <h3 className="font-bold text-base mb-1">ปลอดภัย มั่นใจได้</h3>
+            <p className="text-sm text-muted-foreground">ข้อมูลร้านค้าทั้งหมดถูกเข้ารหัสและจัดเก็บบน Cloud ระดับ Enterprise พร้อม Backup อัตโนมัติทุกวัน</p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold">พร้อมเริ่มต้นแล้วหรือยัง?</h2>
+        <h2 className="text-2xl font-bold">พร้อมเริ่มต้นขายออนไลน์แล้วหรือยัง?</h2>
         <p className="text-muted-foreground mt-2">เข้าร่วมกับผู้ประกอบการกว่า 50,000 รายที่ใช้ ZENTRA AI</p>
         <Link href="/auth">
           <Button size="lg" className="mt-6 bg-gradient-to-r from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] text-white px-8">
-            เริ่มสร้างร้านค้าฟรีวันนี้ <ArrowRight className="w-4 h-4 ml-1" />
+            เปิดร้านฟรีวันนี้ <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
         </Link>
       </section>

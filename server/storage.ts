@@ -9,6 +9,7 @@ export interface IStorage {
   updateUser(id: number, data: Partial<User>): Promise<User | undefined>;
   // Stores
   getStore(id: number): Promise<Store | undefined>;
+  getStoreBySlug(slug: string): Promise<Store | undefined>;
   getStoresByUser(userId: number): Promise<Store[]>;
   createStore(userId: number, store: InsertStore): Promise<Store>;
   updateStore(id: number, data: Partial<Store>): Promise<Store | undefined>;
@@ -26,6 +27,7 @@ export interface IStorage {
   // AI Agents
   getAiAgent(id: number): Promise<AiAgent | undefined>;
   getAiAgentsByStore(storeId: number): Promise<AiAgent[]>;
+  createAiAgent(storeId: number, agent: any): Promise<AiAgent>;
   updateAiAgent(id: number, data: Partial<AiAgent>): Promise<AiAgent | undefined>;
   // Customers
   getCustomer(id: number): Promise<Customer | undefined>;
@@ -125,6 +127,11 @@ export class SupabaseStorage implements IStorage {
   // === STORES ===
   async getStore(id: number): Promise<Store | undefined> {
     const { data } = await supabaseAdmin.from("stores").select("*").eq("id", id).single();
+    return data ? toCamel(data) : undefined;
+  }
+
+  async getStoreBySlug(slug: string): Promise<Store | undefined> {
+    const { data } = await supabaseAdmin.from("stores").select("*").eq("slug", slug).single();
     return data ? toCamel(data) : undefined;
   }
 
@@ -238,6 +245,26 @@ export class SupabaseStorage implements IStorage {
   async getAiAgentsByStore(storeId: number): Promise<AiAgent[]> {
     const { data } = await supabaseAdmin.from("ai_agents").select("*").eq("store_id", storeId);
     return (data || []).map(toCamel);
+  }
+
+  async createAiAgent(storeId: number, agent: any): Promise<AiAgent> {
+    const { data, error } = await supabaseAdmin
+      .from("ai_agents")
+      .insert({
+        store_id: storeId,
+        type: agent.type,
+        name: agent.name,
+        description: agent.description || "",
+        enabled: agent.enabled ?? true,
+        config: agent.config || {},
+        performance: Math.floor(Math.random() * 20) + 75,
+        status: agent.enabled ? "active" : "paused",
+        icon: agent.icon || "Bot",
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toCamel(data);
   }
 
   async updateAiAgent(id: number, update: Partial<AiAgent>): Promise<AiAgent | undefined> {
@@ -396,6 +423,7 @@ export class MemStorage implements IStorage {
     return updated;
   }
   async getStore(id: number) { return this.stores.get(id); }
+  async getStoreBySlug(slug: string) { return [...this.stores.values()].find(s => s.slug === slug); }
   async getStoresByUser(userId: number) { return [...this.stores.values()].filter(s => s.userId === userId); }
   async createStore(userId: number, store: InsertStore): Promise<Store> {
     const id = this.nextId.store++;
@@ -443,6 +471,12 @@ export class MemStorage implements IStorage {
   }
   async getAiAgent(id: number) { return this.aiAgents.get(id); }
   async getAiAgentsByStore(storeId: number) { return [...this.aiAgents.values()].filter(a => a.storeId === storeId); }
+  async createAiAgent(storeId: number, agent: any): Promise<AiAgent> {
+    const id = this.nextId.agent++;
+    const newAgent: AiAgent = { id, storeId, type: agent.type, name: agent.name, description: agent.description || "", enabled: agent.enabled ?? true, config: agent.config || {}, performance: Math.floor(Math.random() * 20) + 75, status: agent.enabled ? "active" : "paused", icon: agent.icon || "Bot" };
+    this.aiAgents.set(id, newAgent);
+    return newAgent;
+  }
   async updateAiAgent(id: number, data: Partial<AiAgent>) {
     const agent = this.aiAgents.get(id);
     if (!agent) return undefined;

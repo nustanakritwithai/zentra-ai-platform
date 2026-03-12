@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { getSessionToken } from "@/lib/queryClient";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,11 +20,18 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       if (isLogin) {
-        await login({ email, password });
+        const result = await login({ email, password });
+        // If user has a store, go to dashboard; otherwise onboarding
+        if (result.storeId && result.storeId > 0) {
+          navigate("/dashboard");
+        } else {
+          navigate("/onboarding");
+        }
       } else {
         await register({ name, email, password });
+        // New users always go to onboarding
+        navigate("/onboarding");
       }
-      navigate("/dashboard");
     } catch (err: any) {
       toast({ title: "เกิดข้อผิดพลาด", description: err?.message || "กรุณาลองใหม่", variant: "destructive" });
     }
@@ -42,7 +50,7 @@ export default function AuthPage() {
             Z
           </div>
           <CardTitle className="text-xl">{isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชีใหม่"}</CardTitle>
-          <CardDescription>{isLogin ? "เข้าสู่ระบบเพื่อจัดการร้านค้าของคุณ" : "เริ่มต้นสร้างร้านค้าออนไลน์ด้วย AI"}</CardDescription>
+          <CardDescription>{isLogin ? "เข้าสู่ระบบเพื่อจัดการร้านค้าของคุณ" : "เริ่มต้นสร้างร้านค้าออนไลน์ด้วย AI ฟรี"}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,20 +69,15 @@ export default function AuthPage() {
               <Input data-testid="input-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
             <Button data-testid="btn-submit-auth" type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoginPending || isRegisterPending}>
-              {isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชี"}
+              {isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชีฟรี"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm text-muted-foreground">
             {isLogin ? "ยังไม่มีบัญชี? " : "มีบัญชีแล้ว? "}
             <button data-testid="toggle-auth-mode" className="text-primary hover:underline" onClick={() => setIsLogin(!isLogin)}>
-              {isLogin ? "สร้างบัญชีใหม่" : "เข้าสู่ระบบ"}
+              {isLogin ? "สร้างบัญชีใหม่ เปิดร้านฟรี" : "เข้าสู่ระบบ"}
             </button>
           </div>
-          {isLogin && (
-            <p className="mt-3 text-xs text-center text-muted-foreground">
-              Demo: demo@zentra.ai / password123
-            </p>
-          )}
         </CardContent>
       </Card>
     </div>

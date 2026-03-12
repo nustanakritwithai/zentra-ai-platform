@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import LandingPage from "@/pages/landing";
 import AuthPage from "@/pages/auth";
+import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard";
 import StoreSettingsPage from "@/pages/store-settings";
 import ProductsPage from "@/pages/products";
@@ -16,6 +17,7 @@ import AiAgentsPage from "@/pages/ai-agents";
 import AiChatPage from "@/pages/ai-chat";
 import KnowledgeBasePage from "@/pages/knowledge-base";
 import PricingPage from "@/pages/pricing";
+import StorefrontPage from "@/pages/storefront";
 import NotFound from "@/pages/not-found";
 
 function AppRouter() {
@@ -23,6 +25,7 @@ function AppRouter() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/store" component={StoreSettingsPage} />
       <Route path="/products" component={ProductsPage} />
@@ -32,6 +35,7 @@ function AppRouter() {
       <Route path="/ai-chat" component={AiChatPage} />
       <Route path="/knowledge-base" component={KnowledgeBasePage} />
       <Route path="/pricing" component={PricingPage} />
+      <Route path="/shop/:slug" component={StorefrontPage} />
       <Route component={NotFound} />
     </Switch>
   );
