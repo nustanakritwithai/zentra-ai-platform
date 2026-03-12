@@ -154,7 +154,7 @@ export default function StorefrontPage() {
             <p className="text-sm text-white/40 mb-4">
               ขอบคุณที่สั่งซื้อจาก {store.name} ทางร้านจะติดต่อกลับเร็วๆ นี้
             </p>
-            <Button onClick={() => setOrderSuccess(false)} className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20">
+            <Button onClick={() => setOrderSuccess(false)} className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20">
               กลับหน้าร้าน
             </Button>
           </CardContent>
@@ -172,13 +172,13 @@ export default function StorefrontPage() {
             {store.logo ? (
               <img src={store.logo} alt={store.name} className="w-8 h-8 rounded-lg object-cover" />
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm">
                 {store.name.charAt(0)}
               </div>
             )}
             <span className="font-bold text-base text-white/90">{store.name}</span>
-            <Badge variant="outline" className="text-[10px] hidden sm:inline-flex bg-orange-500/10 text-orange-400 border-orange-500/20">
-              <Sparkles className="w-2.5 h-2.5 mr-1 text-orange-400" />Powered by ZENTRA AI
+            <Badge variant="outline" className="text-[10px] hidden sm:inline-flex bg-teal-500/10 text-teal-400 border-teal-500/20">
+              <Sparkles className="w-2.5 h-2.5 mr-1 text-teal-400" />Powered by ZENTRA AI
             </Badge>
           </div>
           <Button
@@ -191,7 +191,7 @@ export default function StorefrontPage() {
             <ShoppingCart className="w-4 h-4 mr-1" />
             ตะกร้า
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] flex items-center justify-center font-bold">
+              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-[10px] flex items-center justify-center font-bold">
                 {cartCount}
               </span>
             )}
@@ -202,7 +202,7 @@ export default function StorefrontPage() {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-4 py-10 text-center relative">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-64 h-64 bg-orange-500/5 rounded-full blur-3xl" />
+          <div className="w-64 h-64 bg-teal-500/5 rounded-full blur-3xl" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-white/90 relative">{store.name}</h1>
         {store.description && (
@@ -226,7 +226,7 @@ export default function StorefrontPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((product: any) => (
-              <Card key={product.id} className="bg-white/[0.02] border-white/[0.06] rounded-2xl overflow-hidden group hover:border-orange-500/20 hover:shadow-lg hover:shadow-orange-500/5 transition-all duration-300">
+              <Card key={product.id} className="bg-white/[0.02] border-white/[0.06] rounded-2xl overflow-hidden group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300">
                 <div className="aspect-square bg-white/[0.02] relative overflow-hidden">
                   {product.image ? (
                     <img
@@ -240,7 +240,7 @@ export default function StorefrontPage() {
                     </div>
                   )}
                   {product.comparePrice && product.comparePrice > product.price && (
-                    <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] border-0">
+                    <Badge className="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] border-0">
                       -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
                     </Badge>
                   )}
@@ -248,7 +248,7 @@ export default function StorefrontPage() {
                 <CardContent className="p-3">
                   <h3 className="font-medium text-sm line-clamp-2 min-h-[2.5rem] text-white/80">{product.name}</h3>
                   <div className="mt-2 flex items-baseline gap-2">
-                    <span className="font-bold text-orange-400">{formatPrice(product.price, currency)}</span>
+                    <span className="font-bold text-teal-400">{formatPrice(product.price, currency)}</span>
                     {product.comparePrice && product.comparePrice > product.price && (
                       <span className="text-xs text-white/30 line-through">
                         {formatPrice(product.comparePrice, currency)}
@@ -257,7 +257,7 @@ export default function StorefrontPage() {
                   </div>
                   <Button
                     data-testid={`add-to-cart-${product.id}`}
-                    className={`w-full mt-3 text-sm h-9 ${product.stock > 0 ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20" : "bg-white/[0.06] text-white/30"}`}
+                    className={`w-full mt-3 text-sm h-9 ${product.stock > 0 ? "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20" : "bg-white/[0.06] text-white/30"}`}
                     onClick={() => addToCart(product)}
                     disabled={product.stock <= 0}
                   >
@@ -308,7 +308,7 @@ export default function StorefrontPage() {
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate text-white/80">{item.name}</p>
-                          <p className="text-sm text-orange-400 font-bold">{formatPrice(item.price, currency)}</p>
+                          <p className="text-sm text-teal-400 font-bold">{formatPrice(item.price, currency)}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <button
                               className="w-6 h-6 rounded-lg bg-white/[0.06] hover:bg-white/[0.10] flex items-center justify-center transition-colors"
@@ -331,12 +331,12 @@ export default function StorefrontPage() {
 
                     <div className="border-t border-white/[0.06] pt-3 flex items-center justify-between">
                       <span className="font-bold text-white/80">รวมทั้งหมด</span>
-                      <span className="text-lg font-bold text-orange-400">{formatPrice(cartTotal, currency)}</span>
+                      <span className="text-lg font-bold text-teal-400">{formatPrice(cartTotal, currency)}</span>
                     </div>
 
                     <Button
                       data-testid="btn-checkout"
-                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
+                      className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20"
                       onClick={() => setCheckoutMode(true)}
                     >
                       ดำเนินการสั่งซื้อ <ArrowRight className="w-4 h-4 ml-1" />
@@ -381,7 +381,7 @@ export default function StorefrontPage() {
 
                 <div className="border-t border-white/[0.06] pt-3 flex items-center justify-between">
                   <span className="font-bold text-white/80">ยอดรวม</span>
-                  <span className="text-lg font-bold text-orange-400">{formatPrice(cartTotal, currency)}</span>
+                  <span className="text-lg font-bold text-teal-400">{formatPrice(cartTotal, currency)}</span>
                 </div>
 
                 <div className="flex gap-3">
@@ -390,7 +390,7 @@ export default function StorefrontPage() {
                   </Button>
                   <Button
                     data-testid="btn-place-order"
-                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
+                    className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20"
                     disabled={!customerName || orderMutation.isPending}
                     onClick={() => orderMutation.mutate()}
                   >
@@ -415,11 +415,11 @@ export default function StorefrontPage() {
       {cartCount > 0 && !cartOpen && (
         <button
           data-testid="floating-cart"
-          className="fixed bottom-6 right-6 z-30 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg shadow-orange-500/30 sm:hidden"
+          className="fixed bottom-6 right-6 z-30 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg shadow-teal-500/30 sm:hidden"
           onClick={() => setCartOpen(true)}
         >
           <ShoppingCart className="w-5 h-5" />
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-orange-600 text-[10px] flex items-center justify-center font-bold">
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-teal-600 text-[10px] flex items-center justify-center font-bold">
             {cartCount}
           </span>
         </button>

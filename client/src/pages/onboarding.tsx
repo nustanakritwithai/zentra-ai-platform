@@ -111,8 +111,8 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-[hsl(240,20%,4%)] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5" />
-      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-violet-500/5" />
+      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-red-500/10 rounded-full blur-3xl" />
 
       <div className="w-full max-w-lg relative z-10">
@@ -122,7 +122,7 @@ export default function OnboardingPage() {
             <div
               key={s}
               className={`h-2 rounded-full transition-all duration-300 ${
-                s === step ? "w-10 bg-gradient-to-r from-orange-500 to-red-500" : s < step ? "w-10 bg-orange-500/50" : "w-10 bg-white/[0.06]"
+                s === step ? "w-10 bg-gradient-to-r from-teal-500 to-cyan-600" : s < step ? "w-10 bg-teal-500/50" : "w-10 bg-white/[0.06]"
               }`}
             />
           ))}
@@ -133,12 +133,12 @@ export default function OnboardingPage() {
           <Card className="bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 flex items-center justify-center">
-                  <Store className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500/10 to-cyan-500/10 flex items-center justify-center">
+                  <Store className="w-6 h-6 text-teal-400" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white/90">ตั้งชื่อร้านค้า</h2>
-                  <p className="text-sm text-white/40">สวัสดี <span className="text-orange-400">{user?.name || ""}</span>. มาสร้างร้านค้ากัน</p>
+                  <p className="text-sm text-white/40">สวัสดี <span className="text-teal-400">{user?.name || ""}</span>. มาสร้างร้านค้ากัน</p>
                 </div>
               </div>
 
@@ -192,7 +192,7 @@ export default function OnboardingPage() {
 
               <Button
                 data-testid="btn-next-step1"
-                className="w-full mt-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
+                className="w-full mt-6 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20"
                 onClick={() => setStep(2)}
                 disabled={!storeName || !slug || slugAvailable === false}
               >
@@ -207,8 +207,8 @@ export default function OnboardingPage() {
           <Card className="bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 flex items-center justify-center">
-                  <ShoppingBag className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500/10 to-cyan-500/10 flex items-center justify-center">
+                  <ShoppingBag className="w-6 h-6 text-teal-400" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white/90">เลือกประเภทธุรกิจ</h2>
@@ -224,8 +224,8 @@ export default function OnboardingPage() {
                     onClick={() => setCategory(cat.value)}
                     className={`p-3 rounded-xl border text-left transition-all ${
                       category === cat.value
-                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30"
-                        : "border-white/[0.06] bg-white/[0.02] hover:border-orange-500/20"
+                        ? "border-teal-500 bg-teal-500/10 ring-1 ring-teal-500/30"
+                        : "border-white/[0.06] bg-white/[0.02] hover:border-teal-500/20"
                     }`}
                   >
                     <span className="text-xl mb-1 block">{cat.icon}</span>
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
                 </Button>
                 <Button
                   data-testid="btn-next-step2"
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
+                  className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20"
                   onClick={() => setStep(3)}
                   disabled={!category}
                 >
@@ -256,8 +256,8 @@ export default function OnboardingPage() {
           <Card className="bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 flex items-center justify-center">
-                  <Globe className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500/10 to-cyan-500/10 flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-teal-400" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white/90">ตั้งค่าสกุลเงิน</h2>
@@ -273,12 +273,12 @@ export default function OnboardingPage() {
                     onClick={() => setCurrency(cur.value)}
                     className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
                       currency === cur.value
-                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30"
-                        : "border-white/[0.06] bg-white/[0.02] hover:border-orange-500/20"
+                        ? "border-teal-500 bg-teal-500/10 ring-1 ring-teal-500/30"
+                        : "border-white/[0.06] bg-white/[0.02] hover:border-teal-500/20"
                     }`}
                   >
                     <span className="text-sm font-medium text-white/80">{cur.label}</span>
-                    {currency === cur.value && <Check className="w-4 h-4 text-orange-400" />}
+                    {currency === cur.value && <Check className="w-4 h-4 text-teal-400" />}
                   </button>
                 ))}
               </div>
@@ -286,13 +286,13 @@ export default function OnboardingPage() {
               {/* Summary */}
               <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6 space-y-2">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-white/80">
-                  <Sparkles className="w-4 h-4 text-orange-400" /> สรุปข้อมูลร้านค้า
+                  <Sparkles className="w-4 h-4 text-teal-400" /> สรุปข้อมูลร้านค้า
                 </h3>
                 <div className="grid grid-cols-2 gap-y-1.5 text-sm">
                   <span className="text-white/40">ชื่อร้าน:</span>
                   <span className="font-medium text-white/80">{storeName}</span>
                   <span className="text-white/40">URL:</span>
-                  <span className="font-medium text-orange-400">/{slug}</span>
+                  <span className="font-medium text-teal-400">/{slug}</span>
                   <span className="text-white/40">ประเภท:</span>
                   <span className="font-medium text-white/80">{categories.find((c) => c.value === category)?.label}</span>
                   <span className="text-white/40">สกุลเงิน:</span>
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
                 </Button>
                 <Button
                   data-testid="btn-create-store"
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
+                  className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20"
                   onClick={handleCreateStore}
                   disabled={isSubmitting}
                 >
@@ -337,9 +337,9 @@ export default function OnboardingPage() {
                 {storeName} พร้อมใช้งานแล้ว กำลังนำคุณไปที่ Dashboard...
               </p>
               <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{ animationDelay: "100ms" }} />
-                <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{ animationDelay: "200ms" }} />
+                <div className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "100ms" }} />
+                <div className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "200ms" }} />
               </div>
             </CardContent>
           </Card>

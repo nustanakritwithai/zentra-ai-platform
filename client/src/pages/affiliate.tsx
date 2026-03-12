@@ -61,7 +61,7 @@ export default function AffiliatePage() {
           </div>
           <Dialog open={showAdd} onOpenChange={setShowAdd}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-orange-500 to-red-500 text-white" data-testid="btn-add-affiliate">
+              <Button className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white" data-testid="btn-add-affiliate">
                 <Plus className="w-4 h-4 mr-2" /> เพิ่มสินค้า Affiliate
               </Button>
             </DialogTrigger>
@@ -103,7 +103,7 @@ export default function AffiliatePage() {
                     <Input type="number" value={commission} onChange={e => setCommission(e.target.value)} placeholder="5" className="bg-white/[0.04] border-white/[0.06] text-white" />
                   </div>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white" onClick={() => addAffiliate.mutate()} disabled={!productName || !url || !productPrice} data-testid="btn-save-affiliate">
+                <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white" onClick={() => addAffiliate.mutate()} disabled={!productName || !url || !productPrice} data-testid="btn-save-affiliate">
                   เพิ่มสินค้า Affiliate
                 </Button>
               </div>
@@ -114,7 +114,7 @@ export default function AffiliatePage() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: "สินค้า Affiliate", value: affiliateProducts.length.toString(), icon: Package, color: "text-orange-400" },
+            { label: "สินค้า Affiliate", value: affiliateProducts.length.toString(), icon: Package, color: "text-emerald-400" },
             { label: "ค่าคอมมิชชันรวม", value: `฿${totalCommission.toLocaleString()}`, icon: DollarSign, color: "text-green-400" },
             { label: "คลิกทั้งหมด", value: "0", icon: TrendingUp, color: "text-blue-400" },
             { label: "Conversion Rate", value: "0%", icon: Percent, color: "text-purple-400" },
@@ -158,7 +158,7 @@ export default function AffiliatePage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white/80 truncate">{product.name}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-[10px] border-orange-500/30 text-orange-400">
+                        <Badge variant="outline" className="text-[10px] border-teal-500/30 text-emerald-400">
                           <Globe className="w-3 h-3 mr-1" />
                           {product.affiliateSource || "N/A"}
                         </Badge>

@@ -47,7 +47,7 @@ export default function PricingPage() {
     <AppLayout>
       <div className="space-y-6">
         <div className="text-center max-w-xl mx-auto">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">แผนราคา</h1>
+          <h1 className="text-xl font-bold bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">แผนราคา</h1>
           <p className="text-sm text-white/40 mt-1">เลือกแผนที่เหมาะกับธุรกิจของคุณ ไม่มีค่าใช้จ่ายแอบแฝง ยกเลิกได้ทุกเมื่อ</p>
         </div>
 
@@ -55,13 +55,13 @@ export default function PricingPage() {
           {plans.map(plan => {
             const isCurrent = plan.name.toLowerCase() === currentPlan;
             return (
-              <Card key={plan.name} className={`bg-white/[0.02] border-white/[0.06] rounded-2xl relative ${plan.highlight ? "ring-2 ring-orange-500 shadow-lg shadow-orange-500/10" : ""}`}>
+              <Card key={plan.name} className={`bg-white/[0.02] border-white/[0.06] rounded-2xl relative ${plan.highlight ? "ring-2 ring-teal-500 shadow-lg shadow-teal-500/10" : ""}`}>
                 {plan.badge && (
-                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs border-0">{plan.badge}</Badge>
+                  <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-xs border-0">{plan.badge}</Badge>
                 )}
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <plan.icon className={`w-5 h-5 ${plan.name === "Free" ? "text-white/40" : plan.name === "Pro" ? "text-orange-400" : "text-red-400"}`} />
+                    <plan.icon className={`w-5 h-5 ${plan.name === "Free" ? "text-white/40" : plan.name === "Pro" ? "text-teal-400" : "text-red-400"}`} />
                     <h3 className="font-bold text-white/90">{plan.name}</h3>
                   </div>
                   <div className="mb-4">
@@ -71,14 +71,14 @@ export default function PricingPage() {
                   <ul className="space-y-2.5 mb-6">
                     {plan.features.map(f => (
                       <li key={f} className="flex items-center gap-2 text-sm">
-                        <Check className="w-4 h-4 text-orange-400 shrink-0" />
+                        <Check className="w-4 h-4 text-teal-400 shrink-0" />
                         <span className="text-white/60">{f}</span>
                       </li>
                     ))}
                   </ul>
                   <Button
                     data-testid={`btn-plan-${plan.name.toLowerCase()}`}
-                    className={`w-full ${isCurrent ? "bg-white/[0.06] text-white/30" : plan.highlight ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/20 hover:from-orange-600 hover:to-red-600" : "bg-white/[0.04] border border-white/[0.06] text-white/70 hover:border-orange-500/20"}`}
+                    className={`w-full ${isCurrent ? "bg-white/[0.06] text-white/30" : plan.highlight ? "bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/20 hover:from-teal-600 hover:to-cyan-700" : "bg-white/[0.04] border border-white/[0.06] text-white/70 hover:border-teal-500/20"}`}
                     disabled={isCurrent}
                   >
                     {isCurrent ? "แผนปัจจุบัน" : plan.cta}

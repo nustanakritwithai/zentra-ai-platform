@@ -121,7 +121,7 @@ function CategoryForm({ category, onClose }: { category?: Category; onClose: () 
           data-testid="btn-save-category"
           onClick={() => mutation.mutate()}
           disabled={!name || mutation.isPending}
-          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+          className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white"
         >
           {mutation.isPending ? "กำลังบันทึก..." : (category ? "อัปเดต" : "เพิ่มหมวดหมู่")}
         </Button>
@@ -154,7 +154,7 @@ export default function CategoriesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <FolderOpen className="w-6 h-6 text-orange-400" />
+              <FolderOpen className="w-6 h-6 text-teal-400" />
               หมวดหมู่สินค้า
             </h1>
             <p className="text-sm text-white/40 mt-1">จัดการหมวดหมู่สินค้าของร้านคุณ</p>
@@ -163,7 +163,7 @@ export default function CategoriesPage() {
             <DialogTrigger asChild>
               <Button
                 data-testid="btn-add-category"
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" /> เพิ่มหมวดหมู่
               </Button>
@@ -204,8 +204,8 @@ export default function CategoriesPage() {
                   {cat.image ? (
                     <img src={cat.image} alt={cat.name} className="w-10 h-10 rounded-lg object-cover border border-white/10" />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center">
-                      <FolderOpen className="w-5 h-5 text-orange-400/60" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500/20 to-cyan-500/20 flex items-center justify-center">
+                      <FolderOpen className="w-5 h-5 text-teal-400/60" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -251,7 +251,7 @@ export default function CategoriesPage() {
         )}
 
         {/* Info */}
-        <div className="bg-gradient-to-r from-orange-500/5 to-red-500/5 border border-orange-500/10 rounded-xl p-4">
+        <div className="bg-gradient-to-r from-teal-500/5 to-cyan-500/5 border border-teal-500/10 rounded-xl p-4">
           <p className="text-sm text-white/50">
             💡 หมวดหมู่ช่วยให้ลูกค้าค้นหาสินค้าได้ง่ายขึ้น ลากเพื่อจัดลำดับ หรือกำหนดตัวเลขลำดับได้
           </p>

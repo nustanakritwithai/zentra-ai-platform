@@ -32,7 +32,7 @@ function AnimatedIcon({ icon: Icon, active, className }: { icon: any; active: bo
     <div className={cn("relative", active && "animate-icon-active")}>
       <Icon className={cn("w-5 h-5 shrink-0 transition-all duration-300", active && "scale-110", className)} />
       {active && (
-        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-sm animate-pulse" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-teal-500/20 to-cyan-600/20 rounded-full blur-sm animate-pulse" />
       )}
     </div>
   );
@@ -75,10 +75,10 @@ export function AppSidebar() {
       {/* Mobile toggle */}
       <button
         data-testid="sidebar-mobile-toggle"
-        className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 backdrop-blur-sm md:hidden hover:from-orange-500/20 hover:to-red-500/20 transition-all duration-300"
+        className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-600/10 border border-teal-500/20 backdrop-blur-sm md:hidden hover:from-teal-500/20 hover:to-cyan-600/20 transition-all duration-300"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
-        <Menu className="w-5 h-5 text-orange-400" />
+        <Menu className="w-5 h-5 text-teal-400" />
       </button>
 
       {/* Overlay */}
@@ -99,27 +99,27 @@ export function AppSidebar() {
         )}
       >
         {/* Sidebar glow line */}
-        <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-orange-500/0 via-orange-500/20 to-orange-500/0" />
+        <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-teal-500/0 via-teal-500/20 to-teal-500/0" />
         
         {/* Logo + Store Name */}
         <div className="flex items-center gap-3 px-4 h-16 border-b border-white/[0.06] shrink-0 relative overflow-hidden">
           {/* Background shimmer */}
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/[0.03] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-teal-500/[0.03] to-transparent" />
           
           <div className="relative group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-orange-500/20 transition-transform duration-300 group-hover:scale-105">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300 group-hover:scale-105">
               {store ? store.name.charAt(0).toUpperCase() : "Z"}
             </div>
-            <div className="absolute -inset-1 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300" />
+            <div className="absolute -inset-1 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300" />
           </div>
           
           {!collapsed && (
             <div className={cn("flex-1 min-w-0 transition-opacity duration-300", mounted ? "opacity-100" : "opacity-0")}>
-              <span className="font-bold text-sm tracking-tight truncate block bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">
+              <span className="font-bold text-sm tracking-tight truncate block bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">
                 {store ? store.name : "ZENTRA AI"}
               </span>
               {store && (
-                <span className="text-[10px] text-orange-400/50 truncate block">/{store.slug}</span>
+                <span className="text-[10px] text-teal-400/50 truncate block">/{store.slug}</span>
               )}
             </div>
           )}
@@ -139,7 +139,7 @@ export function AppSidebar() {
               <Link href={`/shop/${store.slug}`}>
                 <button
                   data-testid="view-storefront"
-                  className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-teal-400 hover:text-teal-300 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" /> ดูหน้าร้าน
                 </button>
@@ -181,15 +181,15 @@ export function AppSidebar() {
                   >
                     {/* Active background */}
                     {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/15 to-red-500/10 border border-orange-500/20" />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
                     )}
                     {/* Active left bar */}
                     {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-orange-400 to-red-500 shadow-lg shadow-orange-500/50" />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
                     )}
                     
                     <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-orange-400" : ""} />
+                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
                       {!collapsed && <span className="relative">{item.label}</span>}
                     </div>
                   </div>
@@ -201,11 +201,11 @@ export function AppSidebar() {
           {/* AI section */}
           {!collapsed && (
             <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/20 flex items-center gap-1.5">
-              <Zap className="w-3 h-3 text-orange-500/40" />
+              <Zap className="w-3 h-3 text-teal-500/40" />
               AI Tools
             </div>
           )}
-          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />}
+          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent" />}
           <div className="space-y-0.5 mb-3">
             {aiItems.map((item, idx) => {
               const active = location === item.href;
@@ -221,18 +221,18 @@ export function AppSidebar() {
                     )}
                   >
                     {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/15 to-red-500/10 border border-orange-500/20" />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
                     )}
                     {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-orange-400 to-red-500 shadow-lg shadow-orange-500/50" />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
                     )}
                     <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-orange-400" : ""} />
+                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
                       {!collapsed && <span className="relative">{item.label}</span>}
                     </div>
                     {/* AI glow for ai items */}
                     {active && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-orange-400 shadow-lg shadow-orange-400/50 animate-pulse z-10" />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-pink-400 shadow-lg shadow-pink-400/50 animate-pulse z-10" />
                     )}
                   </div>
                 </Link>
@@ -243,11 +243,11 @@ export function AppSidebar() {
           {/* Marketplace section */}
           {!collapsed && (
             <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/20 flex items-center gap-1.5">
-              <Globe className="w-3 h-3 text-orange-500/40" />
+              <Globe className="w-3 h-3 text-teal-500/40" />
               Marketplace
             </div>
           )}
-          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />}
+          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent" />}
           <div className="space-y-0.5 mb-3">
             {marketplaceItems.map(item => {
               const active = location === item.href;
@@ -263,13 +263,13 @@ export function AppSidebar() {
                     )}
                   >
                     {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/15 to-red-500/10 border border-orange-500/20" />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
                     )}
                     {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-orange-400 to-red-500 shadow-lg shadow-orange-500/50" />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
                     )}
                     <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-orange-400" : ""} />
+                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
                       {!collapsed && <span className="relative">{item.label}</span>}
                     </div>
                   </div>
@@ -297,13 +297,13 @@ export function AppSidebar() {
                     )}
                   >
                     {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/15 to-red-500/10 border border-orange-500/20" />
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
                     )}
                     {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-orange-400 to-red-500 shadow-lg shadow-orange-500/50" />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
                     )}
                     <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-orange-400" : ""} />
+                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
                       {!collapsed && <span className="relative">{item.label}</span>}
                     </div>
                   </div>
@@ -315,7 +315,7 @@ export function AppSidebar() {
 
         {/* Bottom */}
         <div className="border-t border-white/[0.06] p-3 space-y-1 relative">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/10 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-teal-500/10 to-transparent" />
           
           <button
             data-testid="theme-toggle"
@@ -329,7 +329,7 @@ export function AppSidebar() {
           {user && (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.02]">
               <div className="relative">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500/30 to-red-500/30 flex items-center justify-center text-orange-300 text-xs font-bold shrink-0 ring-1 ring-orange-500/20">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500/30 to-cyan-600/30 flex items-center justify-center text-teal-300 text-xs font-bold shrink-0 ring-1 ring-teal-500/20">
                   {user.name.charAt(0)}
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[hsl(240,20%,6%)]" />
@@ -337,7 +337,7 @@ export function AppSidebar() {
               {!collapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate text-white/80">{user.name}</p>
-                  <p className="text-[10px] text-orange-400/50 truncate font-medium tracking-wider">{user.plan.toUpperCase()}</p>
+                  <p className="text-[10px] text-teal-400/50 truncate font-medium tracking-wider">{user.plan.toUpperCase()}</p>
                 </div>
               )}
               <button 

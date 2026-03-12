@@ -53,12 +53,12 @@ export default function ProductsPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">สินค้า</h1>
-            <p className="text-sm text-white/50">{products.length} <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-orange-500/10 text-orange-400 text-xs font-medium">รายการ</span></p>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">สินค้า</h1>
+            <p className="text-sm text-white/50">{products.length} <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-teal-500/10 text-teal-400 text-xs font-medium">รายการ</span></p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditProduct(null); }}>
             <DialogTrigger asChild>
-              <Button data-testid="btn-add-product" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20 border-0"><Plus className="w-4 h-4 mr-1" />เพิ่มสินค้า</Button>
+              <Button data-testid="btn-add-product" className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20 border-0"><Plus className="w-4 h-4 mr-1" />เพิ่มสินค้า</Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg bg-[hsl(240,15%,8%)] border-white/[0.06] max-h-[85vh] overflow-y-auto">
               <DialogHeader><DialogTitle className="text-white">{editProduct ? "แก้ไขสินค้า" : "เพิ่มสินค้าใหม่"}</DialogTitle></DialogHeader>
@@ -86,7 +86,7 @@ export default function ProductsPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-            <Input data-testid="search-products" placeholder="ค้นหาสินค้า..." className="pl-9 bg-white/[0.04] border-white/[0.06] focus:border-orange-500/40 text-white/80 placeholder:text-white/30" value={search} onChange={e => setSearch(e.target.value)} />
+            <Input data-testid="search-products" placeholder="ค้นหาสินค้า..." className="pl-9 bg-white/[0.04] border-white/[0.06] focus:border-teal-500/40 text-white/80 placeholder:text-white/30" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <Select value={catFilter} onValueChange={setCatFilter}>
             <SelectTrigger data-testid="filter-category" className="w-full sm:w-[200px] bg-white/[0.04] border-white/[0.06]"><SelectValue /></SelectTrigger>
@@ -98,7 +98,7 @@ export default function ProductsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map(product => (
-            <div key={product.id} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl group hover:border-orange-500/20 hover:bg-white/[0.04] hover:shadow-lg hover:shadow-orange-500/5 transition-all duration-300 overflow-hidden">
+            <div key={product.id} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl group hover:border-teal-500/20 hover:bg-white/[0.04] hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300 overflow-hidden">
               <div className="aspect-square bg-white/[0.02] relative overflow-hidden">
                 {product.image ? (
                   <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" crossOrigin="anonymous" />
@@ -106,7 +106,7 @@ export default function ProductsPage() {
                   <div className="w-full h-full flex items-center justify-center"><Package className="w-12 h-12 text-white/10" /></div>
                 )}
                 {product.aiScore && (
-                  <span className="absolute top-2 left-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30">AI {product.aiScore}%</span>
+                  <span className="absolute top-2 left-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/30">AI {product.aiScore}%</span>
                 )}
                 {product.stock <= 0 && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -114,7 +114,7 @@ export default function ProductsPage() {
                   </div>
                 )}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                  <button data-testid={`edit-product-${product.id}`} onClick={() => { setEditProduct(product); setDialogOpen(true); }} className="p-1.5 rounded-md bg-black/60 backdrop-blur-sm border border-white/[0.06] hover:bg-orange-500/20 hover:text-orange-400 text-white/70 transition-colors">
+                  <button data-testid={`edit-product-${product.id}`} onClick={() => { setEditProduct(product); setDialogOpen(true); }} className="p-1.5 rounded-md bg-black/60 backdrop-blur-sm border border-white/[0.06] hover:bg-teal-500/20 hover:text-teal-400 text-white/70 transition-colors">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button data-testid={`delete-product-${product.id}`} onClick={() => { if (confirm("ลบสินค้านี้?")) deleteMut.mutate(product.id); }} className="p-1.5 rounded-md bg-black/60 backdrop-blur-sm border border-white/[0.06] hover:bg-red-500/20 hover:text-red-400 text-white/70 transition-colors">
@@ -126,13 +126,13 @@ export default function ProductsPage() {
                 <p className="text-xs text-white/30">{product.category}{product.sku ? ` · ${product.sku}` : ""}</p>
                 <p className="font-medium text-sm truncate mt-0.5 text-white/80">{product.name}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-orange-400 font-bold">฿{product.price.toLocaleString()}</span>
+                  <span className="text-teal-400 font-bold">฿{product.price.toLocaleString()}</span>
                   {product.comparePrice && <span className="text-xs text-white/30 line-through">฿{product.comparePrice.toLocaleString()}</span>}
                   {product.cost && <span className="text-xs text-white/20 ml-auto">ทุน ฿{product.cost.toLocaleString()}</span>}
                 </div>
                 <div className="flex items-center justify-between mt-2 text-xs">
                   <span className={`${product.stock <= (product.lowStockThreshold || 5) ? "text-amber-400" : "text-white/40"}`}>สต็อก: {product.stock}</span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${product.status === "active" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" : "bg-white/[0.06] text-white/40 border-white/[0.06]"}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${product.status === "active" ? "bg-teal-500/10 text-teal-400 border-teal-500/20" : "bg-white/[0.06] text-white/40 border-white/[0.06]"}`}>
                     {product.status === "active" ? "ใช้งาน" : product.status === "draft" ? "แบบร่าง" : "เก็บถาวร"}
                   </span>
                 </div>
@@ -272,7 +272,7 @@ function ProductForm({ initial, categories, onSubmit, isPending }: { initial?: P
 
       {/* Profit preview */}
       {price && cost && (
-        <div className="p-3 rounded-lg bg-gradient-to-r from-orange-500/5 to-red-500/5 border border-orange-500/10">
+        <div className="p-3 rounded-lg bg-gradient-to-r from-teal-500/5 to-cyan-500/5 border border-teal-500/10">
           <div className="flex items-center justify-between text-sm">
             <span className="text-white/50">กำไรต่อชิ้น</span>
             <span className={`font-bold ${(parseFloat(price) - parseFloat(cost)) > 0 ? "text-emerald-400" : "text-red-400"}`}>
@@ -282,7 +282,7 @@ function ProductForm({ initial, categories, onSubmit, isPending }: { initial?: P
         </div>
       )}
 
-      <Button data-testid="btn-save-product" type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20 border-0" disabled={isPending || uploading}>
+      <Button data-testid="btn-save-product" type="submit" className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20 border-0" disabled={isPending || uploading}>
         {isPending ? "กำลังบันทึก..." : (initial ? "บันทึก" : "เพิ่มสินค้า")}
       </Button>
     </form>

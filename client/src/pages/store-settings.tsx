@@ -120,13 +120,13 @@ export default function StoreSettingsPage() {
 
         <Tabs defaultValue="general" className="w-full">
           <TabsList className="bg-white/[0.04] border border-white/[0.06] mb-6 w-full sm:w-auto">
-            <TabsTrigger value="general" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500/20 data-[state=active]:to-red-500/20 data-[state=active]:text-white text-white/50">
+            <TabsTrigger value="general" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500/20 data-[state=active]:to-cyan-500/20 data-[state=active]:text-white text-white/50">
               ข้อมูลร้าน
             </TabsTrigger>
-            <TabsTrigger value="payment" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500/20 data-[state=active]:to-red-500/20 data-[state=active]:text-white text-white/50">
+            <TabsTrigger value="payment" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500/20 data-[state=active]:to-cyan-500/20 data-[state=active]:text-white text-white/50">
               ชำระเงิน
             </TabsTrigger>
-            <TabsTrigger value="line" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500/20 data-[state=active]:to-red-500/20 data-[state=active]:text-white text-white/50">
+            <TabsTrigger value="line" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500/20 data-[state=active]:to-cyan-500/20 data-[state=active]:text-white text-white/50">
               LINE OA
             </TabsTrigger>
           </TabsList>
@@ -135,7 +135,7 @@ export default function StoreSettingsPage() {
           <TabsContent value="general" className="space-y-6">
             <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-2"><Store className="w-5 h-5 text-orange-400" /><CardTitle className="text-base text-white/80">ข้อมูลร้านค้า</CardTitle></div>
+                <div className="flex items-center gap-2"><Store className="w-5 h-5 text-teal-400" /><CardTitle className="text-base text-white/80">ข้อมูลร้านค้า</CardTitle></div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div><label className="text-sm font-medium block mb-1 text-white/60">ชื่อร้านค้า</label><Input data-testid="input-store-name" value={name} onChange={e => setName(e.target.value)} className="bg-white/[0.04] border-white/[0.06] text-white" /></div>
@@ -163,7 +163,7 @@ export default function StoreSettingsPage() {
                     <div className="flex items-center gap-3 mt-2">
                       <Switch data-testid="toggle-store-status" checked={isActive} onCheckedChange={setIsActive} />
                       {isActive ? (
-                        <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/30">เปิดใช้งาน</Badge>
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">เปิดใช้งาน</Badge>
                       ) : (
                         <Badge className="bg-white/[0.06] text-white/40 border-white/[0.06]">ปิดชั่วคราว</Badge>
                       )}
@@ -175,13 +175,13 @@ export default function StoreSettingsPage() {
 
             <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-2"><Palette className="w-5 h-5 text-red-400" /><CardTitle className="text-base text-white/80">ธีมร้านค้า</CardTitle></div>
+                <div className="flex items-center gap-2"><Palette className="w-5 h-5 text-violet-400" /><CardTitle className="text-base text-white/80">ธีมร้านค้า</CardTitle></div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {themes.map(t => (
                     <button key={t.value} data-testid={`theme-${t.value}`} onClick={() => setTheme(t.value)}
-                      className={`p-4 rounded-xl border text-left transition-all ${theme === t.value ? "border-orange-500 bg-orange-500/5 ring-1 ring-orange-500" : "border-white/[0.06] hover:border-orange-500/20"}`}>
+                      className={`p-4 rounded-xl border text-left transition-all ${theme === t.value ? "border-teal-500 bg-teal-500/5 ring-1 ring-teal-500" : "border-white/[0.06] hover:border-teal-500/20"}`}>
                       <p className="font-medium text-sm text-white/80">{t.label}</p>
                       <p className="text-xs text-white/40 mt-1">{t.desc}</p>
                     </button>
@@ -192,7 +192,7 @@ export default function StoreSettingsPage() {
 
             <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-2"><Globe className="w-5 h-5 text-orange-400" /><CardTitle className="text-base text-white/80">ลิงก์ร้านค้า</CardTitle></div>
+                <div className="flex items-center gap-2"><Globe className="w-5 h-5 text-sky-400" /><CardTitle className="text-base text-white/80">ลิงก์ร้านค้า</CardTitle></div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="p-3 rounded-xl bg-white/[0.04] flex items-center gap-2">
@@ -211,7 +211,7 @@ export default function StoreSettingsPage() {
                 </div>
                 <div className="flex gap-3">
                   <Link href={`/shop/${slug}`}>
-                    <Button variant="outline" size="sm" data-testid="btn-view-store" className="border-white/[0.06] text-white/60 hover:text-orange-400 hover:border-orange-500/20">
+                    <Button variant="outline" size="sm" data-testid="btn-view-store" className="border-white/[0.06] text-white/60 hover:text-teal-400 hover:border-teal-500/20">
                       <ExternalLink className="w-3.5 h-3.5 mr-1" /> ดูหน้าร้าน
                     </Button>
                   </Link>
@@ -219,7 +219,7 @@ export default function StoreSettingsPage() {
               </CardContent>
             </Card>
 
-            <Button data-testid="btn-save-store" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20" onClick={handleSaveGeneral} disabled={updateMut.isPending}>
+            <Button data-testid="btn-save-store" className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20" onClick={handleSaveGeneral} disabled={updateMut.isPending}>
               <Save className="w-4 h-4 mr-1" />บันทึกการเปลี่ยนแปลง
             </Button>
           </TabsContent>
@@ -228,7 +228,7 @@ export default function StoreSettingsPage() {
           <TabsContent value="payment" className="space-y-6">
             <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-2"><CreditCard className="w-5 h-5 text-orange-400" /><CardTitle className="text-base text-white/80">ช่องทางชำระเงิน</CardTitle></div>
+                <div className="flex items-center gap-2"><CreditCard className="w-5 h-5 text-emerald-400" /><CardTitle className="text-base text-white/80">ช่องทางชำระเงิน</CardTitle></div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* PromptPay */}
@@ -323,7 +323,7 @@ export default function StoreSettingsPage() {
               </Card>
             )}
 
-            <Button data-testid="btn-save-payment" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20" onClick={handleSavePayment} disabled={updateMut.isPending}>
+            <Button data-testid="btn-save-payment" className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20" onClick={handleSavePayment} disabled={updateMut.isPending}>
               <Save className="w-4 h-4 mr-1" />บันทึกการตั้งค่าชำระเงิน
             </Button>
           </TabsContent>
@@ -409,7 +409,7 @@ export default function StoreSettingsPage() {
                     <li>สร้าง Messaging API Channel (หรือใช้ที่มีอยู่)</li>
                     <li>คัดลอก Channel ID และ Channel Secret</li>
                     <li>ไปที่ Messaging API → สร้าง Channel Access Token</li>
-                    <li>ตั้ง Webhook URL เป็น: <code className="text-orange-400/60">{window.location.origin}/api/line/webhook/{slug}</code></li>
+                    <li>ตั้ง Webhook URL เป็น: <code className="text-teal-400/60">{window.location.origin}/api/line/webhook/{slug}</code></li>
                     <li>เปิด "Use webhook" ใน LINE Developers</li>
                   </ol>
                 </div>

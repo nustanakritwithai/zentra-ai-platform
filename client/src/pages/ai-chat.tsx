@@ -16,12 +16,12 @@ import type { AiAgent } from "@shared/schema";
 const iconMap: Record<string, any> = { ShoppingBag, Sparkles, TrendingUp, Headphones, BarChart3, Eye };
 
 const agentColors: Record<string, string> = {
-  shopping_assistant: "from-orange-500 to-amber-500",
-  recommendation: "from-red-500 to-orange-500",
+  shopping_assistant: "from-teal-500 to-amber-500",
+  recommendation: "from-violet-500 to-fuchsia-500",
   dynamic_pricing: "from-amber-500 to-yellow-500",
-  customer_support: "from-orange-600 to-red-500",
+  customer_support: "from-emerald-500 to-teal-600",
   inventory_forecast: "from-rose-500 to-red-600",
-  visual_search: "from-red-400 to-orange-500",
+  visual_search: "from-pink-500 to-rose-500",
 };
 
 interface RAGSource {
@@ -144,8 +144,8 @@ export default function AiChatPage() {
         <div className="flex items-center justify-between mb-4 shrink-0">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-orange-400" />
-              <span className="bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">AI Chat</span>
+              <MessageSquare className="w-5 h-5 text-violet-400" />
+              <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">AI Chat</span>
             </h1>
             <p className="text-sm text-white/40">สนทนากับ AI Agent — Memory + RAG ขับเคลื่อนด้วย Gemini AI</p>
           </div>
@@ -180,7 +180,7 @@ export default function AiChatPage() {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm transition-all",
                     isSelected
-                      ? "bg-gradient-to-r from-orange-500/15 to-red-500/10 text-orange-400 border border-orange-500/20"
+                      ? "bg-gradient-to-r from-teal-500/15 to-cyan-600/10 text-violet-400 border border-violet-500/20"
                       : isDisabled
                         ? "opacity-30 cursor-not-allowed"
                         : "hover:bg-white/[0.04] text-white/50 hover:text-white/70"
@@ -209,7 +209,7 @@ export default function AiChatPage() {
                     onClick={() => handleSelectAgent(agent.type)}
                     className={cn(
                       "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all",
-                      isSelected ? "bg-gradient-to-r from-orange-500/15 to-red-500/10 text-orange-400 border border-orange-500/20" : !agent.enabled ? "opacity-30" : "bg-white/[0.04] hover:bg-white/[0.06] text-white/50"
+                      isSelected ? "bg-gradient-to-r from-teal-500/15 to-cyan-600/10 text-violet-400 border border-violet-500/20" : !agent.enabled ? "opacity-30" : "bg-white/[0.04] hover:bg-white/[0.06] text-white/50"
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -226,8 +226,8 @@ export default function AiChatPage() {
               /* No Agent Selected */
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-md">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mx-auto mb-4">
-                    <Bot className="w-8 h-8 text-orange-400" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500/20 to-cyan-600/20 flex items-center justify-center mx-auto mb-4">
+                    <Bot className="w-8 h-8 text-violet-400" />
                   </div>
                   <h2 className="text-lg font-bold mb-2 text-white/90">เลือก AI Agent เพื่อเริ่มสนทนา</h2>
                   <p className="text-sm text-white/40 mb-2">
@@ -245,9 +245,9 @@ export default function AiChatPage() {
                         <button
                           key={agent.id}
                           onClick={() => handleSelectAgent(agent.type)}
-                          className="flex items-center gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/5 transition-all text-left"
+                          className="flex items-center gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:border-violet-500/20 hover:bg-violet-500/5 transition-all text-left"
                         >
-                          <Icon className="w-4 h-4 text-orange-400 shrink-0" />
+                          <Icon className="w-4 h-4 text-violet-400 shrink-0" />
                           <span className="text-xs font-medium truncate text-white/70">{agent.name}</span>
                         </button>
                       );
@@ -260,13 +260,13 @@ export default function AiChatPage() {
                 {/* Agent Info Header */}
                 {currentAgent && (
                   <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06] mb-3 shrink-0">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${agentColors[currentAgent.type] || "from-orange-500 to-red-500"} flex items-center justify-center`}>
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${agentColors[currentAgent.type] || "from-violet-500 to-fuchsia-600"} flex items-center justify-center`}>
                       {(() => { const Icon = iconMap[currentAgent.icon || ""] || Sparkles; return <Icon className="w-5 h-5 text-white" />; })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-sm text-white/90">{currentAgent.name}</h3>
-                        <Badge variant="outline" className="text-[10px] bg-orange-500/10 text-orange-400 border-orange-500/20">
+                        <Badge variant="outline" className="text-[10px] bg-violet-500/10 text-violet-400 border-violet-500/20">
                           Gemini AI
                         </Badge>
                         <Badge variant="outline" className="text-[10px] bg-red-500/10 text-red-400 border-red-500/20">
@@ -292,14 +292,14 @@ export default function AiChatPage() {
                   {localMessages.map((msg, i) => (
                     <div key={msg.id || i} className={cn("flex gap-3", msg.role === "user" ? "justify-end" : "justify-start")}>
                       {msg.role === "model" && (
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[msg.agentType] || "from-orange-500 to-red-500"} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[msg.agentType] || "from-violet-500 to-fuchsia-600"} flex items-center justify-center shrink-0 mt-0.5`}>
                           <Bot className="w-4 h-4 text-white" />
                         </div>
                       )}
                       <div className={cn(
                         "max-w-[80%] px-4 py-3 text-sm leading-relaxed",
                         msg.role === "user"
-                          ? "bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl rounded-br-md"
+                          ? "bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white rounded-2xl rounded-br-md"
                           : "bg-white/[0.02] border border-white/[0.06] rounded-2xl rounded-bl-md"
                       )}>
                         <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -323,7 +323,7 @@ export default function AiChatPage() {
                             {msg.ragSources && msg.ragSources.length > 0 && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 cursor-default">
+                                  <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400 cursor-default">
                                     <Database className="w-3 h-3" />
                                     RAG ({msg.ragSources.length})
                                   </span>
@@ -370,7 +370,7 @@ export default function AiChatPage() {
                   ))}
                   {sendMut.isPending && (
                     <div className="flex gap-3">
-                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[selectedAgent] || "from-orange-500 to-red-500"} flex items-center justify-center shrink-0`}>
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[selectedAgent] || "from-violet-500 to-fuchsia-600"} flex items-center justify-center shrink-0`}>
                         <Bot className="w-4 h-4 text-white" />
                       </div>
                       <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl rounded-bl-md px-4 py-3">
@@ -394,7 +394,7 @@ export default function AiChatPage() {
                       onChange={e => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
                       placeholder={`พิมพ์ข้อความถึง ${currentAgent?.name || "AI Agent"}...`}
-                      className="min-h-[44px] max-h-[120px] resize-none bg-white/[0.04] border-white/[0.06] focus:border-orange-500/30"
+                      className="min-h-[44px] max-h-[120px] resize-none bg-white/[0.04] border-white/[0.06] focus:border-violet-500/30"
                       rows={1}
                     />
                     <Button
@@ -402,7 +402,7 @@ export default function AiChatPage() {
                       onClick={handleSend}
                       disabled={!input.trim() || sendMut.isPending}
                       size="icon"
-                      className="shrink-0 h-[44px] w-[44px] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                      className="shrink-0 h-[44px] w-[44px] bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white"
                     >
                       <Send className="w-4 h-4" />
                     </Button>

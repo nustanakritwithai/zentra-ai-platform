@@ -112,8 +112,8 @@ export default function MallPage() {
 
       {/* Hero Header */}
       <header className="relative overflow-hidden border-b border-white/[0.06]">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.08] via-transparent to-red-500/[0.05]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-orange-500/[0.04] rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-teal-500/[0.08] via-transparent to-violet-500/[0.05]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-teal-500/[0.04] rounded-full blur-3xl" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-8 sm:py-12">
           <div className="flex items-center gap-3 mb-6">
@@ -125,7 +125,7 @@ export default function MallPage() {
           </div>
           
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
               <ShoppingBag className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -158,7 +158,7 @@ export default function MallPage() {
             <button
               data-testid="mall-cat-all"
               onClick={() => setSelectedCat("all")}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedCat === "all" ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/20" : "bg-white/[0.04] text-white/50 hover:bg-white/[0.08]"}`}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedCat === "all" ? "bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/20" : "bg-white/[0.04] text-white/50 hover:bg-white/[0.08]"}`}
             >
               ทั้งหมด ({productsRes?.total || 0})
             </button>
@@ -167,7 +167,7 @@ export default function MallPage() {
                 key={cat.name}
                 data-testid={`mall-cat-${cat.name}`}
                 onClick={() => setSelectedCat(cat.name)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedCat === cat.name ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/20" : "bg-white/[0.04] text-white/50 hover:bg-white/[0.08]"}`}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedCat === cat.name ? "bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/20" : "bg-white/[0.04] text-white/50 hover:bg-white/[0.08]"}`}
               >
                 {cat.name} ({cat.count})
               </button>
@@ -189,14 +189,14 @@ export default function MallPage() {
                   data-testid={`mall-store-${store.slug}`}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all cursor-pointer min-w-[200px] group"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center shrink-0 text-orange-400 font-bold text-sm">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-teal-500/20 to-cyan-500/20 flex items-center justify-center shrink-0 text-teal-400 font-bold text-sm">
                     {store.logo ? <img src={store.logo} className="w-full h-full rounded-lg object-cover" /> : store.name.charAt(0)}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-white/80 truncate">{store.name}</p>
                     <p className="text-[10px] text-white/30 truncate">{store.description || "ร้านค้า ZENTRA AI"}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-white/20 shrink-0 group-hover:text-orange-400 transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-white/20 shrink-0 group-hover:text-teal-400 transition-colors" />
                 </div>
               </Link>
             ))}
@@ -229,7 +229,7 @@ export default function MallPage() {
                 <Link key={product.id} href={store ? `/shop/${store.slug}` : "#"}>
                   <div
                     data-testid={`mall-product-${product.id}`}
-                    className="group bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden hover:bg-white/[0.04] hover:border-orange-500/20 transition-all cursor-pointer"
+                    className="group bg-white/[0.02] border border-white/[0.06] rounded-xl overflow-hidden hover:bg-white/[0.04] hover:border-teal-500/20 transition-all cursor-pointer"
                   >
                     {/* Image */}
                     <div className="aspect-square bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden">
@@ -255,7 +255,7 @@ export default function MallPage() {
                     <div className="p-2.5">
                       <p className="text-xs text-white/70 truncate font-medium">{product.name}</p>
                       <div className="flex items-baseline gap-1.5 mt-1">
-                        <span className="text-sm font-bold text-orange-400">฿{product.price.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-emerald-400">฿{product.price.toLocaleString()}</span>
                         {hasDiscount && (
                           <span className="text-[10px] text-white/30 line-through">฿{product.comparePrice!.toLocaleString()}</span>
                         )}

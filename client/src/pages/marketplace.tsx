@@ -82,7 +82,7 @@ export default function MarketplacePage() {
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: "แพลตฟอร์มที่เชื่อมต่อ", value: Object.values(connectedPlatforms).filter(Boolean).length.toString(), icon: Store, color: "text-orange-400" },
+            { label: "แพลตฟอร์มที่เชื่อมต่อ", value: Object.values(connectedPlatforms).filter(Boolean).length.toString(), icon: Store, color: "text-teal-400" },
             { label: "สินค้าที่ซิงค์", value: "0", icon: Package, color: "text-blue-400" },
             { label: "ออเดอร์จาก Marketplace", value: "0", icon: ShoppingCart, color: "text-green-400" },
             { label: "ซิงค์ล่าสุด", value: "ยังไม่เริ่ม", icon: RefreshCw, color: "text-purple-400" },
@@ -180,7 +180,7 @@ export default function MarketplacePage() {
                       </Button>
                       <Button
                         size="sm"
-                        className={isConnected ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-gradient-to-r from-orange-500 to-red-500 text-white"}
+                        className={isConnected ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-gradient-to-r from-teal-500 to-cyan-600 text-white"}
                         onClick={() => isConnected
                           ? (setConnectedPlatforms(prev => ({ ...prev, [platform.id]: false })), toast({ title: `ยกเลิกการเชื่อมต่อ ${platform.name}` }))
                           : handleConnect(platform.id)

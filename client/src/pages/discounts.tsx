@@ -138,7 +138,7 @@ function DiscountForm({ discount, onClose }: { discount?: Discount; onClose: () 
           data-testid="btn-save-discount"
           onClick={() => mutation.mutate()}
           disabled={!code || !value || mutation.isPending}
-          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+          className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white"
         >
           {mutation.isPending ? "กำลังบันทึก..." : (discount ? "อัปเดต" : "สร้างโค้ด")}
         </Button>
@@ -187,7 +187,7 @@ export default function DiscountsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              <TicketPercent className="w-6 h-6 text-orange-400" />
+              <TicketPercent className="w-6 h-6 text-teal-400" />
               โค้ดส่วนลด
             </h1>
             <p className="text-sm text-white/40 mt-1">จัดการโค้ดคูปอง / ส่วนลดสำหรับร้านของคุณ</p>
@@ -196,7 +196,7 @@ export default function DiscountsPage() {
             <DialogTrigger asChild>
               <Button
                 data-testid="btn-add-discount"
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" /> สร้างโค้ดส่วนลด
               </Button>
@@ -222,7 +222,7 @@ export default function DiscountsPage() {
           </div>
           <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
             <p className="text-xs text-white/40">ใช้แล้ว (ครั้ง)</p>
-            <p className="text-2xl font-bold text-orange-400 mt-1">{discounts.reduce((s, d) => s + (d.usedCount || 0), 0)}</p>
+            <p className="text-2xl font-bold text-teal-400 mt-1">{discounts.reduce((s, d) => s + (d.usedCount || 0), 0)}</p>
           </div>
         </div>
 
@@ -247,8 +247,8 @@ export default function DiscountsPage() {
                 data-testid={`discount-item-${d.id}`}
                 className="group flex items-center gap-4 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] transition-all"
               >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${d.active ? "bg-gradient-to-br from-orange-500/20 to-red-500/20" : "bg-white/[0.04]"}`}>
-                  {d.type === "percentage" ? <Percent className={`w-5 h-5 ${d.active ? "text-orange-400" : "text-white/30"}`} /> : <DollarSign className={`w-5 h-5 ${d.active ? "text-orange-400" : "text-white/30"}`} />}
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${d.active ? "bg-gradient-to-br from-teal-500/20 to-cyan-500/20" : "bg-white/[0.04]"}`}>
+                  {d.type === "percentage" ? <Percent className={`w-5 h-5 ${d.active ? "text-teal-400" : "text-white/30"}`} /> : <DollarSign className={`w-5 h-5 ${d.active ? "text-teal-400" : "text-white/30"}`} />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

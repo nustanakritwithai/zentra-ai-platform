@@ -91,10 +91,10 @@ export default function DashboardPage() {
   const realtimeChart = useRealtimeChart(chart);
 
   const kpis = [
-    { label: "ยอดขายวันนี้", value: stats?.todayRevenue || 0, icon: DollarSign, change: "+12%", up: true, color: "from-orange-500 to-amber-500", iconBg: "bg-orange-500/10", iconColor: "text-orange-500" },
-    { label: "ยอดขายเดือนนี้", value: stats?.monthRevenue || 0, icon: TrendingUp, change: "+23%", up: true, color: "from-red-500 to-orange-500", iconBg: "bg-red-500/10", iconColor: "text-red-500" },
-    { label: "คำสั่งซื้อใหม่", value: stats?.pendingOrders || 0, icon: ShoppingCart, change: `${stats?.totalOrders || 0} ทั้งหมด`, up: true, color: "from-amber-500 to-orange-500", iconBg: "bg-amber-500/10", iconColor: "text-amber-500", isTHB: false },
-    { label: "ลูกค้าทั้งหมด", value: stats?.totalCustomers || 0, icon: Users, change: `${stats?.newCustomers || 0} ใหม่`, up: true, color: "from-orange-400 to-red-400", iconBg: "bg-orange-400/10", iconColor: "text-orange-400", isTHB: false },
+    { label: "ยอดขายวันนี้", value: stats?.todayRevenue || 0, icon: DollarSign, change: "+12%", up: true, color: "from-emerald-500 to-teal-500", iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500" },
+    { label: "ยอดขายเดือนนี้", value: stats?.monthRevenue || 0, icon: TrendingUp, change: "+23%", up: true, color: "from-sky-500 to-blue-500", iconBg: "bg-sky-500/10", iconColor: "text-sky-500" },
+    { label: "คำสั่งซื้อใหม่", value: stats?.pendingOrders || 0, icon: ShoppingCart, change: `${stats?.totalOrders || 0} ทั้งหมด`, up: true, color: "from-amber-500 to-yellow-500", iconBg: "bg-amber-500/10", iconColor: "text-amber-500", isTHB: false },
+    { label: "ลูกค้าทั้งหมด", value: stats?.totalCustomers || 0, icon: Users, change: `${stats?.newCustomers || 0} ใหม่`, up: true, color: "from-violet-500 to-fuchsia-500", iconBg: "bg-violet-500/10", iconColor: "text-violet-500", isTHB: false },
   ];
 
   return (
@@ -158,8 +158,8 @@ export default function DashboardPage() {
                 <CardTitle className="text-base font-bold">รายได้ 7 วันล่าสุด</CardTitle>
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                   </span>
                   <span className="text-xs text-muted-foreground">Live</span>
                 </div>
@@ -208,8 +208,8 @@ export default function DashboardPage() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-bold">AI Agent Status</CardTitle>
-                <Badge variant="outline" className="text-xs border-orange-500/30 bg-orange-500/5">
-                  <Bot className="w-3 h-3 mr-1 text-orange-500" />6 Agents
+                <Badge variant="outline" className="text-xs border-violet-500/30 bg-violet-500/5">
+                  <Bot className="w-3 h-3 mr-1 text-violet-500" />6 Agents
                 </Badge>
               </div>
             </CardHeader>
@@ -227,14 +227,14 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2 mt-0.5">
                       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-1000"
+                          className="h-full rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 transition-all duration-1000"
                           style={{ width: `${agent.performance}%` }}
                         />
                       </div>
                       <span className="text-[10px] text-muted-foreground tabular-nums">{agent.performance}%</span>
                     </div>
                   </div>
-                  <Badge variant={agent.enabled ? "default" : "secondary"} className={`text-[10px] shrink-0 ${agent.enabled ? "bg-gradient-to-r from-orange-500 to-red-500 border-0" : ""}`}>
+                  <Badge variant={agent.enabled ? "default" : "secondary"} className={`text-[10px] shrink-0 ${agent.enabled ? "bg-gradient-to-r from-teal-500 to-cyan-600 border-0" : ""}`}>
                     {agent.enabled ? "ON" : "OFF"}
                   </Badge>
                 </div>
@@ -248,8 +248,8 @@ export default function DashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-bold">คำสั่งซื้อล่าสุด</CardTitle>
-              <Badge variant="outline" className="text-xs border-orange-500/30 bg-orange-500/5">
-                <Activity className="w-3 h-3 mr-1 text-orange-500" />Real-time
+              <Badge variant="outline" className="text-xs border-violet-500/30 bg-violet-500/5">
+                <Activity className="w-3 h-3 mr-1 text-teal-500" />Real-time
               </Badge>
             </div>
           </CardHeader>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                     <tr key={order.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors animate-slide-in-right" style={{ animationDelay: `${i * 80}ms` }}>
                       <td className="py-3 px-3 font-mono text-xs text-muted-foreground">#{String(order.id).padStart(4, "0")}</td>
                       <td className="py-3 px-3 font-medium">{order.customerName}</td>
-                      <td className="py-3 px-3 font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">{formatTHB(order.total)}</td>
+                      <td className="py-3 px-3 font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">{formatTHB(order.total)}</td>
                       <td className="py-3 px-3">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[order.status] || ""}`}>
                           <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${order.status === 'pending' ? 'bg-amber-500' : order.status === 'delivered' ? 'bg-green-500' : order.status === 'shipped' ? 'bg-violet-500' : order.status === 'confirmed' ? 'bg-blue-500' : 'bg-red-500'}`} />

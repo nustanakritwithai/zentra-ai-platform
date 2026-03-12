@@ -44,13 +44,13 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[hsl(240,20%,4%)] p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5" />
-      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-red-500/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-violet-500/5" />
+      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
 
       <Card className="w-full max-w-md relative z-10 bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg mb-3">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-lg mb-3">
             Z
           </div>
           <CardTitle className="text-xl text-white/90">{isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชีใหม่"}</CardTitle>
@@ -110,13 +110,13 @@ export default function AuthPage() {
               <label className="text-sm font-medium mb-1.5 block text-white/60">รหัสผ่าน</label>
               <Input data-testid="input-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="bg-white/[0.04] border-white/[0.06] text-white placeholder:text-white/20" />
             </div>
-            <Button data-testid="btn-submit-auth" type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20" disabled={isLoginPending || isRegisterPending}>
+            <Button data-testid="btn-submit-auth" type="submit" className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20" disabled={isLoginPending || isRegisterPending}>
               {isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชีฟรี"}
             </Button>
           </form>
           <div className="mt-2 text-center text-sm text-white/40">
             {isLogin ? "ยังไม่มีบัญชี? " : "มีบัญชีแล้ว? "}
-            <button data-testid="toggle-auth-mode" className="text-orange-400 hover:text-orange-300" onClick={() => setIsLogin(!isLogin)}>
+            <button data-testid="toggle-auth-mode" className="text-teal-400 hover:text-teal-300" onClick={() => setIsLogin(!isLogin)}>
               {isLogin ? "สร้างบัญชีใหม่ เปิดร้านฟรี" : "เข้าสู่ระบบ"}
             </button>
           </div>

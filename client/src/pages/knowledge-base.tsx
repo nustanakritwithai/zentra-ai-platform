@@ -110,8 +110,8 @@ export default function KnowledgeBasePage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-orange-400" />
-              <span className="bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">Knowledge Base</span>
+              <BookOpen className="w-5 h-5 text-violet-400" />
+              <span className="bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">Knowledge Base</span>
             </h1>
             <p className="text-sm text-white/40 mt-0.5">
               จัดการฐานความรู้ที่ AI Agent ใช้ตอบคำถาม — FAQs, นโยบาย, คู่มือ
@@ -124,14 +124,14 @@ export default function KnowledgeBasePage() {
               size="sm"
               onClick={() => reindexMut.mutate()}
               disabled={reindexMut.isPending}
-              className="gap-1.5 border-white/[0.06] text-white/50 hover:text-orange-400"
+              className="gap-1.5 border-white/[0.06] text-white/50 hover:text-violet-400"
             >
               <RefreshCw className={cn("w-3.5 h-3.5", reindexMut.isPending && "animate-spin")} />
               Re-index
             </Button>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button data-testid="add-kb-btn" size="sm" className="gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                <Button data-testid="add-kb-btn" size="sm" className="gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white">
                   <Plus className="w-3.5 h-3.5" />
                   เพิ่มข้อมูล
                 </Button>
@@ -139,7 +139,7 @@ export default function KnowledgeBasePage() {
               <DialogContent className="sm:max-w-lg bg-[hsl(240,15%,8%)] border-white/[0.06]">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-white/90">
-                    <BookOpen className="w-5 h-5 text-orange-400" />
+                    <BookOpen className="w-5 h-5 text-violet-400" />
                     เพิ่มข้อมูลใหม่
                   </DialogTitle>
                 </DialogHeader>
@@ -181,7 +181,7 @@ export default function KnowledgeBasePage() {
                   </div>
                   <Button
                     data-testid="kb-submit-btn"
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                    className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white"
                     onClick={() => addMut.mutate()}
                     disabled={!title.trim() || !content.trim() || addMut.isPending}
                   >
@@ -199,8 +199,8 @@ export default function KnowledgeBasePage() {
           <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-                  <Database className="w-5 h-5 text-orange-400" />
+                <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-violet-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white/90">{stats?.rag.totalDocuments ?? "—"}</p>
@@ -279,7 +279,7 @@ export default function KnowledgeBasePage() {
                 className={cn(
                   "text-xs",
                   filterCat === f.key
-                    ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0"
+                    ? "bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0"
                     : "bg-white/[0.04] border-white/[0.06] text-white/50 hover:text-white/70"
                 )}
               >
@@ -292,7 +292,7 @@ export default function KnowledgeBasePage() {
         {/* Entries Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-orange-400" />
+            <Loader2 className="w-6 h-6 animate-spin text-violet-400" />
           </div>
         ) : filtered.length === 0 ? (
           <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
@@ -308,7 +308,7 @@ export default function KnowledgeBasePage() {
               const config = categoryConfig[entry.category] || categoryConfig.custom;
               const Icon = config.icon;
               return (
-                <Card key={entry.id} data-testid={`kb-entry-${entry.id}`} className="bg-white/[0.02] border-white/[0.06] rounded-2xl hover:border-orange-500/20 transition-colors">
+                <Card key={entry.id} data-testid={`kb-entry-${entry.id}`} className="bg-white/[0.02] border-white/[0.06] rounded-2xl hover:border-violet-500/20 transition-colors">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -356,7 +356,7 @@ export default function KnowledgeBasePage() {
           <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-white/90">
-                <Database className="w-4 h-4 text-orange-400" />
+                <Database className="w-4 h-4 text-violet-400" />
                 Vector Store Breakdown
               </CardTitle>
             </CardHeader>
@@ -371,7 +371,7 @@ export default function KnowledgeBasePage() {
                   };
                   return (
                     <div key={source} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-                      <div className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-violet-400 shrink-0" />
                       <span className="text-xs text-white/40">{labels[source] || source}</span>
                       <span className="text-xs font-bold ml-auto text-white/90">{count}</span>
                     </div>
