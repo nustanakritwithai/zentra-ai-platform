@@ -12,21 +12,27 @@ import {
   getRAGStats,
   reindexStore,
   getMemoryStats,
+  updateGeminiApiKey,
+  getGeminiStatus,
 } from "./gemini";
+import crypto from "crypto";
 
 // Simple per-request session map (keyed by a session token header)
-// In production you'd use express-session + Redis, but for Render free tier this works
-const sessions = new Map<string, { userId: number; storeId: number }>();
+const sessions = new Map<string, { userId: number; storeId: number; createdAt: number }>();
 
 function generateToken(): string {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return crypto.randomBytes(32).toString("hex");
 }
 
 // Helper: get session from request
 function getSession(req: Request): { userId: number; storeId: number } | null {
   const token = req.headers["x-session-token"] as string;
   if (!token) return null;
-  return sessions.get(token) || null;
+  const session = sessions.get(token);
+  if (!session) return null;
+  // Extend session TTL on activity (24h)
+  session.createdAt = Date.now();
+  return session;
 }
 
 // Helper: require auth middleware-style
@@ -38,6 +44,16 @@ function requireAuth(req: Request, res: Response): { userId: number; storeId: nu
   }
   return session;
 }
+
+// Clean up expired sessions (older than 24h)
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, session] of sessions.entries()) {
+    if (now - session.createdAt > 24 * 60 * 60 * 1000) {
+      sessions.delete(token);
+    }
+  }
+}, 60 * 60 * 1000); // Check every hour
 
 export async function registerRoutes(server: Server, app: Express): Promise<void> {
 
@@ -67,10 +83,8 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const existing = await storage.getUserByEmail(email);
     if (existing) return res.status(400).json({ error: "อีเมลนี้ถูกใช้แล้ว" });
     const user = await storage.createUser({ email, password, name });
-    // Generate session token
     const token = generateToken();
-    // Don't create store yet — the onboarding wizard will create it
-    sessions.set(token, { userId: user.id, storeId: 0 });
+    sessions.set(token, { userId: user.id, storeId: 0, createdAt: Date.now() });
     res.json({ user: { ...user, password: undefined }, token });
   });
 
@@ -78,11 +92,10 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const { email, password } = req.body;
     const user = await storage.getUserByEmail(email);
     if (!user || user.password !== password) return res.status(401).json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
-    // Find user's stores
     const stores = await storage.getStoresByUser(user.id);
     const storeId = stores.length > 0 ? stores[0].id : 0;
     const token = generateToken();
-    sessions.set(token, { userId: user.id, storeId });
+    sessions.set(token, { userId: user.id, storeId, createdAt: Date.now() });
     res.json({ user: { ...user, password: undefined }, token, storeId });
   });
 
@@ -96,7 +109,8 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const stores = await storage.getStoresByUser(user.id);
     const storeId = stores.length > 0 ? stores[0].id : 0;
     // Update session storeId if changed
-    sessions.set(req.headers["x-session-token"] as string, { userId: user.id, storeId });
+    const token = req.headers["x-session-token"] as string;
+    sessions.set(token, { userId: user.id, storeId, createdAt: Date.now() });
     res.json({ user: { ...user, password: undefined }, storeId });
   });
 
@@ -115,7 +129,6 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const { name, slug, description, currency, category } = req.body;
     if (!name || !slug) return res.status(400).json({ error: "กรุณากรอกชื่อร้านและ URL" });
 
-    // Check slug uniqueness
     const existingStore = await storage.getStoreBySlug(slug);
     if (existingStore) return res.status(400).json({ error: "URL นี้ถูกใช้แล้ว กรุณาเลือก URL อื่น" });
 
@@ -141,12 +154,23 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       await storage.createAiAgent(store.id, agent as any);
     }
 
-    // Mark user as onboarded
+    // Create default categories
+    const defaultCategories = [
+      { name: "ทั่วไป", slug: "general", sortOrder: 0 },
+      { name: "อุปกรณ์อิเล็กทรอนิกส์", slug: "electronics", sortOrder: 1 },
+      { name: "เสื้อผ้า", slug: "clothing", sortOrder: 2 },
+      { name: "รองเท้า", slug: "shoes", sortOrder: 3 },
+      { name: "กระเป๋า", slug: "bags", sortOrder: 4 },
+    ];
+
+    for (const cat of defaultCategories) {
+      await storage.createCategory(store.id, cat as any);
+    }
+
     await storage.updateUser(session.userId, { onboarded: true });
 
-    // Update session with new storeId
     const token = req.headers["x-session-token"] as string;
-    sessions.set(token, { userId: session.userId, storeId: store.id });
+    sessions.set(token, { userId: session.userId, storeId: store.id, createdAt: Date.now() });
 
     res.json({ store, storeId: store.id });
   });
@@ -185,6 +209,83 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const store = await storage.updateStore(Number(req.params.id), req.body);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
     res.json(store);
+  });
+
+  // =================== CATEGORIES (per store) ===================
+
+  app.get("/api/categories", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const cats = await storage.getCategoriesByStore(session.storeId);
+    res.json(cats);
+  });
+
+  app.post("/api/categories", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { name, slug, description, image, parentId, sortOrder } = req.body;
+    if (!name) return res.status(400).json({ error: "กรุณากรอกชื่อหมวดหมู่" });
+    const autoSlug = slug || name.toLowerCase().replace(/[^a-z0-9ก-๙]+/g, "-").replace(/^-|-$/g, "");
+    const cat = await storage.createCategory(session.storeId, { name, slug: autoSlug, description, image, parentId, sortOrder: sortOrder || 0 });
+    res.json(cat);
+  });
+
+  app.put("/api/categories/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const cat = await storage.updateCategory(Number(req.params.id), req.body);
+    if (!cat) return res.status(404).json({ error: "ไม่พบหมวดหมู่" });
+    res.json(cat);
+  });
+
+  app.delete("/api/categories/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteCategory(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // =================== IMAGE UPLOAD (Supabase Storage) ===================
+
+  app.post("/api/upload", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    
+    try {
+      const { fileData, fileName, contentType, folder } = req.body;
+      if (!fileData || !fileName) return res.status(400).json({ error: "กรุณาแนบไฟล์" });
+
+      // fileData is base64
+      const buffer = Buffer.from(fileData, "base64");
+      const path = `stores/${session.storeId}/${folder || "products"}/${Date.now()}-${fileName}`;
+
+      const { data, error } = await supabaseAdmin.storage
+        .from("zentra-uploads")
+        .upload(path, buffer, {
+          contentType: contentType || "image/jpeg",
+          upsert: false,
+        });
+
+      if (error) {
+        // Try creating bucket if it doesn't exist
+        if (error.message?.includes("not found") || error.message?.includes("Bucket")) {
+          await supabaseAdmin.storage.createBucket("zentra-uploads", { public: true });
+          const retry = await supabaseAdmin.storage
+            .from("zentra-uploads")
+            .upload(path, buffer, { contentType: contentType || "image/jpeg", upsert: false });
+          if (retry.error) throw retry.error;
+          const { data: urlData } = supabaseAdmin.storage.from("zentra-uploads").getPublicUrl(path);
+          return res.json({ url: urlData.publicUrl, path });
+        }
+        throw error;
+      }
+
+      const { data: urlData } = supabaseAdmin.storage.from("zentra-uploads").getPublicUrl(path);
+      res.json({ url: urlData.publicUrl, path });
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: error.message || "อัพโหลดไม่สำเร็จ" });
+    }
   });
 
   // =================== PRODUCTS (scoped to session storeId) ===================
@@ -258,6 +359,57 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(customer);
   });
 
+  // =================== DISCOUNTS ===================
+
+  app.get("/api/discounts", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const discounts = await storage.getDiscountsByStore(session.storeId);
+    res.json(discounts);
+  });
+
+  app.post("/api/discounts", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const discount = await storage.createDiscount(session.storeId, req.body);
+    res.json(discount);
+  });
+
+  app.put("/api/discounts/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const discount = await storage.updateDiscount(Number(req.params.id), req.body);
+    if (!discount) return res.status(404).json({ error: "ไม่พบโค้ดส่วนลด" });
+    res.json(discount);
+  });
+
+  app.delete("/api/discounts/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteDiscount(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // Validate discount code (public)
+  app.post("/api/public/validate-discount", async (req, res) => {
+    const { code, storeSlug, total } = req.body;
+    if (!code || !storeSlug) return res.status(400).json({ valid: false });
+    const store = await storage.getStoreBySlug(storeSlug);
+    if (!store) return res.status(404).json({ valid: false });
+    const discounts = await storage.getDiscountsByStore(store.id);
+    const discount = discounts.find(d => d.code.toLowerCase() === code.toLowerCase() && d.active);
+    if (!discount) return res.json({ valid: false, error: "ไม่พบโค้ดส่วนลด" });
+    if (discount.expiresAt && new Date(discount.expiresAt) < new Date()) return res.json({ valid: false, error: "โค้ดหมดอายุ" });
+    if (discount.maxUses && (discount.usedCount || 0) >= discount.maxUses) return res.json({ valid: false, error: "โค้ดถูกใช้หมดแล้ว" });
+    if (discount.minPurchase && total < discount.minPurchase) return res.json({ valid: false, error: `ยอดขั้นต่ำ ฿${discount.minPurchase}` });
+    
+    const discountAmount = discount.type === "percentage" 
+      ? (total * discount.value / 100)
+      : discount.value;
+    
+    res.json({ valid: true, discount: { ...discount }, discountAmount });
+  });
+
   // =================== AI AGENTS ===================
 
   app.get("/api/ai-agents", async (req, res) => {
@@ -273,6 +425,21 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const agent = await storage.updateAiAgent(Number(req.params.id), req.body);
     if (!agent) return res.status(404).json({ error: "ไม่พบ AI Agent" });
     res.json(agent);
+  });
+
+  // AI Gemini status & key management
+  app.get("/api/ai/gemini-status", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    res.json(getGeminiStatus());
+  });
+
+  app.post("/api/ai/gemini-key", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { apiKey } = req.body;
+    const ok = updateGeminiApiKey(apiKey);
+    res.json({ ok, status: getGeminiStatus() });
   });
 
   // =================== DASHBOARD ===================
@@ -362,19 +529,171 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!session) return;
     const memory = getMemoryStats();
     const rag = getRAGStats(session.storeId);
-    res.json({ memory, rag });
+    res.json({ memory, rag, gemini: getGeminiStatus() });
+  });
+
+  // =================== LINE API INTEGRATION ===================
+
+  // Save LINE OA credentials for a store
+  app.post("/api/line/setup", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { channelId, channelSecret, accessToken } = req.body;
+    if (!channelId || !channelSecret) return res.status(400).json({ error: "กรุณากรอก Channel ID และ Channel Secret" });
+    
+    const store = await storage.updateStore(session.storeId, {
+      lineChannelId: channelId,
+      lineChannelSecret: channelSecret,
+      lineAccessToken: accessToken || null,
+    } as any);
+
+    res.json({ ok: true, store });
+  });
+
+  // Get LINE OA status
+  app.get("/api/line/status", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    res.json({
+      connected: !!(store as any).lineChannelId,
+      channelId: (store as any).lineChannelId || null,
+      hasSecret: !!(store as any).lineChannelSecret,
+      hasAccessToken: !!(store as any).lineAccessToken,
+    });
+  });
+
+  // LINE Webhook endpoint (receives messages from LINE)
+  app.post("/api/line/webhook/:storeSlug", async (req, res) => {
+    const store = await storage.getStoreBySlug(req.params.storeSlug);
+    if (!store) return res.status(404).json({ error: "Store not found" });
+    
+    // Verify LINE signature
+    const signature = req.headers["x-line-signature"] as string;
+    const channelSecret = (store as any).lineChannelSecret;
+    if (channelSecret && signature) {
+      const body = JSON.stringify(req.body);
+      const expectedSig = crypto
+        .createHmac("SHA256", channelSecret)
+        .update(body)
+        .digest("base64");
+      if (signature !== expectedSig) {
+        return res.status(403).json({ error: "Invalid signature" });
+      }
+    }
+
+    // Process LINE events
+    const events = req.body?.events || [];
+    for (const event of events) {
+      if (event.type === "message" && event.message.type === "text") {
+        // Log inbound message
+        await storage.createLineMessage(store.id, {
+          lineUserId: event.source.userId,
+          direction: "inbound",
+          messageType: "text",
+          content: event.message.text,
+          timestamp: new Date(event.timestamp).toISOString(),
+        });
+
+        // Auto-reply with AI if access token available
+        const accessToken = (store as any).lineAccessToken;
+        if (accessToken) {
+          try {
+            const aiResult = await chatWithAgent(
+              "customer_support",
+              event.message.text,
+              store.id,
+              event.source.userId
+            );
+
+            // Reply via LINE API
+            await fetch("https://api.line.me/v2/bot/message/reply", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify({
+                replyToken: event.replyToken,
+                messages: [{ type: "text", text: aiResult.reply.replace(/\n\n_\(.*?\)_$/s, "") }],
+              }),
+            });
+
+            // Log outbound
+            await storage.createLineMessage(store.id, {
+              lineUserId: event.source.userId,
+              direction: "outbound",
+              messageType: "text",
+              content: aiResult.reply,
+              timestamp: new Date().toISOString(),
+            });
+          } catch (err: any) {
+            console.error("LINE reply error:", err.message);
+          }
+        }
+      }
+    }
+
+    res.json({ ok: true });
+  });
+
+  // Send LINE message manually
+  app.post("/api/line/send", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    
+    const accessToken = (store as any).lineAccessToken;
+    if (!accessToken) return res.status(400).json({ error: "ยังไม่ได้ตั้งค่า LINE Access Token" });
+
+    const { userId, message } = req.body;
+    if (!userId || !message) return res.status(400).json({ error: "กรุณาระบุ userId และ message" });
+
+    try {
+      await fetch("https://api.line.me/v2/bot/message/push", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          to: userId,
+          messages: [{ type: "text", text: message }],
+        }),
+      });
+
+      await storage.createLineMessage(store.id, {
+        lineUserId: userId,
+        direction: "outbound",
+        messageType: "text",
+        content: message,
+        timestamp: new Date().toISOString(),
+      });
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Get LINE messages
+  app.get("/api/line/messages", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const messages = await storage.getLineMessagesByStore(session.storeId);
+    res.json(messages);
   });
 
   // =================== PUBLIC STOREFRONT ===================
 
-  // Public: get store by slug (no auth needed)
   app.get("/api/public/store/:slug", async (req, res) => {
     const store = await storage.getStoreBySlug(req.params.slug);
     if (!store || store.status !== "active") return res.status(404).json({ error: "ไม่พบร้านค้า" });
     res.json({ store: { id: store.id, name: store.name, slug: store.slug, description: store.description, logo: store.logo, theme: store.theme, currency: store.currency } });
   });
 
-  // Public: get products by store slug
   app.get("/api/public/store/:slug/products", async (req, res) => {
     const store = await storage.getStoreBySlug(req.params.slug);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
@@ -382,33 +701,122 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(products.filter((p: any) => p.status === "active"));
   });
 
-  // Public: place order on a store
+  app.get("/api/public/store/:slug/categories", async (req, res) => {
+    const store = await storage.getStoreBySlug(req.params.slug);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    const cats = await storage.getCategoriesByStore(store.id);
+    res.json(cats);
+  });
+
   app.post("/api/public/store/:slug/orders", async (req, res) => {
     const store = await storage.getStoreBySlug(req.params.slug);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
-    const { customerName, customerEmail, items, shippingAddress } = req.body;
+    const { customerName, customerEmail, customerPhone, items, shippingAddress, paymentMethod, discountCode } = req.body;
     if (!customerName || !items || items.length === 0) {
       return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
     }
-    const total = items.reduce((s: number, item: any) => s + (item.price * item.qty), 0);
-    const order = await storage.createOrder(store.id, {
-      customerName,
-      customerEmail: customerEmail || "",
-      total,
-      status: "pending",
-      items,
-      shippingAddress: shippingAddress || "",
-    });
+    
+    let subtotal = items.reduce((s: number, item: any) => s + (item.price * item.qty), 0);
+    let discount = 0;
 
-    // Also create/update customer record
-    if (customerEmail) {
-      try {
-        await storage.createCustomer(store.id, { name: customerName, email: customerEmail, phone: "" });
-      } catch (_) {
-        // Customer may already exist, ignore
+    // Apply discount if provided
+    if (discountCode) {
+      const discounts = await storage.getDiscountsByStore(store.id);
+      const disc = discounts.find(d => d.code.toLowerCase() === discountCode.toLowerCase() && d.active);
+      if (disc) {
+        discount = disc.type === "percentage" ? (subtotal * disc.value / 100) : disc.value;
+        // Increment usage
+        await storage.updateDiscount(disc.id, { usedCount: (disc.usedCount || 0) + 1 });
       }
     }
 
+    const total = subtotal - discount;
+
+    const order = await storage.createOrder(store.id, {
+      customerName,
+      customerEmail: customerEmail || "",
+      customerPhone: customerPhone || "",
+      subtotal,
+      discount,
+      total: Math.max(0, total),
+      status: "pending",
+      paymentMethod: paymentMethod || "bank_transfer",
+      paymentStatus: "pending",
+      items,
+      shippingAddress: shippingAddress || "",
+    } as any);
+
+    // Update stock
+    for (const item of items) {
+      if (item.productId) {
+        const product = await storage.getProduct(item.productId);
+        if (product && product.stock > 0) {
+          await storage.updateProduct(item.productId, { stock: Math.max(0, product.stock - item.qty) });
+        }
+      }
+    }
+
+    // Create/update customer record
+    if (customerEmail || customerPhone) {
+      try {
+        await storage.createCustomer(store.id, { name: customerName, email: customerEmail || "", phone: customerPhone || "" });
+      } catch (_) {}
+    }
+
     res.json(order);
+  });
+
+  // =================== SHOPPING MALL (aggregate all stores) ===================
+
+  app.get("/api/public/mall/products", async (req, res) => {
+    try {
+      const { category, search, limit, offset } = req.query;
+      const allProducts = await storage.getAllActiveProducts();
+      let filtered = allProducts;
+
+      if (category && category !== "all") {
+        filtered = filtered.filter((p: any) => p.category === category);
+      }
+      if (search) {
+        const q = (search as string).toLowerCase();
+        filtered = filtered.filter((p: any) => 
+          p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)
+        );
+      }
+
+      const total = filtered.length;
+      const lim = Math.min(parseInt(limit as string) || 48, 100);
+      const off = parseInt(offset as string) || 0;
+      filtered = filtered.slice(off, off + lim);
+
+      res.json({ products: filtered, total, limit: lim, offset: off });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/public/mall/stores", async (req, res) => {
+    try {
+      const allStores = await storage.getAllActiveStores();
+      res.json(allStores);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/public/mall/categories", async (req, res) => {
+    try {
+      const allProducts = await storage.getAllActiveProducts();
+      const catMap = new Map<string, number>();
+      for (const p of allProducts) {
+        if (p.category) {
+          catMap.set(p.category, (catMap.get(p.category) || 0) + 1);
+        }
+      }
+      const cats = [...catMap.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+      res.json(cats);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
   });
 }

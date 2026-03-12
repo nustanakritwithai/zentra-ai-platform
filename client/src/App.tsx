@@ -18,6 +18,11 @@ import AiChatPage from "@/pages/ai-chat";
 import KnowledgeBasePage from "@/pages/knowledge-base";
 import PricingPage from "@/pages/pricing";
 import StorefrontPage from "@/pages/storefront";
+import CategoriesPage from "@/pages/categories";
+import DiscountsPage from "@/pages/discounts";
+import MallPage from "@/pages/mall";
+import AffiliatePage from "@/pages/affiliate";
+import MarketplacePage from "@/pages/marketplace";
 import NotFound from "@/pages/not-found";
 
 function AppRouter() {
@@ -31,10 +36,15 @@ function AppRouter() {
       <Route path="/products" component={ProductsPage} />
       <Route path="/orders" component={OrdersPage} />
       <Route path="/customers" component={CustomersPage} />
+      <Route path="/categories" component={CategoriesPage} />
+      <Route path="/discounts" component={DiscountsPage} />
       <Route path="/ai-agents" component={AiAgentsPage} />
       <Route path="/ai-chat" component={AiChatPage} />
       <Route path="/knowledge-base" component={KnowledgeBasePage} />
       <Route path="/pricing" component={PricingPage} />
+      <Route path="/mall" component={MallPage} />
+      <Route path="/affiliate" component={AffiliatePage} />
+      <Route path="/marketplace" component={MarketplacePage} />
       <Route path="/shop/:slug" component={StorefrontPage} />
       <Route component={NotFound} />
     </Switch>

@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Bot, Sparkles, TrendingUp, ShoppingBag, Eye, BarChart3, Headphones, ArrowRight, Zap, Rocket, Store, Globe, Shield, Activity, Flame } from "lucide-react";
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
+import { SEOHead } from "@/components/seo-head";
 
 const features = [
   { icon: Bot, title: "AI Agent ที่มีความจำ", desc: "AI ที่จำบริบทธุรกิจ วิเคราะห์ข้อมูล และเรียนรู้จากพฤติกรรมลูกค้าตลอดเวลา", color: "from-orange-500 to-red-500" },
@@ -94,6 +95,11 @@ function LiveFeed() {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="ZENTRA AI — แพลตฟอร์ม E-Commerce อัจฉริยะ ขับเคลื่อนด้วย AI"
+        description="สร้างร้านค้าออนไลน์ที่ทันสมัยที่สุด ขับเคลื่อนด้วย AI 6 ตัว รองรับ PromptPay, Stripe, LINE OA ครบทุกฟีเจอร์ พร้อมเปิดขายได้ทันที เริ่มต้นฟรี"
+        type="website"
+      />
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -103,6 +109,7 @@ export default function LandingPage() {
           </div>
           <div className="hidden sm:block"><LiveFeed /></div>
           <div className="flex items-center gap-3">
+            <Link href="/mall"><Button variant="ghost" data-testid="nav-mall" className="text-sm">🛒 Shopping Mall</Button></Link>
             <Link href="/auth"><Button variant="ghost" data-testid="nav-login" className="text-sm">เข้าสู่ระบบ</Button></Link>
             <Link href="/auth"><Button data-testid="nav-signup" className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm hover:from-orange-600 hover:to-red-600 shadow-lg shadow-orange-500/20">เปิดร้านฟรี</Button></Link>
           </div>
@@ -141,8 +148,8 @@ export default function LandingPage() {
                 <Flame className="w-4 h-4 mr-1" /> เปิดร้านฟรี <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
-            <Link href="/shop/zentramart">
-              <Button variant="outline" size="lg" className="border-orange-500/30 hover:bg-orange-500/5 hover:border-orange-500/50">ดูตัวอย่างร้านค้า</Button>
+            <Link href="/mall">
+              <Button variant="outline" size="lg" className="border-orange-500/30 hover:bg-orange-500/5 hover:border-orange-500/50"><ShoppingBag className="w-4 h-4 mr-1" /> Shopping Mall</Button>
             </Link>
           </div>
 

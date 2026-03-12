@@ -4,7 +4,7 @@ import { useTheme } from "@/components/theme-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap } from "lucide-react";
+import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap, FolderOpen, TicketPercent, ShoppingBag, Link2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -14,12 +14,17 @@ const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", group: "main" },
   { href: "/store", icon: Store, label: "ร้านค้า", group: "main" },
   { href: "/products", icon: Package, label: "สินค้า", group: "main" },
+  { href: "/categories", icon: FolderOpen, label: "หมวดหมู่", group: "main" },
   { href: "/orders", icon: ShoppingCart, label: "คำสั่งซื้อ", group: "main" },
   { href: "/customers", icon: Users, label: "ลูกค้า", group: "main" },
+  { href: "/discounts", icon: TicketPercent, label: "ส่วนลด", group: "main" },
   { href: "/ai-agents", icon: Bot, label: "AI Agent", group: "ai" },
   { href: "/ai-chat", icon: MessageSquare, label: "AI Chat", group: "ai" },
   { href: "/knowledge-base", icon: BookOpen, label: "Knowledge Base", group: "ai" },
+  { href: "/affiliate", icon: Link2, label: "Affiliate", group: "marketplace" },
+  { href: "/marketplace", icon: Globe, label: "Marketplace API", group: "marketplace" },
   { href: "/pricing", icon: CreditCard, label: "แผนราคา", group: "other" },
+  { href: "/mall", icon: ShoppingBag, label: "Shopping Mall", group: "other" },
 ];
 
 function AnimatedIcon({ icon: Icon, active, className }: { icon: any; active: boolean; className?: string }) {
@@ -62,6 +67,7 @@ export function AppSidebar() {
 
   const mainItems = navItems.filter(i => i.group === "main");
   const aiItems = navItems.filter(i => i.group === "ai");
+  const marketplaceItems = navItems.filter(i => i.group === "marketplace");
   const otherItems = navItems.filter(i => i.group === "other");
 
   return (
@@ -228,6 +234,44 @@ export function AppSidebar() {
                     {active && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-orange-400 shadow-lg shadow-orange-400/50 animate-pulse z-10" />
                     )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Marketplace section */}
+          {!collapsed && (
+            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/20 flex items-center gap-1.5">
+              <Globe className="w-3 h-3 text-orange-500/40" />
+              Marketplace
+            </div>
+          )}
+          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />}
+          <div className="space-y-0.5 mb-3">
+            {marketplaceItems.map(item => {
+              const active = location === item.href;
+              return (
+                <Link key={item.href} href={item.href}>
+                  <div
+                    data-testid={`nav-${item.href.slice(1)}`}
+                    className={cn(
+                      "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
+                      active
+                        ? "text-white"
+                        : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+                    )}
+                  >
+                    {active && (
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/15 to-red-500/10 border border-orange-500/20" />
+                    )}
+                    {active && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-orange-400 to-red-500 shadow-lg shadow-orange-500/50" />
+                    )}
+                    <div className="relative z-10 flex items-center gap-3">
+                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-orange-400" : ""} />
+                      {!collapsed && <span className="relative">{item.label}</span>}
+                    </div>
                   </div>
                 </Link>
               );
