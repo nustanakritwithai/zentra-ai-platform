@@ -10,7 +10,7 @@ import { useState } from "react";
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
 import type { Order } from "@shared/schema";
 
-const statusColors: Record<string, string> = { pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20", confirmed: "bg-blue-500/10 text-blue-500 border-blue-500/20", shipped: "bg-purple-500/10 text-purple-500 border-purple-500/20", delivered: "bg-green-500/10 text-green-500 border-green-500/20", cancelled: "bg-red-500/10 text-red-500 border-red-500/20" };
+const statusColors: Record<string, string> = { pending: "bg-amber-500/10 text-amber-400 border-amber-500/20", confirmed: "bg-blue-500/10 text-blue-400 border-blue-500/20", shipped: "bg-violet-500/10 text-violet-400 border-violet-500/20", delivered: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", cancelled: "bg-red-500/10 text-red-400 border-red-500/20" };
 const statusLabels: Record<string, string> = { pending: "รอดำเนินการ", confirmed: "ยืนยันแล้ว", shipped: "จัดส่งแล้ว", delivered: "สำเร็จ", cancelled: "ยกเลิก" };
 const allStatuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
 
@@ -28,8 +28,8 @@ export default function OrdersPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-xl font-bold">คำสั่งซื้อ</h1>
-          <p className="text-sm text-muted-foreground">{orders.length} รายการ</p>
+          <h1 className="text-xl font-bold bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">คำสั่งซื้อ</h1>
+          <p className="text-sm text-white/50">{orders.length} รายการ</p>
         </div>
 
         <div className="space-y-3">
@@ -37,55 +37,55 @@ export default function OrdersPage() {
             const expanded = expandedId === order.id;
             const items = (order.items as any[]) || [];
             return (
-              <Card key={order.id} className="border-border/50">
-                <CardContent className="p-4">
+              <div key={order.id} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl hover:border-orange-500/20 transition-all duration-300 overflow-hidden">
+                <div className="p-4">
                   <div className="flex items-center gap-4 cursor-pointer" onClick={() => setExpandedId(expanded ? null : order.id)} data-testid={`order-row-${order.id}`}>
-                    <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
-                      <ShoppingCart className="w-5 h-5 text-muted-foreground" />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500/10 to-red-500/10 flex items-center justify-center shrink-0">
+                      <ShoppingCart className="w-5 h-5 text-orange-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-medium">#{String(order.id).padStart(4, "0")}</span>
-                        <span className="text-sm">{order.customerName}</span>
+                        <span className="font-mono text-sm font-medium text-orange-400">#{String(order.id).padStart(4, "0")}</span>
+                        <span className="text-sm text-white/80">{order.customerName}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">{order.customerEmail} · {order.createdAt ? new Date(order.createdAt).toLocaleDateString("th-TH") : ""}</p>
+                      <p className="text-xs text-white/40">{order.customerEmail} · {order.createdAt ? new Date(order.createdAt).toLocaleDateString("th-TH") : ""}</p>
                     </div>
-                    <span className="font-bold text-primary">฿{order.total.toLocaleString()}</span>
+                    <span className="font-bold text-orange-400">฿{order.total.toLocaleString()}</span>
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[order.status]}`}>
                       {statusLabels[order.status]}
                     </span>
                     <Select value={order.status} onValueChange={(v) => updateMut.mutate({ id: order.id, status: v })}>
-                      <SelectTrigger data-testid={`order-status-${order.id}`} className="w-[130px] h-8 text-xs" onClick={e => e.stopPropagation()}>
+                      <SelectTrigger data-testid={`order-status-${order.id}`} className="w-[130px] h-8 text-xs bg-white/[0.04] border-white/[0.06]" onClick={e => e.stopPropagation()}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {allStatuses.map(s => <SelectItem key={s} value={s}>{statusLabels[s]}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                    {expanded ? <ChevronUp className="w-4 h-4 text-white/30" /> : <ChevronDown className="w-4 h-4 text-white/30" />}
                   </div>
 
                   {expanded && (
-                    <div className="mt-4 pt-4 border-t border-border/50 space-y-3">
+                    <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-3">
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">สินค้าในออเดอร์</p>
+                        <p className="text-xs font-medium text-white/40 mb-2">สินค้าในออเดอร์</p>
                         {items.map((item: any, i: number) => (
                           <div key={i} className="flex items-center justify-between py-1.5 text-sm">
-                            <span>{item.name} × {item.qty}</span>
-                            <span className="font-medium">฿{(item.price * item.qty).toLocaleString()}</span>
+                            <span className="text-white/70">{item.name} × {item.qty}</span>
+                            <span className="font-medium text-white/80">฿{(item.price * item.qty).toLocaleString()}</span>
                           </div>
                         ))}
                       </div>
                       {order.shippingAddress && (
-                        <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30">
-                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                          <p className="text-sm">{order.shippingAddress}</p>
+                        <div className="flex items-start gap-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                          <MapPin className="w-4 h-4 text-orange-400/60 mt-0.5 shrink-0" />
+                          <p className="text-sm text-white/60">{order.shippingAddress}</p>
                         </div>
                       )}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>

@@ -16,12 +16,12 @@ import type { AiAgent } from "@shared/schema";
 const iconMap: Record<string, any> = { ShoppingBag, Sparkles, TrendingUp, Headphones, BarChart3, Eye };
 
 const agentColors: Record<string, string> = {
-  shopping_assistant: "from-cyan-500 to-blue-500",
-  recommendation: "from-violet-500 to-purple-500",
-  dynamic_pricing: "from-emerald-500 to-teal-500",
-  customer_support: "from-orange-500 to-amber-500",
-  inventory_forecast: "from-blue-500 to-indigo-500",
-  visual_search: "from-pink-500 to-rose-500",
+  shopping_assistant: "from-orange-500 to-amber-500",
+  recommendation: "from-red-500 to-orange-500",
+  dynamic_pricing: "from-amber-500 to-yellow-500",
+  customer_support: "from-orange-600 to-red-500",
+  inventory_forecast: "from-rose-500 to-red-600",
+  visual_search: "from-red-400 to-orange-500",
 };
 
 interface RAGSource {
@@ -144,10 +144,10 @@ export default function AiChatPage() {
         <div className="flex items-center justify-between mb-4 shrink-0">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              AI Chat
+              <MessageSquare className="w-5 h-5 text-orange-400" />
+              <span className="bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">AI Chat</span>
             </h1>
-            <p className="text-sm text-muted-foreground">สนทนากับ AI Agent — Memory + RAG ขับเคลื่อนด้วย Gemini AI</p>
+            <p className="text-sm text-white/40">สนทนากับ AI Agent — Memory + RAG ขับเคลื่อนด้วย Gemini AI</p>
           </div>
           {selectedAgent && (
             <Button
@@ -155,7 +155,7 @@ export default function AiChatPage() {
               variant="outline"
               size="sm"
               onClick={() => clearMut.mutate()}
-              className="gap-1"
+              className="gap-1 border-white/[0.06] text-white/50 hover:text-red-400 hover:border-red-400/20"
             >
               <Trash2 className="w-3.5 h-3.5" />
               ล้างแชท
@@ -165,8 +165,8 @@ export default function AiChatPage() {
 
         <div className="flex gap-4 flex-1 min-h-0">
           {/* Agent Selector Sidebar */}
-          <div className="w-[200px] shrink-0 space-y-2 overflow-y-auto hidden md:block">
-            <p className="text-xs font-medium text-muted-foreground mb-3 px-1">เลือก AI Agent</p>
+          <div className="w-[200px] shrink-0 space-y-2 overflow-y-auto hidden md:block bg-transparent">
+            <p className="text-xs font-medium text-white/40 mb-3 px-1">เลือก AI Agent</p>
             {agents.map(agent => {
               const Icon = iconMap[agent.icon || ""] || Sparkles;
               const isSelected = selectedAgent === agent.type;
@@ -180,16 +180,16 @@ export default function AiChatPage() {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm transition-all",
                     isSelected
-                      ? "bg-primary/10 text-primary border border-primary/20"
+                      ? "bg-gradient-to-r from-orange-500/15 to-red-500/10 text-orange-400 border border-orange-500/20"
                       : isDisabled
-                        ? "opacity-40 cursor-not-allowed"
-                        : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                        ? "opacity-30 cursor-not-allowed"
+                        : "hover:bg-white/[0.04] text-white/50 hover:text-white/70"
                   )}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium text-xs truncate">{agent.name}</p>
-                    {isDisabled && <p className="text-[10px] text-muted-foreground">ปิดอยู่</p>}
+                    {isDisabled && <p className="text-[10px] text-white/30">ปิดอยู่</p>}
                   </div>
                 </button>
               );
@@ -209,7 +209,7 @@ export default function AiChatPage() {
                     onClick={() => handleSelectAgent(agent.type)}
                     className={cn(
                       "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all",
-                      isSelected ? "bg-primary/10 text-primary border border-primary/20" : !agent.enabled ? "opacity-40" : "bg-muted/30 hover:bg-muted/50"
+                      isSelected ? "bg-gradient-to-r from-orange-500/15 to-red-500/10 text-orange-400 border border-orange-500/20" : !agent.enabled ? "opacity-30" : "bg-white/[0.04] hover:bg-white/[0.06] text-white/50"
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -226,16 +226,16 @@ export default function AiChatPage() {
               /* No Agent Selected */
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-md">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center mx-auto mb-4">
-                    <Bot className="w-8 h-8 text-primary" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mx-auto mb-4">
+                    <Bot className="w-8 h-8 text-orange-400" />
                   </div>
-                  <h2 className="text-lg font-bold mb-2">เลือก AI Agent เพื่อเริ่มสนทนา</h2>
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <h2 className="text-lg font-bold mb-2 text-white/90">เลือก AI Agent เพื่อเริ่มสนทนา</h2>
+                  <p className="text-sm text-white/40 mb-2">
                     AI Agent แต่ละตัวมีความเชี่ยวชาญเฉพาะทาง พร้อม Memory + RAG
                   </p>
-                  <div className="flex items-center justify-center gap-4 mb-6 text-xs text-muted-foreground">
+                  <div className="flex items-center justify-center gap-4 mb-6 text-xs text-white/40">
                     <span className="flex items-center gap-1"><Brain className="w-3 h-3 text-violet-400" /> Memory</span>
-                    <span className="flex items-center gap-1"><Database className="w-3 h-3 text-primary" /> RAG</span>
+                    <span className="flex items-center gap-1"><Database className="w-3 h-3 text-teal-400" /> RAG</span>
                     <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-amber-400" /> Fact Extraction</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -245,10 +245,10 @@ export default function AiChatPage() {
                         <button
                           key={agent.id}
                           onClick={() => handleSelectAgent(agent.type)}
-                          className="flex items-center gap-2 p-3 rounded-lg bg-card border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all text-left"
+                          className="flex items-center gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:border-orange-500/20 hover:bg-orange-500/5 transition-all text-left"
                         >
-                          <Icon className="w-4 h-4 text-primary shrink-0" />
-                          <span className="text-xs font-medium truncate">{agent.name}</span>
+                          <Icon className="w-4 h-4 text-orange-400 shrink-0" />
+                          <span className="text-xs font-medium truncate text-white/70">{agent.name}</span>
                         </button>
                       );
                     })}
@@ -259,21 +259,21 @@ export default function AiChatPage() {
               <>
                 {/* Agent Info Header */}
                 {currentAgent && (
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-card border border-border/50 mb-3 shrink-0">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${agentColors[currentAgent.type] || "from-primary to-violet-500"} flex items-center justify-center`}>
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06] mb-3 shrink-0">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${agentColors[currentAgent.type] || "from-orange-500 to-red-500"} flex items-center justify-center`}>
                       {(() => { const Icon = iconMap[currentAgent.icon || ""] || Sparkles; return <Icon className="w-5 h-5 text-white" />; })()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm">{currentAgent.name}</h3>
-                        <Badge variant="outline" className="text-[10px] bg-green-500/10 text-green-500 border-green-500/20">
+                        <h3 className="font-bold text-sm text-white/90">{currentAgent.name}</h3>
+                        <Badge variant="outline" className="text-[10px] bg-orange-500/10 text-orange-400 border-orange-500/20">
                           Gemini AI
                         </Badge>
-                        <Badge variant="outline" className="text-[10px] bg-violet-500/10 text-violet-400 border-violet-500/20">
+                        <Badge variant="outline" className="text-[10px] bg-red-500/10 text-red-400 border-red-500/20">
                           Memory + RAG
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{currentAgent.description}</p>
+                      <p className="text-xs text-white/40 truncate">{currentAgent.description}</p>
                     </div>
                   </div>
                 )}
@@ -283,30 +283,30 @@ export default function AiChatPage() {
                   {localMessages.length === 0 && (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center">
-                        <Bot className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                        <p className="text-sm text-muted-foreground">เริ่มสนทนากับ {currentAgent?.name}</p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">AI จะจำบริบทการสนทนาและค้นหาข้อมูลร้านค้าอัตโนมัติ</p>
+                        <Bot className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                        <p className="text-sm text-white/40">เริ่มสนทนากับ {currentAgent?.name}</p>
+                        <p className="text-xs text-white/20 mt-1">AI จะจำบริบทการสนทนาและค้นหาข้อมูลร้านค้าอัตโนมัติ</p>
                       </div>
                     </div>
                   )}
                   {localMessages.map((msg, i) => (
                     <div key={msg.id || i} className={cn("flex gap-3", msg.role === "user" ? "justify-end" : "justify-start")}>
                       {msg.role === "model" && (
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[msg.agentType] || "from-primary to-violet-500"} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[msg.agentType] || "from-orange-500 to-red-500"} flex items-center justify-center shrink-0 mt-0.5`}>
                           <Bot className="w-4 h-4 text-white" />
                         </div>
                       )}
                       <div className={cn(
-                        "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                        "max-w-[80%] px-4 py-3 text-sm leading-relaxed",
                         msg.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-br-md"
-                          : "bg-card border border-border/50 rounded-bl-md"
+                          ? "bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl rounded-br-md"
+                          : "bg-white/[0.02] border border-white/[0.06] rounded-2xl rounded-bl-md"
                       )}>
                         <div className="whitespace-pre-wrap">{msg.content}</div>
 
                         {/* Memory/RAG indicators for model messages */}
                         {msg.role === "model" && (msg.memoryUsed || (msg.ragSources && msg.ragSources.length > 0) || (msg.factsExtracted && msg.factsExtracted > 0)) && (
-                          <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-border/30 flex-wrap">
+                          <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-white/[0.06] flex-wrap">
                             {msg.memoryUsed && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -323,7 +323,7 @@ export default function AiChatPage() {
                             {msg.ragSources && msg.ragSources.length > 0 && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary cursor-default">
+                                  <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 cursor-default">
                                     <Database className="w-3 h-3" />
                                     RAG ({msg.ragSources.length})
                                   </span>
@@ -356,25 +356,25 @@ export default function AiChatPage() {
 
                         <p className={cn(
                           "text-[10px] mt-1.5",
-                          msg.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground/60"
+                          msg.role === "user" ? "text-white/60" : "text-white/20"
                         )}>
                           {new Date(msg.timestamp).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                       {msg.role === "user" && (
-                        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                          <User className="w-4 h-4" />
+                        <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                          <User className="w-4 h-4 text-white/50" />
                         </div>
                       )}
                     </div>
                   ))}
                   {sendMut.isPending && (
                     <div className="flex gap-3">
-                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[selectedAgent] || "from-primary to-violet-500"} flex items-center justify-center shrink-0`}>
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${agentColors[selectedAgent] || "from-orange-500 to-red-500"} flex items-center justify-center shrink-0`}>
                         <Bot className="w-4 h-4 text-white" />
                       </div>
-                      <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md px-4 py-3">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl rounded-bl-md px-4 py-3">
+                        <div className="flex items-center gap-2 text-sm text-white/40">
                           <Loader2 className="w-4 h-4 animate-spin" />
                           <span>กำลังค้นหา Knowledge Base + คิด...</span>
                         </div>
@@ -385,7 +385,7 @@ export default function AiChatPage() {
                 </div>
 
                 {/* Input */}
-                <div className="shrink-0 pt-3 border-t border-border/50">
+                <div className="shrink-0 pt-3 border-t border-white/[0.06]">
                   <div className="flex gap-2">
                     <Textarea
                       ref={textareaRef}
@@ -394,7 +394,7 @@ export default function AiChatPage() {
                       onChange={e => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
                       placeholder={`พิมพ์ข้อความถึง ${currentAgent?.name || "AI Agent"}...`}
-                      className="min-h-[44px] max-h-[120px] resize-none bg-card"
+                      className="min-h-[44px] max-h-[120px] resize-none bg-white/[0.04] border-white/[0.06] focus:border-orange-500/30"
                       rows={1}
                     />
                     <Button
@@ -402,19 +402,19 @@ export default function AiChatPage() {
                       onClick={handleSend}
                       disabled={!input.trim() || sendMut.isPending}
                       size="icon"
-                      className="shrink-0 h-[44px] w-[44px]"
+                      className="shrink-0 h-[44px] w-[44px] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>
                   <div className="flex items-center justify-center gap-3 mt-1.5">
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
+                    <span className="flex items-center gap-1 text-[10px] text-white/30">
                       <Brain className="w-3 h-3" /> Memory
                     </span>
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
+                    <span className="flex items-center gap-1 text-[10px] text-white/30">
                       <Database className="w-3 h-3" /> RAG
                     </span>
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground/50">
+                    <span className="flex items-center gap-1 text-[10px] text-white/30">
                       <Sparkles className="w-3 h-3" /> Gemini 2.5 Flash
                     </span>
                   </div>

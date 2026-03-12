@@ -122,20 +122,20 @@ export default function StorefrontPage() {
 
   if (storeLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">กำลังโหลดร้านค้า...</div>
+      <div className="min-h-screen bg-[#08080f] flex items-center justify-center">
+        <div className="animate-pulse text-white/40">กำลังโหลดร้านค้า...</div>
       </div>
     );
   }
 
   if (storeError || !store) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-sm border-border/50">
+      <div className="min-h-screen bg-[#08080f] flex items-center justify-center">
+        <Card className="max-w-sm bg-white/[0.02] border-white/[0.06]">
           <CardContent className="p-8 text-center">
-            <Store className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-lg font-bold mb-2">ไม่พบร้านค้า</h2>
-            <p className="text-sm text-muted-foreground">ร้านค้านี้อาจยังไม่ได้เปิดให้บริการ</p>
+            <Store className="w-12 h-12 text-white/20 mx-auto mb-4" />
+            <h2 className="text-lg font-bold text-white/80 mb-2">ไม่พบร้านค้า</h2>
+            <p className="text-sm text-white/40">ร้านค้านี้อาจยังไม่ได้เปิดให้บริการ</p>
           </CardContent>
         </Card>
       </div>
@@ -144,17 +144,17 @@ export default function StorefrontPage() {
 
   if (orderSuccess) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full border-border/50">
+      <div className="min-h-screen bg-[#08080f] flex items-center justify-center p-4">
+        <Card className="max-w-md w-full bg-white/[0.02] border-white/[0.06]">
           <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-              <Check className="w-8 h-8 text-green-500" />
+            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
+              <Check className="w-8 h-8 text-emerald-400" />
             </div>
-            <h2 className="text-xl font-bold mb-2">สั่งซื้อสำเร็จ</h2>
-            <p className="text-sm text-muted-foreground mb-4">
+            <h2 className="text-xl font-bold text-white/90 mb-2">สั่งซื้อสำเร็จ</h2>
+            <p className="text-sm text-white/40 mb-4">
               ขอบคุณที่สั่งซื้อจาก {store.name} ทางร้านจะติดต่อกลับเร็วๆ นี้
             </p>
-            <Button onClick={() => setOrderSuccess(false)} className="bg-primary">
+            <Button onClick={() => setOrderSuccess(false)} className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20">
               กลับหน้าร้าน
             </Button>
           </CardContent>
@@ -164,21 +164,21 @@ export default function StorefrontPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#08080f]">
       {/* Store Header */}
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[hsl(240,20%,4%)]/90 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {store.logo ? (
               <img src={store.logo} alt={store.name} className="w-8 h-8 rounded-lg object-cover" />
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-sm">
                 {store.name.charAt(0)}
               </div>
             )}
-            <span className="font-bold text-base">{store.name}</span>
-            <Badge variant="outline" className="text-[10px] hidden sm:inline-flex">
-              <Sparkles className="w-2.5 h-2.5 mr-1" />Powered by ZENTRA AI
+            <span className="font-bold text-base text-white/90">{store.name}</span>
+            <Badge variant="outline" className="text-[10px] hidden sm:inline-flex bg-orange-500/10 text-orange-400 border-orange-500/20">
+              <Sparkles className="w-2.5 h-2.5 mr-1 text-orange-400" />Powered by ZENTRA AI
             </Badge>
           </div>
           <Button
@@ -186,12 +186,12 @@ export default function StorefrontPage() {
             variant="outline"
             size="sm"
             onClick={() => setCartOpen(!cartOpen)}
-            className="relative"
+            className="relative bg-white/[0.04] border-white/[0.06] text-white/70 hover:bg-white/[0.06] hover:text-white"
           >
             <ShoppingCart className="w-4 h-4 mr-1" />
             ตะกร้า
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-bold">
+              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] flex items-center justify-center font-bold">
                 {cartCount}
               </span>
             )}
@@ -200,10 +200,13 @@ export default function StorefrontPage() {
       </header>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 py-10 text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold">{store.name}</h1>
+      <section className="max-w-6xl mx-auto px-4 py-10 text-center relative">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-64 h-64 bg-orange-500/5 rounded-full blur-3xl" />
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white/90 relative">{store.name}</h1>
         {store.description && (
-          <p className="text-muted-foreground mt-2 max-w-md mx-auto text-sm">{store.description}</p>
+          <p className="text-white/40 mt-2 max-w-md mx-auto text-sm relative">{store.description}</p>
         )}
       </section>
 
@@ -212,49 +215,49 @@ export default function StorefrontPage() {
         {productsLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="animate-pulse rounded-xl border border-border/50 p-4 h-72 bg-muted/20" />
+              <div key={i} className="animate-pulse rounded-2xl border border-white/[0.06] p-4 h-72 bg-white/[0.04]" />
             ))}
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-16">
-            <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">ร้านค้ายังไม่มีสินค้า</p>
+            <Package className="w-12 h-12 text-white/10 mx-auto mb-4" />
+            <p className="text-white/40">ร้านค้ายังไม่มีสินค้า</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((product: any) => (
-              <Card key={product.id} className="border-border/50 overflow-hidden group hover:border-primary/30 transition-colors">
-                <div className="aspect-square bg-muted/20 relative overflow-hidden">
+              <Card key={product.id} className="bg-white/[0.02] border-white/[0.06] rounded-2xl overflow-hidden group hover:border-orange-500/20 hover:shadow-lg hover:shadow-orange-500/5 transition-all duration-300">
+                <div className="aspect-square bg-white/[0.02] relative overflow-hidden">
                   {product.image ? (
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    <div className="w-full h-full flex items-center justify-center text-white/20">
                       <Package className="w-10 h-10" />
                     </div>
                   )}
                   {product.comparePrice && product.comparePrice > product.price && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white text-[10px]">
+                    <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] border-0">
                       -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
                     </Badge>
                   )}
                 </div>
                 <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
+                  <h3 className="font-medium text-sm line-clamp-2 min-h-[2.5rem] text-white/80">{product.name}</h3>
                   <div className="mt-2 flex items-baseline gap-2">
-                    <span className="font-bold text-primary">{formatPrice(product.price, currency)}</span>
+                    <span className="font-bold text-orange-400">{formatPrice(product.price, currency)}</span>
                     {product.comparePrice && product.comparePrice > product.price && (
-                      <span className="text-xs text-muted-foreground line-through">
+                      <span className="text-xs text-white/30 line-through">
                         {formatPrice(product.comparePrice, currency)}
                       </span>
                     )}
                   </div>
                   <Button
                     data-testid={`add-to-cart-${product.id}`}
-                    className="w-full mt-3 bg-primary text-sm h-9"
+                    className={`w-full mt-3 text-sm h-9 ${product.stock > 0 ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20" : "bg-white/[0.06] text-white/30"}`}
                     onClick={() => addToCart(product)}
                     disabled={product.stock <= 0}
                   >
@@ -276,64 +279,64 @@ export default function StorefrontPage() {
       {/* Cart Sidebar */}
       {cartOpen && (
         <>
-          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setCartOpen(false)} />
-          <div className="fixed top-0 right-0 h-full w-full max-w-md z-50 bg-card border-l border-border overflow-y-auto">
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <h2 className="font-bold text-base">ตะกร้าสินค้า ({cartCount})</h2>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" onClick={() => setCartOpen(false)} />
+          <div className="fixed top-0 right-0 h-full w-full max-w-md z-50 bg-[hsl(240,15%,7%)] border-l border-white/[0.06] overflow-y-auto">
+            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+              <h2 className="font-bold text-base text-white/90">ตะกร้าสินค้า ({cartCount})</h2>
               <button onClick={() => setCartOpen(false)}>
-                <X className="w-5 h-5 text-muted-foreground" />
+                <X className="w-5 h-5 text-white/30 hover:text-white/60 transition-colors" />
               </button>
             </div>
 
             {!checkoutMode ? (
               <>
                 {cart.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
+                  <div className="p-8 text-center text-white/30">
                     <ShoppingCart className="w-10 h-10 mx-auto mb-3 opacity-50" />
                     <p>ตะกร้าว่าง</p>
                   </div>
                 ) : (
                   <div className="p-4 space-y-3">
                     {cart.map((item) => (
-                      <div key={item.id} className="flex gap-3 p-3 rounded-lg bg-muted/30">
+                      <div key={item.id} className="flex gap-3 p-3 bg-white/[0.03] rounded-xl">
                         {item.image ? (
                           <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg object-cover shrink-0" />
                         ) : (
-                          <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                            <Package className="w-6 h-6 text-muted-foreground" />
+                          <div className="w-16 h-16 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
+                            <Package className="w-6 h-6 text-white/20" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.name}</p>
-                          <p className="text-sm text-primary font-bold">{formatPrice(item.price, currency)}</p>
+                          <p className="text-sm font-medium truncate text-white/80">{item.name}</p>
+                          <p className="text-sm text-orange-400 font-bold">{formatPrice(item.price, currency)}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <button
-                              className="w-6 h-6 rounded bg-muted flex items-center justify-center"
+                              className="w-6 h-6 rounded-lg bg-white/[0.06] hover:bg-white/[0.10] flex items-center justify-center transition-colors"
                               onClick={() => updateQty(item.id, -1)}
                             >
-                              <Minus className="w-3 h-3" />
+                              <Minus className="w-3 h-3 text-white/70" />
                             </button>
-                            <span className="text-sm font-medium w-6 text-center">{item.qty}</span>
+                            <span className="text-sm font-medium w-6 text-center text-white/70">{item.qty}</span>
                             <button
-                              className="w-6 h-6 rounded bg-muted flex items-center justify-center"
+                              className="w-6 h-6 rounded-lg bg-white/[0.06] hover:bg-white/[0.10] flex items-center justify-center transition-colors"
                               onClick={() => updateQty(item.id, 1)}
                             >
-                              <Plus className="w-3 h-3" />
+                              <Plus className="w-3 h-3 text-white/70" />
                             </button>
                           </div>
                         </div>
-                        <p className="text-sm font-bold shrink-0">{formatPrice(item.price * item.qty, currency)}</p>
+                        <p className="text-sm font-bold shrink-0 text-white/80">{formatPrice(item.price * item.qty, currency)}</p>
                       </div>
                     ))}
 
-                    <div className="border-t border-border pt-3 flex items-center justify-between">
-                      <span className="font-bold">รวมทั้งหมด</span>
-                      <span className="text-lg font-bold text-primary">{formatPrice(cartTotal, currency)}</span>
+                    <div className="border-t border-white/[0.06] pt-3 flex items-center justify-between">
+                      <span className="font-bold text-white/80">รวมทั้งหมด</span>
+                      <span className="text-lg font-bold text-orange-400">{formatPrice(cartTotal, currency)}</span>
                     </div>
 
                     <Button
                       data-testid="btn-checkout"
-                      className="w-full bg-primary"
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
                       onClick={() => setCheckoutMode(true)}
                     >
                       ดำเนินการสั่งซื้อ <ArrowRight className="w-4 h-4 ml-1" />
@@ -343,48 +346,51 @@ export default function StorefrontPage() {
               </>
             ) : (
               <div className="p-4 space-y-4">
-                <h3 className="font-bold">ข้อมูลการจัดส่ง</h3>
+                <h3 className="font-bold text-white/90">ข้อมูลการจัดส่ง</h3>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">ชื่อผู้สั่งซื้อ</label>
+                  <label className="text-sm font-medium mb-1 block text-white/60">ชื่อผู้สั่งซื้อ</label>
                   <Input
                     data-testid="checkout-name"
                     placeholder="ชื่อ-นามสกุล"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
+                    className="bg-white/[0.04] border-white/[0.06] text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">อีเมล</label>
+                  <label className="text-sm font-medium mb-1 block text-white/60">อีเมล</label>
                   <Input
                     data-testid="checkout-email"
                     type="email"
                     placeholder="email@example.com"
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
+                    className="bg-white/[0.04] border-white/[0.06] text-white"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">ที่อยู่จัดส่ง</label>
+                  <label className="text-sm font-medium mb-1 block text-white/60">ที่อยู่จัดส่ง</label>
                   <Input
                     data-testid="checkout-address"
                     placeholder="ที่อยู่สำหรับจัดส่ง"
                     value={shippingAddress}
                     onChange={(e) => setShippingAddress(e.target.value)}
+                    className="bg-white/[0.04] border-white/[0.06] text-white"
                   />
                 </div>
 
-                <div className="border-t border-border pt-3 flex items-center justify-between">
-                  <span className="font-bold">ยอดรวม</span>
-                  <span className="text-lg font-bold text-primary">{formatPrice(cartTotal, currency)}</span>
+                <div className="border-t border-white/[0.06] pt-3 flex items-center justify-between">
+                  <span className="font-bold text-white/80">ยอดรวม</span>
+                  <span className="text-lg font-bold text-orange-400">{formatPrice(cartTotal, currency)}</span>
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setCheckoutMode(false)}>
+                  <Button variant="outline" className="flex-1 bg-white/[0.04] border-white/[0.06] text-white/60 hover:bg-white/[0.06] hover:text-white/80" onClick={() => setCheckoutMode(false)}>
                     ย้อนกลับ
                   </Button>
                   <Button
                     data-testid="btn-place-order"
-                    className="flex-1 bg-gradient-to-r from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] text-white"
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
                     disabled={!customerName || orderMutation.isPending}
                     onClick={() => orderMutation.mutate()}
                   >
@@ -398,8 +404,8 @@ export default function StorefrontPage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-6">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+      <footer className="border-t border-white/[0.06] py-6">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/30">
           <span>© 2026 {store.name} — Powered by ZENTRA AI</span>
           <PerplexityAttribution />
         </div>
@@ -409,11 +415,11 @@ export default function StorefrontPage() {
       {cartCount > 0 && !cartOpen && (
         <button
           data-testid="floating-cart"
-          className="fixed bottom-6 right-6 z-30 bg-primary text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg sm:hidden"
+          className="fixed bottom-6 right-6 z-30 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg shadow-orange-500/30 sm:hidden"
           onClick={() => setCartOpen(true)}
         >
           <ShoppingCart className="w-5 h-5" />
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-[10px] flex items-center justify-center font-bold">
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-orange-600 text-[10px] flex items-center justify-center font-bold">
             {cartCount}
           </span>
         </button>

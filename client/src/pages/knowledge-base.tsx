@@ -110,10 +110,10 @@ export default function KnowledgeBasePage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              Knowledge Base
+              <BookOpen className="w-5 h-5 text-orange-400" />
+              <span className="bg-gradient-to-r from-orange-300 to-red-300 bg-clip-text text-transparent">Knowledge Base</span>
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-sm text-white/40 mt-0.5">
               จัดการฐานความรู้ที่ AI Agent ใช้ตอบคำถาม — FAQs, นโยบาย, คู่มือ
             </p>
           </div>
@@ -124,30 +124,30 @@ export default function KnowledgeBasePage() {
               size="sm"
               onClick={() => reindexMut.mutate()}
               disabled={reindexMut.isPending}
-              className="gap-1.5"
+              className="gap-1.5 border-white/[0.06] text-white/50 hover:text-orange-400"
             >
               <RefreshCw className={cn("w-3.5 h-3.5", reindexMut.isPending && "animate-spin")} />
               Re-index
             </Button>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button data-testid="add-kb-btn" size="sm" className="gap-1.5">
+                <Button data-testid="add-kb-btn" size="sm" className="gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
                   <Plus className="w-3.5 h-3.5" />
                   เพิ่มข้อมูล
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
+              <DialogContent className="sm:max-w-lg bg-[hsl(240,15%,8%)] border-white/[0.06]">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-primary" />
+                  <DialogTitle className="flex items-center gap-2 text-white/90">
+                    <BookOpen className="w-5 h-5 text-orange-400" />
                     เพิ่มข้อมูลใหม่
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-2">
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">หมวดหมู่</label>
+                    <label className="text-sm font-medium mb-1.5 block text-white/70">หมวดหมู่</label>
                     <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger data-testid="kb-category-select">
+                      <SelectTrigger data-testid="kb-category-select" className="bg-white/[0.04] border-white/[0.06]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -159,28 +159,29 @@ export default function KnowledgeBasePage() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">หัวข้อ</label>
+                    <label className="text-sm font-medium mb-1.5 block text-white/70">หัวข้อ</label>
                     <Input
                       data-testid="kb-title-input"
                       value={title}
                       onChange={e => setTitle(e.target.value)}
                       placeholder="เช่น นโยบายการคืนสินค้า"
+                      className="bg-white/[0.04] border-white/[0.06]"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">เนื้อหา</label>
+                    <label className="text-sm font-medium mb-1.5 block text-white/70">เนื้อหา</label>
                     <Textarea
                       data-testid="kb-content-input"
                       value={content}
                       onChange={e => setContent(e.target.value)}
                       placeholder="รายละเอียดที่ AI จะใช้ตอบคำถามลูกค้า..."
                       rows={5}
-                      className="resize-none"
+                      className="resize-none bg-white/[0.04] border-white/[0.06]"
                     />
                   </div>
                   <Button
                     data-testid="kb-submit-btn"
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                     onClick={() => addMut.mutate()}
                     disabled={!title.trim() || !content.trim() || addMut.isPending}
                   >
@@ -195,54 +196,54 @@ export default function KnowledgeBasePage() {
 
         {/* AI Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="border-border/50">
+          <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Database className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats?.rag.totalDocuments ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">เอกสารใน Vector DB</p>
+                  <p className="text-2xl font-bold text-white/90">{stats?.rag.totalDocuments ?? "—"}</p>
+                  <p className="text-xs text-white/40">เอกสารใน Vector DB</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50">
+          <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
                   <Brain className="w-5 h-5 text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats?.memory.totalFacts ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">ข้อเท็จจริงที่จำได้</p>
+                  <p className="text-2xl font-bold text-white/90">{stats?.memory.totalFacts ?? "—"}</p>
+                  <p className="text-xs text-white/40">ข้อเท็จจริงที่จำได้</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50">
+          <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{entries.length}</p>
-                  <p className="text-xs text-muted-foreground">รายการ Knowledge Base</p>
+                  <p className="text-2xl font-bold text-white/90">{entries.length}</p>
+                  <p className="text-xs text-white/40">รายการ Knowledge Base</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50">
+          <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats?.memory.totalEpisodes ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">Episodic Memories</p>
+                  <p className="text-2xl font-bold text-white/90">{stats?.memory.totalEpisodes ?? "—"}</p>
+                  <p className="text-xs text-white/40">Episodic Memories</p>
                 </div>
               </div>
             </CardContent>
@@ -252,13 +253,13 @@ export default function KnowledgeBasePage() {
         {/* Filter + Search */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
             <Input
               data-testid="kb-search"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="ค้นหา..."
-              className="pl-9"
+              className="pl-9 bg-white/[0.04] border-white/[0.06]"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -275,7 +276,12 @@ export default function KnowledgeBasePage() {
                 variant={filterCat === f.key ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFilterCat(f.key)}
-                className="text-xs"
+                className={cn(
+                  "text-xs",
+                  filterCat === f.key
+                    ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0"
+                    : "bg-white/[0.04] border-white/[0.06] text-white/50 hover:text-white/70"
+                )}
               >
                 {f.label}
               </Button>
@@ -286,14 +292,14 @@ export default function KnowledgeBasePage() {
         {/* Entries Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <Loader2 className="w-6 h-6 animate-spin text-orange-400" />
           </div>
         ) : filtered.length === 0 ? (
-          <Card className="border-border/50">
+          <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <BookOpen className="w-12 h-12 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground font-medium">ยังไม่มีข้อมูลใน Knowledge Base</p>
-              <p className="text-sm text-muted-foreground/60 mt-1">เพิ่ม FAQs, นโยบาย, คู่มือ เพื่อให้ AI ตอบคำถามได้ดีขึ้น</p>
+              <BookOpen className="w-12 h-12 text-white/10 mb-4" />
+              <p className="text-white/40 font-medium">ยังไม่มีข้อมูลใน Knowledge Base</p>
+              <p className="text-sm text-white/20 mt-1">เพิ่ม FAQs, นโยบาย, คู่มือ เพื่อให้ AI ตอบคำถามได้ดีขึ้น</p>
             </CardContent>
           </Card>
         ) : (
@@ -302,7 +308,7 @@ export default function KnowledgeBasePage() {
               const config = categoryConfig[entry.category] || categoryConfig.custom;
               const Icon = config.icon;
               return (
-                <Card key={entry.id} data-testid={`kb-entry-${entry.id}`} className="border-border/50 hover:border-border/80 transition-colors">
+                <Card key={entry.id} data-testid={`kb-entry-${entry.id}`} className="bg-white/[0.02] border-white/[0.06] rounded-2xl hover:border-orange-500/20 transition-colors">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -311,18 +317,18 @@ export default function KnowledgeBasePage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-sm">{entry.title}</h3>
+                            <h3 className="font-semibold text-sm text-white/90">{entry.title}</h3>
                             <Badge variant="outline" className={cn("text-[10px]", config.color)}>
                               {config.label}
                             </Badge>
                             {entry.indexed && (
-                              <Badge variant="outline" className="text-[10px] bg-green-500/10 text-green-400 border-green-500/20">
+                              <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
                                 Indexed
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{entry.content}</p>
-                          <p className="text-[10px] text-muted-foreground/50 mt-2">
+                          <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">{entry.content}</p>
+                          <p className="text-[10px] text-white/20 mt-2">
                             {new Date(entry.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
                           </p>
                         </div>
@@ -331,7 +337,7 @@ export default function KnowledgeBasePage() {
                         data-testid={`kb-delete-${entry.id}`}
                         variant="ghost"
                         size="icon"
-                        className="shrink-0 h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="shrink-0 h-8 w-8 text-white/30 hover:text-red-400"
                         onClick={() => deleteMut.mutate(entry.id)}
                         disabled={deleteMut.isPending}
                       >
@@ -347,10 +353,10 @@ export default function KnowledgeBasePage() {
 
         {/* RAG Source Breakdown */}
         {stats?.rag.bySource && Object.keys(stats.rag.bySource).length > 0 && (
-          <Card className="border-border/50">
+          <Card className="bg-white/[0.02] border-white/[0.06] rounded-2xl">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Database className="w-4 h-4 text-primary" />
+              <CardTitle className="text-sm font-semibold flex items-center gap-2 text-white/90">
+                <Database className="w-4 h-4 text-orange-400" />
                 Vector Store Breakdown
               </CardTitle>
             </CardHeader>
@@ -364,10 +370,10 @@ export default function KnowledgeBasePage() {
                     knowledge: "Knowledge Base",
                   };
                   return (
-                    <div key={source} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30">
-                      <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                      <span className="text-xs text-muted-foreground">{labels[source] || source}</span>
-                      <span className="text-xs font-bold ml-auto">{count}</span>
+                    <div key={source} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+                      <div className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+                      <span className="text-xs text-white/40">{labels[source] || source}</span>
+                      <span className="text-xs font-bold ml-auto text-white/90">{count}</span>
                     </div>
                   );
                 })}

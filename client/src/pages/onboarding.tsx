@@ -109,11 +109,11 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[hsl(240,20%,4%)] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
-      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5" />
+      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-red-500/10 rounded-full blur-3xl" />
 
       <div className="w-full max-w-lg relative z-10">
         {/* Progress indicator */}
@@ -122,7 +122,7 @@ export default function OnboardingPage() {
             <div
               key={s}
               className={`h-2 rounded-full transition-all duration-300 ${
-                s === step ? "w-10 bg-primary" : s < step ? "w-10 bg-primary/50" : "w-10 bg-muted"
+                s === step ? "w-10 bg-gradient-to-r from-orange-500 to-red-500" : s < step ? "w-10 bg-orange-500/50" : "w-10 bg-white/[0.06]"
               }`}
             />
           ))}
@@ -130,34 +130,34 @@ export default function OnboardingPage() {
 
         {/* Step 1: Store Name & URL */}
         {step === 1 && (
-          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <Card className="bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Store className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 flex items-center justify-center">
+                  <Store className="w-6 h-6 text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold">ตั้งชื่อร้านค้า</h2>
-                  <p className="text-sm text-muted-foreground">สวัสดี {user?.name || ""}. มาสร้างร้านค้ากัน</p>
+                  <h2 className="text-lg font-bold text-white/90">ตั้งชื่อร้านค้า</h2>
+                  <p className="text-sm text-white/40">สวัสดี <span className="text-orange-400">{user?.name || ""}</span>. มาสร้างร้านค้ากัน</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">ชื่อร้านค้า</label>
+                  <label className="text-sm font-medium mb-1.5 block text-white/60">ชื่อร้านค้า</label>
                   <Input
                     data-testid="input-store-name"
                     placeholder="เช่น Fashion Hub, TechMall, ร้านค้าของฉัน"
                     value={storeName}
                     onChange={(e) => setStoreName(e.target.value)}
-                    className="text-base"
+                    className="text-base bg-white/[0.04] border-white/[0.06] text-white placeholder:text-white/20"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">URL ร้านค้า</label>
+                  <label className="text-sm font-medium mb-1.5 block text-white/60">URL ร้านค้า</label>
                   <div className="flex items-center gap-0">
-                    <span className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded-l-md border border-r-0 border-border">
+                    <span className="text-sm bg-white/[0.04] border border-white/[0.06] text-white/40 px-3 py-2 rounded-l-md border-r-0">
                       zentraai.onrender.com/#/shop/
                     </span>
                     <Input
@@ -165,33 +165,34 @@ export default function OnboardingPage() {
                       placeholder="my-store"
                       value={slug}
                       onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                      className="rounded-l-none"
+                      className="rounded-l-none bg-white/[0.04] border-white/[0.06] text-white placeholder:text-white/20"
                     />
                   </div>
                   {slug && slugAvailable === true && (
-                    <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
+                    <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
                       <Check className="w-3 h-3" /> URL นี้ว่างอยู่
                     </p>
                   )}
                   {slug && slugAvailable === false && (
-                    <p className="text-xs text-red-500 mt-1">URL นี้ถูกใช้แล้ว กรุณาเลือกอื่น</p>
+                    <p className="text-xs text-red-400 mt-1">URL นี้ถูกใช้แล้ว กรุณาเลือกอื่น</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">คำอธิบายร้านค้า (ไม่จำเป็น)</label>
+                  <label className="text-sm font-medium mb-1.5 block text-white/60">คำอธิบายร้านค้า (ไม่จำเป็น)</label>
                   <Input
                     data-testid="input-store-desc"
                     placeholder="บอกเล่าเกี่ยวกับร้านค้าของคุณ..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    className="bg-white/[0.04] border-white/[0.06] text-white placeholder:text-white/20"
                   />
                 </div>
               </div>
 
               <Button
                 data-testid="btn-next-step1"
-                className="w-full mt-6 bg-primary"
+                className="w-full mt-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
                 onClick={() => setStep(2)}
                 disabled={!storeName || !slug || slugAvailable === false}
               >
@@ -203,15 +204,15 @@ export default function OnboardingPage() {
 
         {/* Step 2: Category */}
         {step === 2 && (
-          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <Card className="bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <ShoppingBag className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 flex items-center justify-center">
+                  <ShoppingBag className="w-6 h-6 text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold">เลือกประเภทธุรกิจ</h2>
-                  <p className="text-sm text-muted-foreground">AI จะปรับการทำงานตามประเภทธุรกิจของคุณ</p>
+                  <h2 className="text-lg font-bold text-white/90">เลือกประเภทธุรกิจ</h2>
+                  <p className="text-sm text-white/40">AI จะปรับการทำงานตามประเภทธุรกิจของคุณ</p>
                 </div>
               </div>
 
@@ -223,23 +224,23 @@ export default function OnboardingPage() {
                     onClick={() => setCategory(cat.value)}
                     className={`p-3 rounded-xl border text-left transition-all ${
                       category === cat.value
-                        ? "border-primary bg-primary/10 ring-1 ring-primary/30"
-                        : "border-border/50 hover:border-primary/30 bg-card/50"
+                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30"
+                        : "border-white/[0.06] bg-white/[0.02] hover:border-orange-500/20"
                     }`}
                   >
                     <span className="text-xl mb-1 block">{cat.icon}</span>
-                    <span className="text-sm font-medium">{cat.label}</span>
+                    <span className="text-sm font-medium text-white/80">{cat.label}</span>
                   </button>
                 ))}
               </div>
 
               <div className="flex gap-3 mt-6">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 bg-white/[0.04] border-white/[0.06] text-white/60 hover:bg-white/[0.06]">
                   <ArrowLeft className="w-4 h-4 mr-1" /> ย้อนกลับ
                 </Button>
                 <Button
                   data-testid="btn-next-step2"
-                  className="flex-1 bg-primary"
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
                   onClick={() => setStep(3)}
                   disabled={!category}
                 >
@@ -252,15 +253,15 @@ export default function OnboardingPage() {
 
         {/* Step 3: Currency + Confirm */}
         {step === 3 && (
-          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <Card className="bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Globe className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold">ตั้งค่าสกุลเงิน</h2>
-                  <p className="text-sm text-muted-foreground">เลือกสกุลเงินสำหรับร้านค้าของคุณ</p>
+                  <h2 className="text-lg font-bold text-white/90">ตั้งค่าสกุลเงิน</h2>
+                  <p className="text-sm text-white/40">เลือกสกุลเงินสำหรับร้านค้าของคุณ</p>
                 </div>
               </div>
 
@@ -272,40 +273,40 @@ export default function OnboardingPage() {
                     onClick={() => setCurrency(cur.value)}
                     className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
                       currency === cur.value
-                        ? "border-primary bg-primary/10 ring-1 ring-primary/30"
-                        : "border-border/50 hover:border-primary/30 bg-card/50"
+                        ? "border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30"
+                        : "border-white/[0.06] bg-white/[0.02] hover:border-orange-500/20"
                     }`}
                   >
-                    <span className="text-sm font-medium">{cur.label}</span>
-                    {currency === cur.value && <Check className="w-4 h-4 text-primary" />}
+                    <span className="text-sm font-medium text-white/80">{cur.label}</span>
+                    {currency === cur.value && <Check className="w-4 h-4 text-orange-400" />}
                   </button>
                 ))}
               </div>
 
               {/* Summary */}
-              <div className="p-4 rounded-xl border border-border/50 bg-muted/30 mb-6 space-y-2">
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" /> สรุปข้อมูลร้านค้า
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6 space-y-2">
+                <h3 className="text-sm font-bold flex items-center gap-2 text-white/80">
+                  <Sparkles className="w-4 h-4 text-orange-400" /> สรุปข้อมูลร้านค้า
                 </h3>
                 <div className="grid grid-cols-2 gap-y-1.5 text-sm">
-                  <span className="text-muted-foreground">ชื่อร้าน:</span>
-                  <span className="font-medium">{storeName}</span>
-                  <span className="text-muted-foreground">URL:</span>
-                  <span className="font-medium text-primary">/{slug}</span>
-                  <span className="text-muted-foreground">ประเภท:</span>
-                  <span className="font-medium">{categories.find((c) => c.value === category)?.label}</span>
-                  <span className="text-muted-foreground">สกุลเงิน:</span>
-                  <span className="font-medium">{currencies.find((c) => c.value === currency)?.label}</span>
+                  <span className="text-white/40">ชื่อร้าน:</span>
+                  <span className="font-medium text-white/80">{storeName}</span>
+                  <span className="text-white/40">URL:</span>
+                  <span className="font-medium text-orange-400">/{slug}</span>
+                  <span className="text-white/40">ประเภท:</span>
+                  <span className="font-medium text-white/80">{categories.find((c) => c.value === category)?.label}</span>
+                  <span className="text-white/40">สกุลเงิน:</span>
+                  <span className="font-medium text-white/80">{currencies.find((c) => c.value === currency)?.label}</span>
                 </div>
               </div>
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1 bg-white/[0.04] border-white/[0.06] text-white/60 hover:bg-white/[0.06]">
                   <ArrowLeft className="w-4 h-4 mr-1" /> ย้อนกลับ
                 </Button>
                 <Button
                   data-testid="btn-create-store"
-                  className="flex-1 bg-gradient-to-r from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] text-white"
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/20"
                   onClick={handleCreateStore}
                   disabled={isSubmitting}
                 >
@@ -326,19 +327,19 @@ export default function OnboardingPage() {
 
         {/* Step 4: Success */}
         {step === 4 && (
-          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <Card className="bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-                <Check className="w-8 h-8 text-green-500" />
+              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
+                <Check className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2 className="text-xl font-bold mb-2">สร้างร้านค้าสำเร็จ</h2>
-              <p className="text-sm text-muted-foreground mb-4">
+              <h2 className="text-xl font-bold mb-2 text-white/90">สร้างร้านค้าสำเร็จ</h2>
+              <p className="text-sm text-white/40 mb-4">
                 {storeName} พร้อมใช้งานแล้ว กำลังนำคุณไปที่ Dashboard...
               </p>
               <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "100ms" }} />
-                <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "200ms" }} />
+                <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{ animationDelay: "100ms" }} />
+                <div className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" style={{ animationDelay: "200ms" }} />
               </div>
             </CardContent>
           </Card>
