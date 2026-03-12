@@ -1,10 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/theme-provider";
+import { AuthGuard } from "@/components/auth-guard";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, Settings, LogOut, Sun, Moon, ChevronLeft, Menu } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import type { Store as StoreType } from "@shared/schema";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -24,6 +28,21 @@ export function AppSidebar() {
   const { theme, toggle } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+
+  const { data: stores = [] } = useQuery<StoreType[]>({ queryKey: ["/api/stores"] });
+  const store = stores.length > 0 ? stores[0] : null;
+  const storeUrl = store ? `${window.location.origin}/#/shop/${store.slug}` : null;
+
+  const copyStoreLink = () => {
+    if (storeUrl) {
+      navigator.clipboard.writeText(storeUrl).catch(() => {});
+      setCopied(true);
+      toast({ title: "คัดลอกลิงก์แล้ว" });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <>
@@ -48,20 +67,53 @@ export function AppSidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        {/* Logo */}
+        {/* Logo + Store Name */}
         <div className="flex items-center gap-2 px-4 h-16 border-b border-sidebar-border shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] flex items-center justify-center text-white font-bold text-sm">
-            Z
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)] flex items-center justify-center text-white font-bold text-sm shrink-0">
+            {store ? store.name.charAt(0).toUpperCase() : "Z"}
           </div>
-          {!collapsed && <span className="font-bold text-base tracking-tight">ZENTRA AI</span>}
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <span className="font-bold text-sm tracking-tight truncate block">
+                {store ? store.name : "ZENTRA AI"}
+              </span>
+              {store && (
+                <span className="text-[10px] text-muted-foreground truncate block">/{store.slug}</span>
+              )}
+            </div>
+          )}
           <button
             data-testid="sidebar-collapse"
-            className="ml-auto p-1 rounded hover:bg-sidebar-accent hidden md:block"
+            className="ml-auto p-1 rounded hover:bg-sidebar-accent hidden md:block shrink-0"
             onClick={() => setCollapsed(!collapsed)}
           >
             <ChevronLeft className={cn("w-4 h-4 transition-transform", collapsed && "rotate-180")} />
           </button>
         </div>
+
+        {/* Store Link */}
+        {store && !collapsed && (
+          <div className="px-3 py-2 border-b border-sidebar-border">
+            <div className="flex items-center gap-1.5">
+              <Link href={`/shop/${store.slug}`}>
+                <button
+                  data-testid="view-storefront"
+                  className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                >
+                  <ExternalLink className="w-3 h-3" /> ดูหน้าร้าน
+                </button>
+              </Link>
+              <button
+                data-testid="copy-store-link"
+                onClick={copyStoreLink}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground ml-auto"
+              >
+                {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                {copied ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Nav */}
         <nav className="flex-1 py-3 px-2 space-y-1 overflow-y-auto">
@@ -108,7 +160,7 @@ export function AppSidebar() {
                   <p className="text-xs text-muted-foreground truncate">{user.plan.toUpperCase()}</p>
                 </div>
               )}
-              <button data-testid="logout-btn" onClick={() => logout()} className="p-1 rounded hover:bg-sidebar-accent">
+              <button data-testid="logout-btn" onClick={() => { logout(); window.location.hash = "/"; }} className="p-1 rounded hover:bg-sidebar-accent">
                 <LogOut className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
@@ -121,13 +173,15 @@ export function AppSidebar() {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
-      <AppSidebar />
-      <main className="md:ml-[240px] min-h-screen">
-        <div className="pt-14 px-4 pb-4 md:pt-6 md:px-6 md:pb-6 lg:p-8 max-w-[1400px]">
-          {children}
-        </div>
-      </main>
-    </div>
+    <AuthGuard>
+      <div className="min-h-screen bg-background">
+        <AppSidebar />
+        <main className="md:ml-[240px] min-h-screen">
+          <div className="pt-14 px-4 pb-4 md:pt-6 md:px-6 md:pb-6 lg:p-8 max-w-[1400px]">
+            {children}
+          </div>
+        </main>
+      </div>
+    </AuthGuard>
   );
 }

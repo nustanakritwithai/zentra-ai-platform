@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Store, Globe, Palette, Save } from "lucide-react";
+import { Store, Globe, Palette, Save, ExternalLink, Copy, Check } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
 
 const themes = [
@@ -117,10 +118,28 @@ export default function StoreSettingsPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2"><Globe className="w-5 h-5 text-primary" /><CardTitle className="text-base">ลิงก์ร้านค้า</CardTitle></div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <div className="p-3 rounded-lg bg-muted/30 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-muted-foreground" />
-              <code className="text-sm">https://zentra.ai/store/{slug}</code>
+              <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+              <code className="text-sm flex-1 truncate">{window.location.origin}/#/shop/{slug}</code>
+              <button
+                data-testid="copy-store-url"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/#/shop/${slug}`).catch(() => {});
+                  toast({ title: "คัดลอกลิงก์แล้ว" });
+                }}
+                className="p-1.5 rounded-md hover:bg-muted shrink-0"
+              >
+                <Copy className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="flex gap-3">
+              <Link href={`/shop/${slug}`}>
+                <Button variant="outline" size="sm" data-testid="btn-view-store">
+                  <ExternalLink className="w-3.5 h-3.5 mr-1" /> ดูหน้าร้าน
+                </Button>
+              </Link>
+              <p className="text-xs text-muted-foreground self-center">แชร์ลิงก์นี้ให้ลูกค้าเพื่อเข้าดูร้านค้าและสั่งซื้อสินค้า</p>
             </div>
           </CardContent>
         </Card>
