@@ -6,6 +6,15 @@ services:
     region: singapore
     buildCommand: npm install && npm run build
     startCommand: node dist/index.cjs
+    healthCheckPath: /api/db/status
     envVars:
       - key: NODE_ENV
         value: production
+      - key: SUPABASE_URL
+        value: https://yxuvkfliwqlfnpxhmuyj.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4dXZrZmxpd3FsZm5weGhtdXlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMDYwMDQsImV4cCI6MjA4ODgyMDA0fQ._iS3oJcnSxJbkeR6cvl93fZyc0ootJrXYLFLH7NaTos
+      - key: SUPABASE_SERVICE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4dXZrZmxpd3FsZm5weGhtdXlqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzMwNjAwNCwiZXhwIjoyMDg4ODgyMDA0fQ.reqCn0SRTxLgFIKlvWmHHcaBR5RjvVqXB1G7HPU_4pg
+      - key: GEMINI_API_KEY
+        value: AIzaSyCdm1zk0R-YEoCy-vxLBQdvB5E73GQ70Vc
