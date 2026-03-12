@@ -23,6 +23,14 @@ import DiscountsPage from "@/pages/discounts";
 import MallPage from "@/pages/mall";
 import AffiliatePage from "@/pages/affiliate";
 import MarketplacePage from "@/pages/marketplace";
+import PosPage from "@/pages/pos";
+import BlogPage from "@/pages/blog";
+import EmployeesPage from "@/pages/employees";
+import InventoryPage from "@/pages/inventory";
+import IntegrationsPage from "@/pages/integrations";
+import BuyerProfilePage from "@/pages/buyer-profile";
+import StoreEditorPage from "@/pages/store-editor";
+import AiGeneratePage from "@/pages/ai-generate";
 import NotFound from "@/pages/not-found";
 
 function AppRouter() {
@@ -45,6 +53,14 @@ function AppRouter() {
       <Route path="/mall" component={MallPage} />
       <Route path="/affiliate" component={AffiliatePage} />
       <Route path="/marketplace" component={MarketplacePage} />
+      <Route path="/pos" component={PosPage} />
+      <Route path="/blog" component={BlogPage} />
+      <Route path="/employees" component={EmployeesPage} />
+      <Route path="/inventory" component={InventoryPage} />
+      <Route path="/integrations" component={IntegrationsPage} />
+      <Route path="/buyer-profile" component={BuyerProfilePage} />
+      <Route path="/store-editor" component={StoreEditorPage} />
+      <Route path="/ai-generate" component={AiGeneratePage} />
       <Route path="/shop/:slug" component={StorefrontPage} />
       <Route component={NotFound} />
     </Switch>

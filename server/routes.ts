@@ -18,25 +18,22 @@ import {
 import crypto from "crypto";
 
 // Simple per-request session map (keyed by a session token header)
-const sessions = new Map<string, { userId: number; storeId: number; createdAt: number }>();
+const sessions = new Map<string, { userId: number; storeId: number; role: string; createdAt: number }>();
 
 function generateToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-// Helper: get session from request
-function getSession(req: Request): { userId: number; storeId: number } | null {
+function getSession(req: Request): { userId: number; storeId: number; role: string } | null {
   const token = req.headers["x-session-token"] as string;
   if (!token) return null;
   const session = sessions.get(token);
   if (!session) return null;
-  // Extend session TTL on activity (24h)
   session.createdAt = Date.now();
   return session;
 }
 
-// Helper: require auth middleware-style
-function requireAuth(req: Request, res: Response): { userId: number; storeId: number } | null {
+function requireAuth(req: Request, res: Response): { userId: number; storeId: number; role: string } | null {
   const session = getSession(req);
   if (!session) {
     res.status(401).json({ error: "กรุณาเข้าสู่ระบบ" });
@@ -53,7 +50,7 @@ setInterval(() => {
       sessions.delete(token);
     }
   }
-}, 60 * 60 * 1000); // Check every hour
+}, 60 * 60 * 1000);
 
 export async function registerRoutes(server: Server, app: Express): Promise<void> {
 
@@ -61,9 +58,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   app.get("/api/db/status", async (_req, res) => {
     try {
       const { data, error } = await supabaseAdmin.from("users").select("id").limit(1);
-      if (error) {
-        return res.json({ connected: false, mode: "memory", error: error.message, supabaseUrl: SUPABASE_URL });
-      }
+      if (error) return res.json({ connected: false, mode: "memory", error: error.message, supabaseUrl: SUPABASE_URL });
       return res.json({ connected: true, mode: "supabase", supabaseUrl: SUPABASE_URL });
     } catch (e: any) {
       return res.json({ connected: false, mode: "memory", error: e.message });
@@ -78,14 +73,18 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== AUTH ===================
 
   app.post("/api/auth/register", async (req, res) => {
-    const { email, password, name } = req.body;
+    const { email, password, name, role } = req.body;
     if (!email || !password || !name) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
     const existing = await storage.getUserByEmail(email);
     if (existing) return res.status(400).json({ error: "อีเมลนี้ถูกใช้แล้ว" });
     const user = await storage.createUser({ email, password, name });
+    // Set role if specified
+    if (role === "buyer") {
+      await storage.updateUser(user.id, { role: "buyer" } as any);
+    }
     const token = generateToken();
-    sessions.set(token, { userId: user.id, storeId: 0, createdAt: Date.now() });
-    res.json({ user: { ...user, password: undefined }, token });
+    sessions.set(token, { userId: user.id, storeId: 0, role: role || "seller", createdAt: Date.now() });
+    res.json({ user: { ...user, password: undefined, role: role || "seller" }, token });
   });
 
   app.post("/api/auth/login", async (req, res) => {
@@ -94,24 +93,22 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!user || user.password !== password) return res.status(401).json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
     const stores = await storage.getStoresByUser(user.id);
     const storeId = stores.length > 0 ? stores[0].id : 0;
+    const userRole = (user as any).role || "seller";
     const token = generateToken();
-    sessions.set(token, { userId: user.id, storeId, createdAt: Date.now() });
-    res.json({ user: { ...user, password: undefined }, token, storeId });
+    sessions.set(token, { userId: user.id, storeId, role: userRole, createdAt: Date.now() });
+    res.json({ user: { ...user, password: undefined }, token, storeId, role: userRole });
   });
 
   app.get("/api/auth/me", async (req, res) => {
     const session = getSession(req);
-    if (!session) {
-      return res.status(401).json({ error: "ไม่ได้เข้าสู่ระบบ" });
-    }
+    if (!session) return res.status(401).json({ error: "ไม่ได้เข้าสู่ระบบ" });
     const user = await storage.getUser(session.userId);
     if (!user) return res.status(401).json({ error: "ไม่พบผู้ใช้" });
     const stores = await storage.getStoresByUser(user.id);
     const storeId = stores.length > 0 ? stores[0].id : 0;
-    // Update session storeId if changed
     const token = req.headers["x-session-token"] as string;
-    sessions.set(token, { userId: user.id, storeId, createdAt: Date.now() });
-    res.json({ user: { ...user, password: undefined }, storeId });
+    sessions.set(token, { userId: user.id, storeId, role: session.role, createdAt: Date.now() });
+    res.json({ user: { ...user, password: undefined }, storeId, role: session.role });
   });
 
   app.post("/api/auth/logout", (req, res) => {
@@ -170,7 +167,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     await storage.updateUser(session.userId, { onboarded: true });
 
     const token = req.headers["x-session-token"] as string;
-    sessions.set(token, { userId: session.userId, storeId: store.id, createdAt: Date.now() });
+    sessions.set(token, { userId: session.userId, storeId: store.id, role: session.role, createdAt: Date.now() });
 
     res.json({ store, storeId: store.id });
   });
@@ -211,7 +208,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(store);
   });
 
-  // =================== CATEGORIES (per store) ===================
+  // =================== CATEGORIES ===================
 
   app.get("/api/categories", async (req, res) => {
     const session = requireAuth(req, res);
@@ -245,50 +242,35 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json({ ok });
   });
 
-  // =================== IMAGE UPLOAD (Supabase Storage) ===================
+  // =================== IMAGE UPLOAD ===================
 
   app.post("/api/upload", async (req, res) => {
     const session = requireAuth(req, res);
     if (!session) return;
-    
     try {
       const { fileData, fileName, contentType, folder } = req.body;
       if (!fileData || !fileName) return res.status(400).json({ error: "กรุณาแนบไฟล์" });
-
-      // fileData is base64
       const buffer = Buffer.from(fileData, "base64");
       const path = `stores/${session.storeId}/${folder || "products"}/${Date.now()}-${fileName}`;
-
-      const { data, error } = await supabaseAdmin.storage
-        .from("zentra-uploads")
-        .upload(path, buffer, {
-          contentType: contentType || "image/jpeg",
-          upsert: false,
-        });
-
+      const { data, error } = await supabaseAdmin.storage.from("zentra-uploads").upload(path, buffer, { contentType: contentType || "image/jpeg", upsert: false });
       if (error) {
-        // Try creating bucket if it doesn't exist
         if (error.message?.includes("not found") || error.message?.includes("Bucket")) {
           await supabaseAdmin.storage.createBucket("zentra-uploads", { public: true });
-          const retry = await supabaseAdmin.storage
-            .from("zentra-uploads")
-            .upload(path, buffer, { contentType: contentType || "image/jpeg", upsert: false });
+          const retry = await supabaseAdmin.storage.from("zentra-uploads").upload(path, buffer, { contentType: contentType || "image/jpeg", upsert: false });
           if (retry.error) throw retry.error;
           const { data: urlData } = supabaseAdmin.storage.from("zentra-uploads").getPublicUrl(path);
           return res.json({ url: urlData.publicUrl, path });
         }
         throw error;
       }
-
       const { data: urlData } = supabaseAdmin.storage.from("zentra-uploads").getPublicUrl(path);
       res.json({ url: urlData.publicUrl, path });
     } catch (error: any) {
-      console.error("Upload error:", error);
       res.status(500).json({ error: error.message || "อัพโหลดไม่สำเร็จ" });
     }
   });
 
-  // =================== PRODUCTS (scoped to session storeId) ===================
+  // =================== PRODUCTS ===================
 
   app.get("/api/products", async (req, res) => {
     const session = requireAuth(req, res);
@@ -359,6 +341,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(customer);
   });
 
+  app.put("/api/customers/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const customer = await storage.updateCustomer(Number(req.params.id), req.body);
+    if (!customer) return res.status(404).json({ error: "ไม่พบลูกค้า" });
+    res.json(customer);
+  });
+
   // =================== DISCOUNTS ===================
 
   app.get("/api/discounts", async (req, res) => {
@@ -402,11 +392,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (discount.expiresAt && new Date(discount.expiresAt) < new Date()) return res.json({ valid: false, error: "โค้ดหมดอายุ" });
     if (discount.maxUses && (discount.usedCount || 0) >= discount.maxUses) return res.json({ valid: false, error: "โค้ดถูกใช้หมดแล้ว" });
     if (discount.minPurchase && total < discount.minPurchase) return res.json({ valid: false, error: `ยอดขั้นต่ำ ฿${discount.minPurchase}` });
-    
-    const discountAmount = discount.type === "percentage" 
-      ? (total * discount.value / 100)
-      : discount.value;
-    
+    const discountAmount = discount.type === "percentage" ? (total * discount.value / 100) : discount.value;
     res.json({ valid: true, discount: { ...discount }, discountAmount });
   });
 
@@ -442,6 +428,33 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json({ ok, status: getGeminiStatus() });
   });
 
+  // AI Text Generation (#16)
+  app.post("/api/ai/generate-text", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { prompt, type } = req.body; // type: description, seo, blog, product
+    if (!prompt) return res.status(400).json({ error: "กรุณาระบุ prompt" });
+    try {
+      const result = await chatWithAgent("shopping_assistant", `[GENERATE ${type?.toUpperCase() || "TEXT"}] ${prompt}`, session.storeId);
+      res.json({ text: result.reply, agentName: result.agentName });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // AI Image Generation placeholder (#16)
+  app.post("/api/ai/generate-image", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { prompt } = req.body;
+    // Gemini doesn't generate images directly, but we can generate a description
+    res.json({
+      success: false,
+      message: "การสร้างรูปภาพด้วย AI ต้องใช้ API เพิ่มเติม (เช่น DALL-E, Stable Diffusion) กรุณาเชื่อมต่อ API ในหน้าการตั้งค่า",
+      prompt,
+    });
+  });
+
   // =================== DASHBOARD ===================
 
   app.get("/api/dashboard/stats", async (req, res) => {
@@ -458,7 +471,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(data);
   });
 
-  // =================== AI CHAT (Gemini + Memory + RAG) ===================
+  // =================== AI CHAT ===================
 
   app.post("/api/ai-chat", async (req, res) => {
     try {
@@ -500,9 +513,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const session = requireAuth(req, res);
     if (!session) return;
     const { title, content, category } = req.body;
-    if (!title || !content || !category) {
-      return res.status(400).json({ error: "กรุณากรอก title, content, category" });
-    }
+    if (!title || !content || !category) return res.status(400).json({ error: "กรุณากรอก title, content, category" });
     const entry = addKnowledgeEntry(session.storeId, { title, content, category });
     res.json(entry);
   });
@@ -532,25 +543,162 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json({ memory, rag, gemini: getGeminiStatus() });
   });
 
-  // =================== LINE API INTEGRATION ===================
+  // =================== EMPLOYEES (#3) ===================
 
-  // Save LINE OA credentials for a store
+  app.get("/api/employees", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const employees = await storage.getEmployeesByStore(session.storeId);
+    res.json(employees);
+  });
+
+  app.post("/api/employees", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { name, email, role, permissions, pin } = req.body;
+    if (!name) return res.status(400).json({ error: "กรุณากรอกชื่อพนักงาน" });
+    const employee = await storage.createEmployee({ storeId: session.storeId, name, email, role: role || "staff", permissions, pin });
+    res.json(employee);
+  });
+
+  app.put("/api/employees/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const emp = await storage.updateEmployee(Number(req.params.id), req.body);
+    if (!emp) return res.status(404).json({ error: "ไม่พบพนักงาน" });
+    res.json(emp);
+  });
+
+  app.delete("/api/employees/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteEmployee(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // =================== STOCK LOGS (#3) ===================
+
+  app.get("/api/stock-logs", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const logs = await storage.getStockLogsByStore(session.storeId);
+    res.json(logs);
+  });
+
+  app.post("/api/stock-logs", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { productId, type, quantity, reason } = req.body;
+    if (!productId || !type || quantity === undefined) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
+    // Update product stock
+    const product = await storage.getProduct(productId);
+    if (product) {
+      const newStock = type === "adjustment" ? quantity : product.stock + quantity;
+      await storage.updateProduct(productId, { stock: Math.max(0, newStock) });
+    }
+    const log = await storage.createStockLog({ storeId: session.storeId, productId, type, quantity, reason });
+    res.json(log);
+  });
+
+  // =================== BLOG POSTS (#14) ===================
+
+  app.get("/api/blog", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const posts = await storage.getBlogPostsByStore(session.storeId);
+    res.json(posts);
+  });
+
+  app.get("/api/blog/:id", async (req, res) => {
+    const posts = await storage.getAllPublishedPosts();
+    const post = posts.find(p => p.id === Number(req.params.id));
+    if (!post) return res.status(404).json({ error: "ไม่พบบทความ" });
+    res.json(post);
+  });
+
+  app.post("/api/blog", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { title, content, excerpt, coverImage, category, tags, status, seoTitle, seoDescription } = req.body;
+    if (!title || !content) return res.status(400).json({ error: "กรุณากรอกหัวข้อและเนื้อหา" });
+    const slug = title.toLowerCase().replace(/[^a-z0-9ก-๙]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now();
+    const post = await storage.createBlogPost({ storeId: session.storeId, title, slug, content, excerpt, coverImage, category, tags, status: status || "draft", authorId: session.userId, seoTitle, seoDescription });
+    res.json(post);
+  });
+
+  app.put("/api/blog/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const post = await storage.updateBlogPost(Number(req.params.id), req.body);
+    if (!post) return res.status(404).json({ error: "ไม่พบบทความ" });
+    res.json(post);
+  });
+
+  app.delete("/api/blog/:id", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteBlogPost(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // Public blog posts
+  app.get("/api/public/blog", async (req, res) => {
+    const posts = await storage.getAllPublishedPosts();
+    res.json(posts);
+  });
+
+  app.get("/api/public/blog/:slug", async (req, res) => {
+    const post = await storage.getBlogPostBySlug(req.params.slug);
+    if (!post || post.status !== "published") return res.status(404).json({ error: "ไม่พบบทความ" });
+    res.json(post);
+  });
+
+  // =================== POS (#6) ===================
+
+  app.post("/api/pos/order", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { items, customerName, paymentMethod, employeeId } = req.body;
+    if (!items || items.length === 0) return res.status(400).json({ error: "กรุณาเพิ่มสินค้า" });
+
+    const subtotal = items.reduce((s: number, item: any) => s + (item.price * item.qty), 0);
+    const order = await storage.createOrder(session.storeId, {
+      customerName: customerName || "Walk-in Customer",
+      total: subtotal,
+      subtotal,
+      discount: 0,
+      status: "completed",
+      paymentMethod: paymentMethod || "cash",
+      paymentStatus: "paid",
+      items,
+      source: "pos",
+      employeeId: employeeId || null,
+    } as any);
+
+    // Update stock
+    for (const item of items) {
+      if (item.productId) {
+        const product = await storage.getProduct(item.productId);
+        if (product && product.stock > 0) {
+          await storage.updateProduct(item.productId, { stock: Math.max(0, product.stock - item.qty) });
+        }
+      }
+    }
+
+    res.json(order);
+  });
+
+  // =================== LINE API ===================
+
   app.post("/api/line/setup", async (req, res) => {
     const session = requireAuth(req, res);
     if (!session) return;
     const { channelId, channelSecret, accessToken } = req.body;
     if (!channelId || !channelSecret) return res.status(400).json({ error: "กรุณากรอก Channel ID และ Channel Secret" });
-    
-    const store = await storage.updateStore(session.storeId, {
-      lineChannelId: channelId,
-      lineChannelSecret: channelSecret,
-      lineAccessToken: accessToken || null,
-    } as any);
-
+    const store = await storage.updateStore(session.storeId, { lineChannelId: channelId, lineChannelSecret: channelSecret, lineAccessToken: accessToken || null } as any);
     res.json({ ok: true, store });
   });
 
-  // Get LINE OA status
   app.get("/api/line/status", async (req, res) => {
     const session = requireAuth(req, res);
     if (!session) return;
@@ -564,121 +712,53 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     });
   });
 
-  // LINE Webhook endpoint (receives messages from LINE)
   app.post("/api/line/webhook/:storeSlug", async (req, res) => {
     const store = await storage.getStoreBySlug(req.params.storeSlug);
     if (!store) return res.status(404).json({ error: "Store not found" });
-    
-    // Verify LINE signature
     const signature = req.headers["x-line-signature"] as string;
     const channelSecret = (store as any).lineChannelSecret;
     if (channelSecret && signature) {
       const body = JSON.stringify(req.body);
-      const expectedSig = crypto
-        .createHmac("SHA256", channelSecret)
-        .update(body)
-        .digest("base64");
-      if (signature !== expectedSig) {
-        return res.status(403).json({ error: "Invalid signature" });
-      }
+      const expectedSig = crypto.createHmac("SHA256", channelSecret).update(body).digest("base64");
+      if (signature !== expectedSig) return res.status(403).json({ error: "Invalid signature" });
     }
-
-    // Process LINE events
     const events = req.body?.events || [];
     for (const event of events) {
       if (event.type === "message" && event.message.type === "text") {
-        // Log inbound message
-        await storage.createLineMessage(store.id, {
-          lineUserId: event.source.userId,
-          direction: "inbound",
-          messageType: "text",
-          content: event.message.text,
-          timestamp: new Date(event.timestamp).toISOString(),
-        });
-
-        // Auto-reply with AI if access token available
+        await storage.createLineMessage(store.id, { lineUserId: event.source.userId, direction: "inbound", messageType: "text", content: event.message.text, timestamp: new Date(event.timestamp).toISOString() });
         const accessToken = (store as any).lineAccessToken;
         if (accessToken) {
           try {
-            const aiResult = await chatWithAgent(
-              "customer_support",
-              event.message.text,
-              store.id,
-              event.source.userId
-            );
-
-            // Reply via LINE API
+            const aiResult = await chatWithAgent("customer_support", event.message.text, store.id, event.source.userId);
             await fetch("https://api.line.me/v2/bot/message/reply", {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`,
-              },
-              body: JSON.stringify({
-                replyToken: event.replyToken,
-                messages: [{ type: "text", text: aiResult.reply.replace(/\n\n_\(.*?\)_$/s, "") }],
-              }),
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+              body: JSON.stringify({ replyToken: event.replyToken, messages: [{ type: "text", text: aiResult.reply.replace(/\n\n_\(.*?\)_$/s, "") }] }),
             });
-
-            // Log outbound
-            await storage.createLineMessage(store.id, {
-              lineUserId: event.source.userId,
-              direction: "outbound",
-              messageType: "text",
-              content: aiResult.reply,
-              timestamp: new Date().toISOString(),
-            });
-          } catch (err: any) {
-            console.error("LINE reply error:", err.message);
-          }
+            await storage.createLineMessage(store.id, { lineUserId: event.source.userId, direction: "outbound", messageType: "text", content: aiResult.reply, timestamp: new Date().toISOString() });
+          } catch (err: any) { console.error("LINE reply error:", err.message); }
         }
       }
     }
-
     res.json({ ok: true });
   });
 
-  // Send LINE message manually
   app.post("/api/line/send", async (req, res) => {
     const session = requireAuth(req, res);
     if (!session) return;
     const store = await storage.getStore(session.storeId);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
-    
     const accessToken = (store as any).lineAccessToken;
     if (!accessToken) return res.status(400).json({ error: "ยังไม่ได้ตั้งค่า LINE Access Token" });
-
     const { userId, message } = req.body;
     if (!userId || !message) return res.status(400).json({ error: "กรุณาระบุ userId และ message" });
-
     try {
-      await fetch("https://api.line.me/v2/bot/message/push", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          to: userId,
-          messages: [{ type: "text", text: message }],
-        }),
-      });
-
-      await storage.createLineMessage(store.id, {
-        lineUserId: userId,
-        direction: "outbound",
-        messageType: "text",
-        content: message,
-        timestamp: new Date().toISOString(),
-      });
-
+      await fetch("https://api.line.me/v2/bot/message/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` }, body: JSON.stringify({ to: userId, messages: [{ type: "text", text: message }] }) });
+      await storage.createLineMessage(store.id, { lineUserId: userId, direction: "outbound", messageType: "text", content: message, timestamp: new Date().toISOString() });
       res.json({ ok: true });
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
   });
 
-  // Get LINE messages
   app.get("/api/line/messages", async (req, res) => {
     const session = requireAuth(req, res);
     if (!session) return;
@@ -686,12 +766,63 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(messages);
   });
 
+  // =================== META/FACEBOOK INTEGRATION (#1) ===================
+
+  app.post("/api/meta/setup", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const { pixelId, accessToken, catalogId } = req.body;
+    const store = await storage.updateStore(session.storeId, { metaPixelId: pixelId, metaAccessToken: accessToken, metaCatalogId: catalogId } as any);
+    res.json({ ok: true, store });
+  });
+
+  app.get("/api/meta/status", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    res.json({
+      connected: !!(store as any).metaPixelId,
+      pixelId: (store as any).metaPixelId || null,
+      hasCatalog: !!(store as any).metaCatalogId,
+      hasAccessToken: !!(store as any).metaAccessToken,
+    });
+  });
+
+  // =================== API CONNECTIONS STATUS (#1) ===================
+
+  app.get("/api/integrations/status", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.json({ integrations: [] });
+    const gemini = getGeminiStatus();
+    res.json({
+      integrations: [
+        { name: "Gemini AI", type: "ai", connected: gemini.hasKey, icon: "Brain" },
+        { name: "LINE Official Account", type: "messaging", connected: !!(store as any).lineChannelId, icon: "MessageSquare" },
+        { name: "Meta / Facebook", type: "marketing", connected: !!(store as any).metaPixelId, icon: "Share2" },
+        { name: "Stripe", type: "payment", connected: !!(store as any).stripeKey, icon: "CreditCard" },
+        { name: "PromptPay", type: "payment", connected: !!(store as any).paymentMethods && (store.paymentMethods as any)?.promptpay, icon: "Smartphone" },
+        { name: "Supabase", type: "database", connected: true, icon: "Database" },
+      ],
+    });
+  });
+
   // =================== PUBLIC STOREFRONT ===================
 
   app.get("/api/public/store/:slug", async (req, res) => {
     const store = await storage.getStoreBySlug(req.params.slug);
     if (!store || store.status !== "active") return res.status(404).json({ error: "ไม่พบร้านค้า" });
-    res.json({ store: { id: store.id, name: store.name, slug: store.slug, description: store.description, logo: store.logo, theme: store.theme, currency: store.currency } });
+    res.json({
+      store: {
+        id: store.id, name: store.name, slug: store.slug, description: store.description,
+        logo: store.logo, theme: store.theme, currency: store.currency,
+        seoTitle: (store as any).seoTitle, seoDescription: (store as any).seoDescription,
+        customBanner: (store as any).customBanner, storeThemeConfig: (store as any).storeThemeConfig,
+        loyaltyEnabled: (store as any).loyaltyEnabled,
+      },
+    });
   });
 
   app.get("/api/public/store/:slug/products", async (req, res) => {
@@ -712,111 +843,82 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const store = await storage.getStoreBySlug(req.params.slug);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
     const { customerName, customerEmail, customerPhone, items, shippingAddress, paymentMethod, discountCode } = req.body;
-    if (!customerName || !items || items.length === 0) {
-      return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
-    }
-    
+    if (!customerName || !items || items.length === 0) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
     let subtotal = items.reduce((s: number, item: any) => s + (item.price * item.qty), 0);
     let discount = 0;
-
-    // Apply discount if provided
     if (discountCode) {
       const discounts = await storage.getDiscountsByStore(store.id);
       const disc = discounts.find(d => d.code.toLowerCase() === discountCode.toLowerCase() && d.active);
       if (disc) {
         discount = disc.type === "percentage" ? (subtotal * disc.value / 100) : disc.value;
-        // Increment usage
         await storage.updateDiscount(disc.id, { usedCount: (disc.usedCount || 0) + 1 });
       }
     }
-
     const total = subtotal - discount;
-
-    const order = await storage.createOrder(store.id, {
-      customerName,
-      customerEmail: customerEmail || "",
-      customerPhone: customerPhone || "",
-      subtotal,
-      discount,
-      total: Math.max(0, total),
-      status: "pending",
-      paymentMethod: paymentMethod || "bank_transfer",
-      paymentStatus: "pending",
-      items,
-      shippingAddress: shippingAddress || "",
-    } as any);
-
-    // Update stock
+    const order = await storage.createOrder(store.id, { customerName, customerEmail: customerEmail || "", customerPhone: customerPhone || "", subtotal, discount, total: Math.max(0, total), status: "pending", paymentMethod: paymentMethod || "bank_transfer", paymentStatus: "pending", items, shippingAddress: shippingAddress || "" } as any);
     for (const item of items) {
       if (item.productId) {
         const product = await storage.getProduct(item.productId);
-        if (product && product.stock > 0) {
-          await storage.updateProduct(item.productId, { stock: Math.max(0, product.stock - item.qty) });
-        }
+        if (product && product.stock > 0) await storage.updateProduct(item.productId, { stock: Math.max(0, product.stock - item.qty) });
       }
     }
-
-    // Create/update customer record
     if (customerEmail || customerPhone) {
-      try {
-        await storage.createCustomer(store.id, { name: customerName, email: customerEmail || "", phone: customerPhone || "" });
-      } catch (_) {}
+      try { await storage.createCustomer(store.id, { name: customerName, email: customerEmail || "", phone: customerPhone || "" }); } catch (_) {}
     }
-
     res.json(order);
   });
 
-  // =================== SHOPPING MALL (aggregate all stores) ===================
+  // =================== SHOPPING MALL ===================
 
   app.get("/api/public/mall/products", async (req, res) => {
     try {
       const { category, search, limit, offset } = req.query;
       const allProducts = await storage.getAllActiveProducts();
       let filtered = allProducts;
-
-      if (category && category !== "all") {
-        filtered = filtered.filter((p: any) => p.category === category);
-      }
-      if (search) {
-        const q = (search as string).toLowerCase();
-        filtered = filtered.filter((p: any) => 
-          p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)
-        );
-      }
-
+      if (category && category !== "all") filtered = filtered.filter((p: any) => p.category === category);
+      if (search) { const q = (search as string).toLowerCase(); filtered = filtered.filter((p: any) => p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)); }
       const total = filtered.length;
       const lim = Math.min(parseInt(limit as string) || 48, 100);
       const off = parseInt(offset as string) || 0;
       filtered = filtered.slice(off, off + lim);
-
       res.json({ products: filtered, total, limit: lim, offset: off });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
   });
 
   app.get("/api/public/mall/stores", async (req, res) => {
     try {
       const allStores = await storage.getAllActiveStores();
       res.json(allStores);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
   });
 
   app.get("/api/public/mall/categories", async (req, res) => {
     try {
       const allProducts = await storage.getAllActiveProducts();
       const catMap = new Map<string, number>();
-      for (const p of allProducts) {
-        if (p.category) {
-          catMap.set(p.category, (catMap.get(p.category) || 0) + 1);
-        }
-      }
+      for (const p of allProducts) { if (p.category) catMap.set(p.category, (catMap.get(p.category) || 0) + 1); }
       const cats = [...catMap.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
       res.json(cats);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  // AI Content Generation
+  app.post("/api/ai-generate/text", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      if (!prompt) return res.status(400).json({ error: "Missing prompt" });
+      const result = await chatWithAgent("shopping_assistant", prompt, 1);
+      res.json({ text: result.reply });
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  app.post("/api/ai-generate/image", async (req, res) => {
+    try {
+      const { prompt, style } = req.body;
+      if (!prompt) return res.status(400).json({ error: "Missing prompt" });
+      const descPrompt = `Generate a detailed image description in English for: ${prompt}. Style: ${style || "product photo"}. Respond with only the image description, nothing else.`;
+      const result = await chatWithAgent("visual_search", descPrompt, 1);
+      res.json({ description: result.reply, imageUrl: null, note: "Image generation via Gemini Imagen coming soon. Description generated." });
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
   });
 }

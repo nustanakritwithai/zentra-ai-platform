@@ -5,8 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingBag, Sparkles, TrendingUp, Headphones, BarChart3, Eye, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { ShoppingBag, Sparkles, TrendingUp, Headphones, BarChart3, Eye, ChevronDown, ChevronUp, Zap, MessageSquare, Brain, RefreshCw, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
 import type { AiAgent } from "@shared/schema";
@@ -14,7 +15,6 @@ import type { AiAgent } from "@shared/schema";
 const iconMap: Record<string, any> = { ShoppingBag, Sparkles, TrendingUp, Headphones, BarChart3, Eye };
 const statusDot: Record<string, string> = { active: "bg-emerald-400 shadow-lg shadow-emerald-400/50", processing: "bg-amber-400 animate-pulse shadow-lg shadow-amber-400/50", paused: "bg-white/20", error: "bg-red-400 shadow-lg shadow-red-400/50" };
 
-// Dynamic View: each agent gets its own color identity
 const agentColors: Record<string, { bg: string; icon: string; bar: string; text: string; hover: string }> = {
   ShoppingBag: { bg: "from-teal-500/10 to-cyan-500/10", icon: "text-teal-400", bar: "from-teal-500 to-cyan-600", text: "text-teal-400", hover: "hover:border-teal-500/20 hover:shadow-teal-500/5" },
   Sparkles: { bg: "from-violet-500/10 to-fuchsia-500/10", icon: "text-violet-400", bar: "from-violet-500 to-fuchsia-500", text: "text-violet-400", hover: "hover:border-violet-500/20 hover:shadow-violet-500/5" },
@@ -28,23 +28,85 @@ const defaultColor = agentColors.ShoppingBag;
 export default function AiAgentsPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const { toast } = useToast();
-  const { data: agents = [] } = useQuery<AiAgent[]>({ queryKey: ["/api/ai-agents"] });
+  const { data: agents = [], isLoading } = useQuery<AiAgent[]>({ queryKey: ["/api/ai-agents"] });
+  const { data: aiStats } = useQuery<any>({ queryKey: ["/api/ai/stats"] });
 
   const updateMut = useMutation({
     mutationFn: async ({ id, ...data }: any) => { const r = await apiRequest("PUT", `/api/ai-agents/${id}`, data); return r.json(); },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/ai-agents"] }); toast({ title: "อัปเดต AI Agent สำเร็จ" }); },
   });
 
+  const enabledCount = agents.filter(a => a.enabled).length;
+  const totalCount = agents.length;
+
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">AI Agent</h1>
             <p className="text-sm text-white/50">จัดการ AI ที่ทำงานให้ร้านค้าคุณอัตโนมัติ</p>
           </div>
-          <Badge variant="outline" className="gap-1 bg-gradient-to-r from-teal-500/10 to-cyan-500/10 text-teal-400 border-teal-500/20"><Zap className="w-3 h-3 text-teal-400" />{agents.filter(a => a.enabled).length}/{agents.length} ทำงาน</Badge>
+          <div className="flex items-center gap-3">
+            {/* Gemini Status */}
+            <Badge variant="outline" className={`gap-1 text-xs ${aiStats?.gemini?.hasKey ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+              <Brain className="w-3 h-3" />
+              {aiStats?.gemini?.hasKey ? "Gemini เชื่อมต่อแล้ว" : "ยังไม่มี Gemini Key"}
+            </Badge>
+            <Badge variant="outline" className="gap-1 bg-gradient-to-r from-teal-500/10 to-cyan-500/10 text-teal-400 border-teal-500/20">
+              <Zap className="w-3 h-3 text-teal-400" />
+              {enabledCount}/{totalCount} ทำงาน
+            </Badge>
+          </div>
         </div>
+
+        {/* AI System Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card className="bg-white/[0.02] border border-white/[0.06] rounded-xl">
+            <CardContent className="p-4 text-center">
+              <Brain className="w-5 h-5 text-violet-400 mx-auto mb-1" />
+              <p className="text-lg font-bold text-white/90">{aiStats?.memory?.totalSessions || 0}</p>
+              <p className="text-[10px] text-white/40">Memory Sessions</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/[0.02] border border-white/[0.06] rounded-xl">
+            <CardContent className="p-4 text-center">
+              <BarChart3 className="w-5 h-5 text-sky-400 mx-auto mb-1" />
+              <p className="text-lg font-bold text-white/90">{aiStats?.rag?.totalDocuments || 0}</p>
+              <p className="text-[10px] text-white/40">RAG Documents</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/[0.02] border border-white/[0.06] rounded-xl">
+            <CardContent className="p-4 text-center">
+              <MessageSquare className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+              <p className="text-lg font-bold text-white/90">{aiStats?.memory?.totalTurns || 0}</p>
+              <p className="text-[10px] text-white/40">Chat Turns</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/[0.02] border border-white/[0.06] rounded-xl">
+            <CardContent className="p-4 text-center">
+              <Sparkles className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+              <p className="text-lg font-bold text-white/90">{aiStats?.memory?.totalFacts || 0}</p>
+              <p className="text-[10px] text-white/40">Facts Extracted</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Agent not loaded message */}
+        {!isLoading && agents.length === 0 && (
+          <Card className="bg-gradient-to-br from-amber-500/5 to-orange-500/5 border border-amber-500/20 rounded-2xl">
+            <CardContent className="p-6 text-center">
+              <Bot className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
+              <h3 className="font-bold text-white/80 mb-1">ยังไม่มี AI Agent</h3>
+              <p className="text-sm text-white/50 mb-4">AI Agent จะถูกสร้างอัตโนมัติเมื่อคุณสร้างร้านค้า กรุณาไปที่หน้า Onboarding เพื่อสร้างร้านค้าก่อน</p>
+              <a href="/#/onboarding">
+                <Button className="bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30">
+                  <RefreshCw className="w-4 h-4 mr-1" /> ไปสร้างร้านค้า
+                </Button>
+              </a>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {agents.map(agent => {
@@ -70,7 +132,7 @@ export default function AiAgentsPage() {
                         <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                           <div className={`h-full bg-gradient-to-r ${color.bar} rounded-full transition-all`} style={{ width: `${agent.performance || 0}%` }} />
                         </div>
-                        <span className={`text-xs font-mono font-bold ${color.text}`}>{agent.performance}%</span>
+                        <span className={`text-xs font-mono font-bold ${color.text}`}>{agent.performance || 0}%</span>
                       </div>
                     </div>
                     <Switch
@@ -83,7 +145,7 @@ export default function AiAgentsPage() {
                   <button
                     data-testid={`agent-expand-${agent.id}`}
                     onClick={() => setExpandedId(expanded ? null : agent.id)}
-                    className={`flex items-center gap-1 mt-3 text-xs text-white/40 hover:${color.text} transition-colors`}
+                    className="flex items-center gap-1 mt-3 text-xs text-white/40 hover:text-white/60 transition-colors"
                   >
                     {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     {expanded ? "ซ่อนการตั้งค่า" : "ตั้งค่าขั้นสูง"}
@@ -99,12 +161,7 @@ export default function AiAgentsPage() {
                                 <label className="text-xs font-medium capitalize text-white/50">{key.replace(/([A-Z])/g, " $1")}</label>
                                 <span className="text-xs font-mono text-teal-400">{val}</span>
                               </div>
-                              <Slider
-                                data-testid={`agent-slider-${agent.id}-${key}`}
-                                value={[val as number]}
-                                min={0} max={10} step={1}
-                                onValueChange={([v]) => updateMut.mutate({ id: agent.id, config: { ...config, [key]: v } })}
-                              />
+                              <Slider data-testid={`agent-slider-${agent.id}-${key}`} value={[val as number]} min={0} max={10} step={1} onValueChange={([v]) => updateMut.mutate({ id: agent.id, config: { ...config, [key]: v } })} />
                             </div>
                           );
                         }
@@ -115,11 +172,7 @@ export default function AiAgentsPage() {
                                 <label className="text-xs font-medium capitalize text-white/50">{key.replace(/([A-Z])/g, " $1")}</label>
                                 <span className="text-xs font-mono text-teal-400">{val}</span>
                               </div>
-                              <Slider
-                                value={[val as number]}
-                                min={0} max={100} step={5}
-                                onValueChange={([v]) => updateMut.mutate({ id: agent.id, config: { ...config, [key]: v } })}
-                              />
+                              <Slider value={[val as number]} min={0} max={100} step={5} onValueChange={([v]) => updateMut.mutate({ id: agent.id, config: { ...config, [key]: v } })} />
                             </div>
                           );
                         }
@@ -149,4 +202,8 @@ export default function AiAgentsPage() {
       <PerplexityAttribution />
     </AppLayout>
   );
+}
+
+function Bot({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" /></svg>;
 }

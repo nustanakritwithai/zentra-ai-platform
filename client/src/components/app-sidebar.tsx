@@ -4,28 +4,47 @@ import { useTheme } from "@/components/theme-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap, FolderOpen, TicketPercent, ShoppingBag, Link2, Globe } from "lucide-react";
+import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap, FolderOpen, TicketPercent, ShoppingBag, Link2, Globe, Plug, Warehouse, UserCheck, FileText, Monitor, PenTool, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Store as StoreType } from "@shared/schema";
 
 const navItems = [
+  // จัดการร้าน
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", group: "main" },
-  { href: "/store", icon: Store, label: "ร้านค้า", group: "main" },
   { href: "/products", icon: Package, label: "สินค้า", group: "main" },
   { href: "/categories", icon: FolderOpen, label: "หมวดหมู่", group: "main" },
   { href: "/orders", icon: ShoppingCart, label: "คำสั่งซื้อ", group: "main" },
   { href: "/customers", icon: Users, label: "ลูกค้า", group: "main" },
   { href: "/discounts", icon: TicketPercent, label: "ส่วนลด", group: "main" },
+  { href: "/inventory", icon: Warehouse, label: "คลังสินค้า", group: "main" },
+  { href: "/employees", icon: UserCheck, label: "พนักงาน", group: "main" },
+  // AI Tools
   { href: "/ai-agents", icon: Bot, label: "AI Agent", group: "ai" },
   { href: "/ai-chat", icon: MessageSquare, label: "AI Chat", group: "ai" },
   { href: "/knowledge-base", icon: BookOpen, label: "Knowledge Base", group: "ai" },
-  { href: "/affiliate", icon: Link2, label: "Affiliate", group: "marketplace" },
-  { href: "/marketplace", icon: Globe, label: "Marketplace API", group: "marketplace" },
+  { href: "/ai-generate", icon: Wand2, label: "AI Generate", group: "ai" },
+  // ร้านค้า & การตลาด
+  { href: "/store", icon: Store, label: "ตั้งค่าร้านค้า", group: "store" },
+  { href: "/store-editor", icon: PenTool, label: "ตกแต่งร้าน", group: "store" },
+  { href: "/pos", icon: Monitor, label: "POS ขายหน้าร้าน", group: "store" },
+  { href: "/blog", icon: FileText, label: "Blog", group: "store" },
+  { href: "/affiliate", icon: Link2, label: "Affiliate", group: "store" },
+  // Marketplace & API
+  { href: "/integrations", icon: Plug, label: "API เชื่อมต่อ", group: "marketplace" },
+  { href: "/marketplace", icon: Globe, label: "Marketplace", group: "marketplace" },
+  { href: "/mall", icon: ShoppingBag, label: "Shopping Mall", group: "marketplace" },
   { href: "/pricing", icon: CreditCard, label: "แผนราคา", group: "other" },
-  { href: "/mall", icon: ShoppingBag, label: "Shopping Mall", group: "other" },
 ];
+
+const groupLabels: Record<string, { label: string; icon?: any }> = {
+  main: { label: "จัดการร้าน" },
+  ai: { label: "AI Tools", icon: Zap },
+  store: { label: "ร้านค้า & การตลาด", icon: Store },
+  marketplace: { label: "Marketplace & API", icon: Globe },
+  other: { label: "อื่นๆ" },
+};
 
 function AnimatedIcon({ icon: Icon, active, className }: { icon: any; active: boolean; className?: string }) {
   return (
@@ -48,9 +67,7 @@ export function AppSidebar() {
   const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   const { data: stores = [] } = useQuery<StoreType[]>({ queryKey: ["/api/stores"] });
   const store = stores.length > 0 ? stores[0] : null;
@@ -65,14 +82,10 @@ export function AppSidebar() {
     }
   };
 
-  const mainItems = navItems.filter(i => i.group === "main");
-  const aiItems = navItems.filter(i => i.group === "ai");
-  const marketplaceItems = navItems.filter(i => i.group === "marketplace");
-  const otherItems = navItems.filter(i => i.group === "other");
+  const groups = ["main", "ai", "store", "marketplace", "other"];
 
   return (
     <>
-      {/* Mobile toggle */}
       <button
         data-testid="sidebar-mobile-toggle"
         className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-600/10 border border-teal-500/20 backdrop-blur-sm md:hidden hover:from-teal-500/20 hover:to-cyan-600/20 transition-all duration-300"
@@ -81,12 +94,8 @@ export function AppSidebar() {
         <Menu className="w-5 h-5 text-teal-400" />
       </button>
 
-      {/* Overlay */}
       {mobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity" 
-          onClick={() => setMobileOpen(false)} 
-        />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity" onClick={() => setMobileOpen(false)} />
       )}
 
       <aside
@@ -98,21 +107,17 @@ export function AppSidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        {/* Sidebar glow line */}
         <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-teal-500/0 via-teal-500/20 to-teal-500/0" />
-        
+
         {/* Logo + Store Name */}
         <div className="flex items-center gap-3 px-4 h-16 border-b border-white/[0.06] shrink-0 relative overflow-hidden">
-          {/* Background shimmer */}
           <div className="absolute inset-0 bg-gradient-to-r from-teal-500/[0.03] to-transparent" />
-          
           <div className="relative group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300 group-hover:scale-105">
               {store ? store.name.charAt(0).toUpperCase() : "Z"}
             </div>
             <div className="absolute -inset-1 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300" />
           </div>
-          
           {!collapsed && (
             <div className={cn("flex-1 min-w-0 transition-opacity duration-300", mounted ? "opacity-100" : "opacity-0")}>
               <span className="font-bold text-sm tracking-tight truncate block bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">
@@ -123,11 +128,7 @@ export function AppSidebar() {
               )}
             </div>
           )}
-          <button
-            data-testid="sidebar-collapse"
-            className="ml-auto p-1.5 rounded-lg hover:bg-white/[0.06] hidden md:flex items-center justify-center shrink-0 transition-colors"
-            onClick={() => setCollapsed(!collapsed)}
-          >
+          <button data-testid="sidebar-collapse" className="ml-auto p-1.5 rounded-lg hover:bg-white/[0.06] hidden md:flex items-center justify-center shrink-0 transition-colors" onClick={() => setCollapsed(!collapsed)}>
             <ChevronLeft className={cn("w-4 h-4 text-white/40 transition-transform duration-300", collapsed && "rotate-180")} />
           </button>
         </div>
@@ -137,18 +138,11 @@ export function AppSidebar() {
           <div className="px-3 py-2.5 border-b border-white/[0.06]">
             <div className="flex items-center gap-1.5">
               <Link href={`/shop/${store.slug}`}>
-                <button
-                  data-testid="view-storefront"
-                  className="flex items-center gap-1.5 text-xs text-teal-400 hover:text-teal-300 transition-colors"
-                >
+                <button data-testid="view-storefront" className="flex items-center gap-1.5 text-xs text-teal-400 hover:text-teal-300 transition-colors">
                   <ExternalLink className="w-3 h-3" /> ดูหน้าร้าน
                 </button>
               </Link>
-              <button
-                data-testid="copy-store-link"
-                onClick={copyStoreLink}
-                className="flex items-center gap-1 text-xs text-white/30 hover:text-white/60 ml-auto transition-colors"
-              >
+              <button data-testid="copy-store-link" onClick={copyStoreLink} className="flex items-center gap-1 text-xs text-white/30 hover:text-white/60 ml-auto transition-colors">
                 {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                 {copied ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}
               </button>
@@ -158,174 +152,65 @@ export function AppSidebar() {
 
         {/* Nav */}
         <nav className="flex-1 py-3 px-2.5 overflow-y-auto custom-scrollbar">
-          {/* Main section */}
-          {!collapsed && (
-            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/20">
-              จัดการร้าน
-            </div>
-          )}
-          <div className="space-y-0.5 mb-3">
-            {mainItems.map((item, idx) => {
-              const active = location === item.href;
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    data-testid={`nav-${item.href.slice(1)}`}
-                    className={cn(
-                      "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
-                      active
-                        ? "text-white"
-                        : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
-                    )}
-                    style={{ animationDelay: `${idx * 30}ms` }}
-                  >
-                    {/* Active background */}
-                    {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
-                    )}
-                    {/* Active left bar */}
-                    {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
-                    )}
-                    
-                    <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
-                      {!collapsed && <span className="relative">{item.label}</span>}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+          {groups.map(groupKey => {
+            const items = navItems.filter(i => i.group === groupKey);
+            if (items.length === 0) return null;
+            const groupInfo = groupLabels[groupKey];
 
-          {/* AI section */}
-          {!collapsed && (
-            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/20 flex items-center gap-1.5">
-              <Zap className="w-3 h-3 text-teal-500/40" />
-              AI Tools
-            </div>
-          )}
-          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent" />}
-          <div className="space-y-0.5 mb-3">
-            {aiItems.map((item, idx) => {
-              const active = location === item.href;
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    data-testid={`nav-${item.href.slice(1)}`}
-                    className={cn(
-                      "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
-                      active
-                        ? "text-white"
-                        : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
-                    )}
-                  >
-                    {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
-                    )}
-                    {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
-                    )}
-                    <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
-                      {!collapsed && <span className="relative">{item.label}</span>}
-                    </div>
-                    {/* AI glow for ai items */}
-                    {active && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-pink-400 shadow-lg shadow-pink-400/50 animate-pulse z-10" />
-                    )}
+            return (
+              <div key={groupKey} className="mb-2">
+                {!collapsed && (
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/20 flex items-center gap-1.5">
+                    {groupInfo.icon && <groupInfo.icon className="w-3 h-3 text-teal-500/40" />}
+                    {groupInfo.label}
                   </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Marketplace section */}
-          {!collapsed && (
-            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/20 flex items-center gap-1.5">
-              <Globe className="w-3 h-3 text-teal-500/40" />
-              Marketplace
-            </div>
-          )}
-          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent" />}
-          <div className="space-y-0.5 mb-3">
-            {marketplaceItems.map(item => {
-              const active = location === item.href;
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    data-testid={`nav-${item.href.slice(1)}`}
-                    className={cn(
-                      "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
-                      active
-                        ? "text-white"
-                        : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
-                    )}
-                  >
-                    {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
-                    )}
-                    {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
-                    )}
-                    <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
-                      {!collapsed && <span className="relative">{item.label}</span>}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Divider */}
-          {collapsed && <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-white/10 to-transparent" />}
-          
-          {/* Other */}
-          <div className="space-y-0.5">
-            {otherItems.map(item => {
-              const active = location === item.href;
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    data-testid={`nav-${item.href.slice(1)}`}
-                    className={cn(
-                      "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
-                      active
-                        ? "text-white"
-                        : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
-                    )}
-                  >
-                    {active && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
-                    )}
-                    {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
-                    )}
-                    <div className="relative z-10 flex items-center gap-3">
-                      <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
-                      {!collapsed && <span className="relative">{item.label}</span>}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                )}
+                {collapsed && groupKey !== "main" && (
+                  <div className="h-px mx-2 my-2 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent" />
+                )}
+                <div className="space-y-0.5">
+                  {items.map((item) => {
+                    const active = location === item.href;
+                    return (
+                      <Link key={item.href} href={item.href}>
+                        <div
+                          data-testid={`nav-${item.href.slice(1)}`}
+                          className={cn(
+                            "group relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer",
+                            active ? "text-white" : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+                          )}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {active && (
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-teal-500/15 to-cyan-600/10 border border-teal-500/20" />
+                          )}
+                          {active && (
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-600 shadow-lg shadow-teal-500/50" />
+                          )}
+                          <div className="relative z-10 flex items-center gap-3">
+                            <AnimatedIcon icon={item.icon} active={active} className={active ? "text-teal-400" : ""} />
+                            {!collapsed && <span className="relative text-[13px]">{item.label}</span>}
+                          </div>
+                          {active && groupKey === "ai" && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-pink-400 shadow-lg shadow-pink-400/50 animate-pulse z-10" />
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Bottom */}
         <div className="border-t border-white/[0.06] p-3 space-y-1 relative">
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-teal-500/10 to-transparent" />
-          
-          <button
-            data-testid="theme-toggle"
-            onClick={toggle}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all duration-200"
-          >
+          <button data-testid="theme-toggle" onClick={toggle} className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all duration-200">
             {theme === "dark" ? <Sun className="w-5 h-5 text-amber-400/60" /> : <Moon className="w-5 h-5" />}
             {!collapsed && <span>{theme === "dark" ? "โหมดสว่าง" : "โหมดมืด"}</span>}
           </button>
-
           {user && (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.02]">
               <div className="relative">
@@ -340,11 +225,7 @@ export function AppSidebar() {
                   <p className="text-[10px] text-teal-400/50 truncate font-medium tracking-wider">{user.plan.toUpperCase()}</p>
                 </div>
               )}
-              <button 
-                data-testid="logout-btn" 
-                onClick={() => { logout(); window.location.hash = "/"; }} 
-                className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors group"
-              >
+              <button data-testid="logout-btn" onClick={() => { logout(); window.location.hash = "/"; }} className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors group">
                 <LogOut className="w-4 h-4 text-white/30 group-hover:text-red-400 transition-colors" />
               </button>
             </div>

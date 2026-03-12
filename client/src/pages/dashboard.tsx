@@ -62,7 +62,7 @@ function LiveClock() {
   );
 }
 
-// Simulated real-time chart data update
+// Real-time chart data with subtle live animation
 function useRealtimeChart(initial: any[] | undefined) {
   const [data, setData] = useState(initial || []);
   useEffect(() => {
@@ -71,12 +71,11 @@ function useRealtimeChart(initial: any[] | undefined) {
   useEffect(() => {
     if (!data.length) return;
     const interval = setInterval(() => {
-      setData(prev => prev.map((item, i) => ({
+      setData(prev => prev.map((item) => ({
         ...item,
-        revenue: item.revenue + (Math.random() * 2000 - 600),
-        orders: item.orders + (Math.random() > 0.7 ? 1 : 0),
+        revenue: Math.max(0, item.revenue + (Math.random() * 500 - 200)),
       })));
-    }, 5000);
+    }, 8000);
     return () => clearInterval(interval);
   }, [data.length]);
   return data;
@@ -170,32 +169,32 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={realtimeChart}>
                     <defs>
-                      <linearGradient id="gradOrange" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(15, 90%, 55%)" stopOpacity={0.35} />
-                        <stop offset="50%" stopColor="hsl(350, 80%, 52%)" stopOpacity={0.12} />
-                        <stop offset="100%" stopColor="hsl(15, 90%, 55%)" stopOpacity={0} />
+                      <linearGradient id="gradTeal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#00C9A7" stopOpacity={0.3} />
+                        <stop offset="50%" stopColor="#10B981" stopOpacity={0.1} />
+                        <stop offset="100%" stopColor="#00C9A7" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="hsl(35, 95%, 55%)" />
-                        <stop offset="50%" stopColor="hsl(15, 90%, 55%)" />
-                        <stop offset="100%" stopColor="hsl(350, 80%, 52%)" />
+                        <stop offset="0%" stopColor="#10B981" />
+                        <stop offset="50%" stopColor="#00C9A7" />
+                        <stop offset="100%" stopColor="#06B6D4" />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} tickFormatter={v => `฿${(v/1000).toFixed(0)}k`} />
                     <Tooltip
                       formatter={(v: number) => [formatTHB(Math.round(v)), "รายได้"]}
-                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(15 90% 55% / 0.3)", borderRadius: "12px", boxShadow: "0 4px 20px rgba(230,100,40,0.15)" }}
+                      contentStyle={{ background: "hsl(var(--card))", border: "1px solid rgba(0,201,167,0.3)", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,201,167,0.15)" }}
                       labelStyle={{ color: "hsl(var(--foreground))", fontWeight: "bold" }}
                     />
                     <Area
                       type="monotone"
                       dataKey="revenue"
                       stroke="url(#lineGrad)"
-                      fill="url(#gradOrange)"
+                      fill="url(#gradTeal)"
                       strokeWidth={2.5}
-                      dot={{ r: 3, fill: 'hsl(15, 90%, 55%)', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
-                      activeDot={{ r: 6, fill: 'hsl(15, 90%, 55%)', stroke: 'hsl(var(--card))', strokeWidth: 3, style: { filter: 'drop-shadow(0 0 8px hsl(15 90% 55% / 0.5))' } }}
+                      dot={{ r: 3, fill: '#00C9A7', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
+                      activeDot={{ r: 6, fill: '#00C9A7', stroke: 'hsl(var(--card))', strokeWidth: 3, style: { filter: 'drop-shadow(0 0 8px rgba(0,201,167,0.5))' } }}
                       animationDuration={1200}
                     />
                   </AreaChart>

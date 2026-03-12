@@ -139,15 +139,15 @@ export default function AiChatPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)]">
+      <div className="flex flex-col h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 shrink-0">
-          <div>
+        <div className="flex items-center justify-between mb-3 shrink-0 px-1">
+          <div className="min-w-0">
             <h1 className="text-xl font-bold flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-violet-400" />
               <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">AI Chat</span>
             </h1>
-            <p className="text-sm text-white/40">สนทนากับ AI Agent — Memory + RAG ขับเคลื่อนด้วย Gemini AI</p>
+            <p className="text-sm text-white/40 truncate">สนทนากับ AI Agent — Memory + RAG ขับเคลื่อนด้วย Gemini AI</p>
           </div>
           {selectedAgent && (
             <Button
@@ -155,16 +155,40 @@ export default function AiChatPage() {
               variant="outline"
               size="sm"
               onClick={() => clearMut.mutate()}
-              className="gap-1 border-white/[0.06] text-white/50 hover:text-red-400 hover:border-red-400/20"
+              className="gap-1 border-white/[0.06] text-white/50 hover:text-red-400 hover:border-red-400/20 shrink-0 ml-2"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              ล้างแชท
+              <span className="hidden sm:inline">ล้างแชท</span>
             </Button>
           )}
         </div>
 
-        <div className="flex gap-4 flex-1 min-h-0">
-          {/* Agent Selector Sidebar */}
+        {/* Mobile Agent Selector - OUTSIDE flex row */}
+        <div className="md:hidden shrink-0 mb-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+            {agents.map(agent => {
+              const Icon = iconMap[agent.icon || ""] || Sparkles;
+              const isSelected = selectedAgent === agent.type;
+              return (
+                <button
+                  key={agent.id}
+                  disabled={!agent.enabled}
+                  onClick={() => handleSelectAgent(agent.type)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all",
+                    isSelected ? "bg-gradient-to-r from-teal-500/15 to-cyan-600/10 text-violet-400 border border-violet-500/20" : !agent.enabled ? "opacity-30" : "bg-white/[0.04] hover:bg-white/[0.06] text-white/50"
+                  )}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {agent.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex gap-4 flex-1 min-h-0 overflow-hidden">
+          {/* Agent Selector Sidebar - Desktop only */}
           <div className="w-[200px] shrink-0 space-y-2 overflow-y-auto hidden md:block bg-transparent">
             <p className="text-xs font-medium text-white/40 mb-3 px-1">เลือก AI Agent</p>
             {agents.map(agent => {
@@ -196,32 +220,8 @@ export default function AiChatPage() {
             })}
           </div>
 
-          {/* Mobile Agent Selector */}
-          <div className="md:hidden shrink-0 mb-2 w-full">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {agents.map(agent => {
-                const Icon = iconMap[agent.icon || ""] || Sparkles;
-                const isSelected = selectedAgent === agent.type;
-                return (
-                  <button
-                    key={agent.id}
-                    disabled={!agent.enabled}
-                    onClick={() => handleSelectAgent(agent.type)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all",
-                      isSelected ? "bg-gradient-to-r from-teal-500/15 to-cyan-600/10 text-violet-400 border border-violet-500/20" : !agent.enabled ? "opacity-30" : "bg-white/[0.04] hover:bg-white/[0.06] text-white/50"
-                    )}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {agent.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
             {!selectedAgent ? (
               /* No Agent Selected */
               <div className="flex-1 flex items-center justify-center">

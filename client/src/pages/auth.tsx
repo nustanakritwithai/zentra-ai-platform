@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { ShoppingBag, Store } from "lucide-react";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"seller" | "buyer">("seller");
   const { login, register, isLoginPending, isRegisterPending } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -24,11 +27,11 @@ export default function AuthPage() {
         if (result.storeId && result.storeId > 0) {
           navigate("/dashboard");
         } else {
-          navigate("/onboarding");
+          navigate(role === "buyer" ? "/mall" : "/onboarding");
         }
       } else {
-        await register({ name, email, password });
-        navigate("/onboarding");
+        await register({ name, email, password, role });
+        navigate(role === "buyer" ? "/mall" : "/onboarding");
       }
     } catch (err: any) {
       toast({ title: "เกิดข้อผิดพลาด", description: err?.message || "กรุณาลองใหม่", variant: "destructive" });
@@ -57,6 +60,49 @@ export default function AuthPage() {
           <CardDescription className="text-white/40">{isLogin ? "เข้าสู่ระบบเพื่อจัดการร้านค้าของคุณ" : "เริ่มต้นสร้างร้านค้าออนไลน์ด้วย AI ฟรี"}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Role Selection - Only for Register */}
+          {!isLogin && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/60">คุณต้องการเป็น</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  data-testid="role-seller"
+                  type="button"
+                  onClick={() => setRole("seller")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border transition-all",
+                    role === "seller"
+                      ? "bg-teal-500/10 border-teal-500/30 text-teal-400"
+                      : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:bg-white/[0.04] hover:text-white/60"
+                  )}
+                >
+                  <Store className="w-6 h-6" />
+                  <div className="text-center">
+                    <p className="text-sm font-semibold">ผู้ขาย</p>
+                    <p className="text-[10px] mt-0.5 opacity-70">เปิดร้านค้า จัดการสินค้า</p>
+                  </div>
+                </button>
+                <button
+                  data-testid="role-buyer"
+                  type="button"
+                  onClick={() => setRole("buyer")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border transition-all",
+                    role === "buyer"
+                      ? "bg-violet-500/10 border-violet-500/30 text-violet-400"
+                      : "bg-white/[0.02] border-white/[0.06] text-white/40 hover:bg-white/[0.04] hover:text-white/60"
+                  )}
+                >
+                  <ShoppingBag className="w-6 h-6" />
+                  <div className="text-center">
+                    <p className="text-sm font-semibold">ผู้ซื้อ</p>
+                    <p className="text-[10px] mt-0.5 opacity-70">ค้นหา เปรียบเทียบ ซื้อสินค้า</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Social Login Buttons */}
           <div className="grid grid-cols-3 gap-2">
             <Button
@@ -111,7 +157,7 @@ export default function AuthPage() {
               <Input data-testid="input-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="bg-white/[0.04] border-white/[0.06] text-white placeholder:text-white/20" />
             </div>
             <Button data-testid="btn-submit-auth" type="submit" className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20" disabled={isLoginPending || isRegisterPending}>
-              {isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชีฟรี"}
+              {isLogin ? "เข้าสู่ระบบ" : role === "buyer" ? "สมัครเป็นผู้ซื้อ" : "เปิดร้านค้าฟรี"}
             </Button>
           </form>
           <div className="mt-2 text-center text-sm text-white/40">
