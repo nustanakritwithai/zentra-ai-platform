@@ -14,8 +14,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { storage } from "./storage";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyCdm1zk0R-YEoCy-vxLBQdvB5E73GQ70Vc";
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+// Use shared Gemini instance — key from environment
+function getGenAI(): GoogleGenerativeAI | null {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key || key.length < 10) return null;
+  return new GoogleGenerativeAI(key);
+}
 
 // --- Types ---
 
@@ -69,7 +73,9 @@ function cosineSimilarity(a: number[], b: number[]): number {
 // Get embedding from Gemini
 async function getEmbedding(text: string): Promise<number[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const genAI = getGenAI();
+    if (!genAI) return [];
+    const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     const result = await model.embedContent(text);
     return result.embedding.values;
   } catch (error) {

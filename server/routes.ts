@@ -15,7 +15,35 @@ import {
   updateGeminiApiKey,
   getGeminiStatus,
 } from "./gemini";
+import { indexStoreData } from "./rag";
+import {
+  startAutomation,
+  stopAutomation,
+  triggerAgent,
+  getAutomationState,
+  getAllAutomationStates,
+  getInsights,
+  markInsightRead,
+  getAutomationStats,
+} from "./automation";
 import crypto from "crypto";
+
+// --- RAG Auto-Reindex Debounce ---
+const reindexTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
+function scheduleReindex(storeId: number): void {
+  if (storeId <= 0) return;
+  const existing = reindexTimers.get(storeId);
+  if (existing) clearTimeout(existing);
+  reindexTimers.set(storeId, setTimeout(async () => {
+    reindexTimers.delete(storeId);
+    try {
+      await indexStoreData(storeId);
+      console.log(`[RAG] Auto-reindexed store ${storeId}`);
+    } catch (e) {
+      console.error(`[RAG] Auto-reindex failed for store ${storeId}:`, e);
+    }
+  }, 5000)); // Debounce 5s to batch rapid changes
+}
 
 // Simple per-request session map (keyed by a session token header)
 const sessions = new Map<string, { userId: number; storeId: number; role: string; createdAt: number }>();
@@ -169,6 +197,12 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const token = req.headers["x-session-token"] as string;
     sessions.set(token, { userId: session.userId, storeId: store.id, role: session.role, createdAt: Date.now() });
 
+    // Auto-start AI automation for the new store
+    setTimeout(() => {
+      startAutomation(store.id);
+      console.log(`[Automation] Auto-started for new store ${store.id}`);
+    }, 3000);
+
     res.json({ store, storeId: store.id });
   });
 
@@ -283,6 +317,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const session = requireAuth(req, res);
     if (!session) return;
     const product = await storage.createProduct(session.storeId, req.body);
+    scheduleReindex(session.storeId);
     res.json(product);
   });
 
@@ -291,6 +326,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!session) return;
     const product = await storage.updateProduct(Number(req.params.id), req.body);
     if (!product) return res.status(404).json({ error: "ไม่พบสินค้า" });
+    scheduleReindex(session.storeId);
     res.json(product);
   });
 
@@ -298,6 +334,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const session = requireAuth(req, res);
     if (!session) return;
     const ok = await storage.deleteProduct(Number(req.params.id));
+    scheduleReindex(session.storeId);
     res.json({ ok });
   });
 
@@ -314,6 +351,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const session = requireAuth(req, res);
     if (!session) return;
     const order = await storage.createOrder(session.storeId, req.body);
+    scheduleReindex(session.storeId);
     res.json(order);
   });
 
@@ -322,6 +360,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!session) return;
     const order = await storage.updateOrder(Number(req.params.id), req.body);
     if (!order) return res.status(404).json({ error: "ไม่พบคำสั่งซื้อ" });
+    scheduleReindex(session.storeId);
     res.json(order);
   });
 
@@ -338,6 +377,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const session = requireAuth(req, res);
     if (!session) return;
     const customer = await storage.createCustomer(session.storeId, req.body);
+    scheduleReindex(session.storeId);
     res.json(customer);
   });
 
@@ -346,6 +386,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!session) return;
     const customer = await storage.updateCustomer(Number(req.params.id), req.body);
     if (!customer) return res.status(404).json({ error: "ไม่พบลูกค้า" });
+    scheduleReindex(session.storeId);
     res.json(customer);
   });
 
@@ -920,5 +961,105 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       const result = await chatWithAgent("visual_search", descPrompt, 1);
       res.json({ description: result.reply, imageUrl: null, note: "Image generation via Gemini Imagen coming soon. Description generated." });
     } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  // =================== AUTOMATION ENGINE ===================
+
+  // Get all automation states for store
+  app.get("/api/automation/states", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const states = getAllAutomationStates(session.storeId);
+    res.json(states);
+  });
+
+  // Get single agent automation state
+  app.get("/api/automation/state/:agentType", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const state = getAutomationState(req.params.agentType, session.storeId);
+    res.json(state);
+  });
+
+  // Trigger a specific agent manually
+  app.post("/api/automation/trigger/:agentType", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    try {
+      const task = await triggerAgent(req.params.agentType, session.storeId);
+      // Update agent status in DB
+      const agents = await storage.getAiAgentsByStore(session.storeId);
+      const agent = agents.find(a => a.type === req.params.agentType);
+      if (agent) {
+        await storage.updateAiAgent(agent.id, { status: task.status === "completed" ? "active" : "error", lastActive: new Date().toISOString() });
+      }
+      res.json(task);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Trigger ALL enabled agents
+  app.post("/api/automation/trigger-all", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    try {
+      const agents = await storage.getAiAgentsByStore(session.storeId);
+      const results: any[] = [];
+      for (const agent of agents) {
+        if (agent.enabled) {
+          try {
+            const task = await triggerAgent(agent.type, session.storeId);
+            await storage.updateAiAgent(agent.id, { status: task.status === "completed" ? "active" : "error", lastActive: new Date().toISOString() });
+            results.push({ agentType: agent.type, status: task.status, taskId: task.id });
+          } catch (e: any) {
+            results.push({ agentType: agent.type, status: "failed", error: e.message });
+          }
+        }
+      }
+      res.json({ results, triggeredAt: new Date().toISOString() });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get automation stats summary
+  app.get("/api/automation/stats", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const stats = getAutomationStats(session.storeId);
+    res.json(stats);
+  });
+
+  // Get insights (all or by agent)
+  app.get("/api/automation/insights", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    const agentType = req.query.agentType as string | undefined;
+    const unreadOnly = req.query.unreadOnly === "true";
+    const insights = getInsights(session.storeId, agentType, unreadOnly);
+    res.json(insights);
+  });
+
+  // Mark insight as read
+  app.post("/api/automation/insights/:id/read", async (req, res) => {
+    markInsightRead(req.params.id);
+    res.json({ ok: true });
+  });
+
+  // Start automation scheduler
+  app.post("/api/automation/start", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    startAutomation(session.storeId);
+    res.json({ ok: true, message: "Automation started" });
+  });
+
+  // Stop automation scheduler
+  app.post("/api/automation/stop", async (req, res) => {
+    const session = requireAuth(req, res);
+    if (!session) return;
+    stopAutomation(session.storeId);
+    res.json({ ok: true, message: "Automation stopped" });
   });
 }

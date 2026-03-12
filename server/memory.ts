@@ -9,8 +9,12 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyCdm1zk0R-YEoCy-vxLBQdvB5E73GQ70Vc";
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+// Use shared Gemini instance — key from environment
+function getGenAI(): GoogleGenerativeAI | null {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key || key.length < 10) return null;
+  return new GoogleGenerativeAI(key);
+}
 
 // --- Types ---
 
@@ -107,6 +111,8 @@ export async function extractAndStoreFacts(
   const memory = getOrCreateMemory(customerId);
   
   try {
+    const genAI = getGenAI();
+    if (!genAI) return [];
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const conversationText = conversation
@@ -179,6 +185,8 @@ export async function createEpisodicMemory(
   const memory = getOrCreateMemory(customerId);
   
   try {
+    const genAI = getGenAI();
+    if (!genAI) return null;
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const conversationText = conversation

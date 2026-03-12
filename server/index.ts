@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { startAutomation } from "./automation";
+import { storage } from "./storage";
 
 const app = express();
 const httpServer = createServer(app);
@@ -96,8 +98,21 @@ app.use((req, res, next) => {
       host: "0.0.0.0",
       reusePort: true,
     },
-    () => {
+    async () => {
       log(`serving on port ${port}`);
+
+      // Auto-start automation for all existing stores
+      try {
+        const stores = await storage.getAllActiveStores();
+        for (const store of stores) {
+          startAutomation(store.id);
+        }
+        if (stores.length > 0) {
+          log(`[Automation] Started for ${stores.length} store(s)`);
+        }
+      } catch (e) {
+        log(`[Automation] Boot start skipped (no stores yet)`);
+      }
     },
   );
 })();
