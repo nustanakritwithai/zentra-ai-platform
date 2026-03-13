@@ -60,13 +60,17 @@ if (envKey && envKey.length > 10) {
 async function loadPersistedGeminiKey(): Promise<void> {
   try {
     const { supabaseAdmin } = await import("./supabase");
-    const { data } = await supabaseAdmin.from("settings").select("value").eq("key", "gemini_api_key").single();
+    const { data, error } = await supabaseAdmin.from("settings").select("value").eq("key", "gemini_api_key").single();
+    if (error) {
+      console.log(`[Gemini] ⚠ Cannot load key from DB: ${error.message}`);
+      return;
+    }
     if (data?.value && data.value.length > 10) {
       initializeWithKey(data.value);
       console.log("[Gemini] API key loaded from database ✓");
     }
-  } catch {
-    // settings table might not exist yet — that's fine
+  } catch (e: any) {
+    console.log(`[Gemini] ⚠ settings table may not exist: ${e?.message || e}`);
   }
 }
 loadPersistedGeminiKey();
@@ -269,7 +273,7 @@ async function callGeminiWithFallback(
     } catch (err: any) {
       lastError = err;
       const msg = err?.message || String(err);
-      console.error(`[Gemini] ✗ ${modelName} failed: ${msg.slice(0, 200)}`);
+      console.error(`[Gemini] ✗ ${modelName} failed: ${msg}`);
       
       // If key is leaked/invalid, don't try other models — key is the problem
       if (msg.includes("leaked") || msg.includes("API_KEY_INVALID") || msg.includes("PERMISSION_DENIED")) {
@@ -411,7 +415,7 @@ export async function chatWithAgent(
     } else if (errorMsg.includes("rate limit") || errorMsg.includes("RESOURCE_EXHAUSTED")) {
       userErrorMsg = "_(⏳ API ถูกจำกัดการใช้งานชั่วคราว — กรุณารอสักครู่แล้วลองใหม่)_";
     } else {
-      userErrorMsg = `_(❌ Gemini API error: ${errorMsg.slice(0, 100)})_`;
+      userErrorMsg = `_(❌ Gemini API error: ${errorMsg.slice(0, 300)})_`;
     }
 
     // Return fallback with clear error
@@ -434,14 +438,20 @@ export function updateGeminiApiKey(key: string): boolean {
   if (success) {
     process.env.GEMINI_API_KEY = key;
     console.log("[Gemini] API key updated ✓");
-    // Persist to database (fire and forget)
+    // Persist to database (fire and forget) — try settings table, if not exist just log
     (async () => {
       try {
         const { supabaseAdmin } = await import("./supabase");
-        await supabaseAdmin.from("settings").upsert({ key: "gemini_api_key", value: key }, { onConflict: "key" });
-        console.log("[Gemini] API key persisted to database");
-      } catch (e) {
-        console.error("[Gemini] Failed to persist key:", e);
+        const { error } = await supabaseAdmin.from("settings").upsert({ key: "gemini_api_key", value: key }, { onConflict: "key" });
+        if (error) {
+          console.log(`[Gemini] Could not persist key to DB (settings table may not exist): ${error.message}`);
+          console.log(`[Gemini] Key is active in memory and will persist until server restart`);
+        } else {
+          console.log("[Gemini] API key persisted to database");
+        }
+      } catch (e: any) {
+        console.log(`[Gemini] Key persistence failed: ${e?.message || e}`);
+        console.log(`[Gemini] Key is active in memory`);
       }
     })();
   }

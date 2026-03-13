@@ -636,10 +636,24 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // AI Gemini status & key management
+  // Public Gemini status (no auth) for debugging
   app.get("/api/ai/gemini-status", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    res.json(getGeminiStatus());
+    const status = getGeminiStatus();
+    res.json(status);
+  });
+
+  // Debug test endpoint to verify Gemini API connectivity
+  app.get("/api/ai/test", async (_req, res) => {
+    const status = getGeminiStatus();
+    if (!status.hasKey) {
+      return res.json({ ok: false, error: "No API key configured", status });
+    }
+    try {
+      const result = await chatWithAgent("customer_support", "ทดสอบ: ตอบว่า OK", 1);
+      return res.json({ ok: true, reply: result.reply.slice(0, 200), agentName: result.agentName, memoryUsed: result.memoryUsed });
+    } catch (e: any) {
+      return res.json({ ok: false, error: e.message, status });
+    }
   });
 
   app.post("/api/ai/gemini-key", async (req, res) => {

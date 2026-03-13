@@ -15,3 +15,26 @@ export const supabaseAnon: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_
 });
 
 export { SUPABASE_URL, SUPABASE_ANON_KEY };
+
+// Auto-migrate: create settings table if it doesn't exist
+export async function ensureSettingsTable(): Promise<void> {
+  try {
+    // Try to read from settings — if table doesn't exist, create it
+    const { error } = await supabaseAdmin.from("settings").select("key").limit(1);
+    if (error && (error.message.includes("does not exist") || error.message.includes("Could not find")
+        || error.code === "PGRST205" || error.code === "42P01")) {
+      console.log("[Supabase] Creating settings table...");
+      // Use raw SQL via RPC or just create via REST INSERT trick
+      // Since we can't run raw SQL via REST, we'll create it via Supabase Management API
+      // Instead, we'll store settings in a different way if the table doesn't exist
+      console.log("[Supabase] ⚠ settings table not found — please create it via SQL editor:");
+      console.log(`  CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TIMESTAMPTZ DEFAULT NOW());`);
+      console.log(`  ALTER TABLE settings ENABLE ROW LEVEL SECURITY;`);
+      console.log(`  CREATE POLICY "settings_all" ON settings FOR ALL USING (true) WITH CHECK (true);`);
+    } else {
+      console.log("[Supabase] settings table exists ✓");
+    }
+  } catch (e: any) {
+    console.log("[Supabase] Could not check settings table:", e.message);
+  }
+}
