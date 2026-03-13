@@ -14,8 +14,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { storage } from "./storage";
 
-// Use shared Gemini instance — key from environment
+// Use shared Gemini instance from gemini.ts (supports runtime key updates)
+// NOTE: Uses lazy require to avoid circular dependency (gemini.ts imports rag.ts)
 function getGenAI(): GoogleGenerativeAI | null {
+  try {
+    const geminiModule = require("./gemini");
+    if (geminiModule.getSharedGenAI) {
+      const shared = geminiModule.getSharedGenAI();
+      if (shared) return shared;
+    }
+  } catch {}
+  // Fallback to env var
   const key = process.env.GEMINI_API_KEY;
   if (!key || key.length < 10) return null;
   return new GoogleGenerativeAI(key);
@@ -70,18 +79,31 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// Get embedding from Gemini
+// Embedding model priority
+const EMBEDDING_MODELS = ["text-embedding-004", "embedding-001"];
+
+// Get embedding from Gemini with model fallback
 async function getEmbedding(text: string): Promise<number[]> {
-  try {
-    const genAI = getGenAI();
-    if (!genAI) return [];
-    const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
-    const result = await model.embedContent(text);
-    return result.embedding.values;
-  } catch (error) {
-    console.error("Embedding error:", error);
-    return [];
+  const genAI = getGenAI();
+  if (!genAI) return [];
+
+  for (const modelName of EMBEDDING_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.embedContent(text);
+      return result.embedding.values;
+    } catch (error: any) {
+      const msg = error?.message || String(error);
+      // If key is leaked/invalid, stop immediately
+      if (msg.includes("leaked") || msg.includes("PERMISSION_DENIED") || msg.includes("API_KEY_INVALID")) {
+        console.error(`[RAG] API Key issue: ${msg.slice(0, 100)}`);
+        return [];
+      }
+      console.error(`[RAG] Embedding ${modelName} error: ${msg.slice(0, 100)}`);
+      continue;
+    }
   }
+  return [];
 }
 
 // --- Index Store Data ---

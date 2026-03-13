@@ -1,6 +1,14 @@
 /**
  * ZENTRA AI — Gemini Agent with Memory + RAG
- * Reads GEMINI_API_KEY from environment. Falls back to built-in demo if none set.
+ * 
+ * API Key Priority:
+ * 1. Supabase settings table (persisted via Settings page)
+ * 2. GEMINI_API_KEY environment variable (Render env)
+ * 3. No fallback — user MUST set their own key
+ * 
+ * Model Priority:
+ * 1. gemini-2.0-flash (fast, reliable)
+ * 2. gemini-1.5-flash (fallback)
  */
 
 import { GoogleGenerativeAI, type Content } from "@google/generative-ai";
@@ -15,18 +23,37 @@ import {
 } from "./memory";
 import { buildRAGContext, indexStoreData, seedDefaultKnowledge } from "./rag";
 
-// Read from env, with platform-level fallback for deployment convenience
-const GEMINI_FALLBACK_KEY = "AIzaSyAAlPitjzJVYU1vfJrPyW2dfjjLGk2r0WM";
-let GEMINI_API_KEY = process.env.GEMINI_API_KEY || GEMINI_FALLBACK_KEY;
+// Shared key state — exported so rag.ts can access
+let currentApiKey: string | null = null;
 let genAI: GoogleGenerativeAI | null = null;
 let apiKeyValid = false;
 
-if (GEMINI_API_KEY && GEMINI_API_KEY.length > 10) {
-  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  apiKeyValid = true;
-  console.log("[Gemini] API key loaded ✓");
+// Preferred model list (will try in order)
+const MODEL_PRIORITY = [
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash",
+];
+
+function initializeWithKey(key: string): boolean {
+  if (!key || key.length < 10) return false;
+  try {
+    genAI = new GoogleGenerativeAI(key);
+    currentApiKey = key;
+    apiKeyValid = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Initialize from env if available
+const envKey = process.env.GEMINI_API_KEY;
+if (envKey && envKey.length > 10) {
+  initializeWithKey(envKey);
+  console.log("[Gemini] API key loaded from environment ✓");
 } else {
-  console.log("[Gemini] ⚠ No GEMINI_API_KEY set. AI agents will use built-in responses.");
+  console.log("[Gemini] ⚠ No GEMINI_API_KEY in environment. Will check database...");
 }
 
 // Try loading persisted key from Supabase on startup
@@ -35,16 +62,23 @@ async function loadPersistedGeminiKey(): Promise<void> {
     const { supabaseAdmin } = await import("./supabase");
     const { data } = await supabaseAdmin.from("settings").select("value").eq("key", "gemini_api_key").single();
     if (data?.value && data.value.length > 10) {
-      GEMINI_API_KEY = data.value;
-      genAI = new GoogleGenerativeAI(data.value);
-      apiKeyValid = true;
+      initializeWithKey(data.value);
       console.log("[Gemini] API key loaded from database ✓");
     }
   } catch {
-    // settings table might not exist yet — that's fine, use env/fallback
+    // settings table might not exist yet — that's fine
   }
 }
 loadPersistedGeminiKey();
+
+// Export for rag.ts to access
+export function getSharedApiKey(): string | null {
+  return currentApiKey;
+}
+
+export function getSharedGenAI(): GoogleGenerativeAI | null {
+  return genAI;
+}
 
 // Track which stores have been indexed
 const indexedStores = new Set<number>();
@@ -158,6 +192,53 @@ async function ensureStoreIndexed(storeId: number): Promise<void> {
   }
 }
 
+// Try calling Gemini with model fallback
+async function callGeminiWithFallback(
+  systemPrompt: string,
+  geminiHistory: Content[],
+  userMessage: string
+): Promise<string> {
+  if (!genAI) throw new Error("No Gemini API key configured");
+
+  let lastError: any = null;
+
+  for (const modelName of MODEL_PRIORITY) {
+    try {
+      console.log(`[Gemini] Trying model: ${modelName}...`);
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction: systemPrompt,
+      });
+
+      const chat = model.startChat({ history: geminiHistory });
+      const result = await chat.sendMessage(userMessage);
+      const text = result.response.text();
+      console.log(`[Gemini] ✓ Success with ${modelName}`);
+      return text;
+    } catch (err: any) {
+      lastError = err;
+      const msg = err?.message || String(err);
+      console.error(`[Gemini] ✗ ${modelName} failed: ${msg.slice(0, 200)}`);
+      
+      // If key is leaked/invalid, don't try other models — key is the problem
+      if (msg.includes("leaked") || msg.includes("API_KEY_INVALID") || msg.includes("PERMISSION_DENIED")) {
+        throw new Error(`API Key ถูกระงับโดย Google — กรุณาสร้าง API Key ใหม่ที่ https://aistudio.google.com/apikey แล้วอัพเดทในหน้าตั้งค่า`);
+      }
+      
+      // 429 rate limit — don't try more models, just wait
+      if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED")) {
+        throw new Error(`Gemini API rate limit — กรุณารอสักครู่แล้วลองใหม่`);
+      }
+      
+      // For other errors (503, 404, etc.), try next model
+      continue;
+    }
+  }
+
+  // All models failed
+  throw lastError || new Error("All Gemini models failed");
+}
+
 // Main chat function with Memory + RAG
 export async function chatWithAgent(
   agentType: string,
@@ -196,8 +277,14 @@ export async function chatWithAgent(
     systemPrompt += `\n\n=== MEMORY (ข้อมูลที่คุณจำได้เกี่ยวกับลูกค้าคนนี้) ===\n${memoryContext}\n\nใช้ข้อมูลเหล่านี้เพื่อให้บริการที่เป็นส่วนตัวมากขึ้น อ้างอิงสิ่งที่จำได้เมื่อเหมาะสม`;
   }
 
-  // 3. Build RAG context
-  const ragResult = await buildRAGContext(userMessage, storeId, agentType);
+  // 3. Build RAG context (silently skip if embedding fails)
+  let ragResult = { context: "", sources: [] as Array<{ title: string; source: string; score: number }> };
+  try {
+    ragResult = await buildRAGContext(userMessage, storeId, agentType);
+  } catch (ragErr) {
+    console.error("[Gemini] RAG context failed (skipping):", ragErr);
+  }
+  
   if (ragResult.context) {
     systemPrompt += `\n\n=== KNOWLEDGE BASE (ข้อมูลอ้างอิง) ===\n${ragResult.context}\n\nใช้ข้อมูลนี้ในการตอบคำถาม อ้างอิงข้อมูลเมื่อเกี่ยวข้อง`;
   }
@@ -217,7 +304,7 @@ export async function chatWithAgent(
     addConversationTurn(sessionId, modelTurn);
 
     return {
-      reply: reply + "\n\n_(AI ทำงานในโหมด Demo — เชื่อม Gemini API Key เพื่อใช้งาน AI เต็มรูปแบบ)_",
+      reply: reply + "\n\n_(AI ทำงานในโหมด Demo — กรุณาตั้งค่า Gemini API Key ในหน้าตั้งค่าเพื่อใช้งาน AI เต็มรูปแบบ)_",
       agentName: agent.name,
       memoryUsed,
       ragSources: ragResult.sources,
@@ -230,16 +317,9 @@ export async function chatWithAgent(
     parts: [{ text: t.content }],
   }));
 
-  // 5. Call Gemini
+  // 5. Call Gemini with model fallback
   try {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      systemInstruction: systemPrompt,
-    });
-
-    const chat = model.startChat({ history: geminiHistory });
-    const result = await chat.sendMessage(userMessage);
-    const reply = result.response.text();
+    const reply = await callGeminiWithFallback(systemPrompt, geminiHistory, userMessage);
 
     // 6. Save to short-term memory
     const userTurn: ConversationTurn = { role: "user", content: userMessage, timestamp: new Date().toISOString(), agentType };
@@ -270,12 +350,24 @@ export async function chatWithAgent(
       factsExtracted,
     };
   } catch (error: any) {
-    console.error("Gemini API error:", error);
-    // Graceful fallback on error
+    const errorMsg = error?.message || String(error);
+    console.error("[Gemini] Chat error:", errorMsg);
+    
+    // Provide specific error message based on the type of failure
+    let userErrorMsg: string;
+    if (errorMsg.includes("ถูกระงับ") || errorMsg.includes("leaked") || errorMsg.includes("PERMISSION_DENIED")) {
+      userErrorMsg = "_(⚠️ API Key ถูกระงับ — กรุณาสร้าง API Key ใหม่ที่ aistudio.google.com/apikey แล้วอัพเดทในหน้าตั้งค่า)_";
+    } else if (errorMsg.includes("rate limit") || errorMsg.includes("RESOURCE_EXHAUSTED")) {
+      userErrorMsg = "_(⏳ API ถูกจำกัดการใช้งานชั่วคราว — กรุณารอสักครู่แล้วลองใหม่)_";
+    } else {
+      userErrorMsg = `_(❌ Gemini API error: ${errorMsg.slice(0, 100)})_`;
+    }
+
+    // Return fallback with clear error
     const responses = fallbackResponses[agentType] || fallbackResponses.customer_support;
     const reply = responses[Math.floor(Math.random() * responses.length)];
     return {
-      reply: reply + "\n\n_(Gemini API error — กรุณาตรวจสอบ API Key)_",
+      reply: reply + "\n\n" + userErrorMsg,
       agentName: agent.name,
       memoryUsed,
       ragSources: ragResult.sources,
@@ -287,10 +379,8 @@ export async function chatWithAgent(
 // Update API key at runtime and persist to Supabase
 export function updateGeminiApiKey(key: string): boolean {
   if (!key || key.length < 10) return false;
-  try {
-    genAI = new GoogleGenerativeAI(key);
-    apiKeyValid = true;
-    GEMINI_API_KEY = key;
+  const success = initializeWithKey(key);
+  if (success) {
     process.env.GEMINI_API_KEY = key;
     console.log("[Gemini] API key updated ✓");
     // Persist to database (fire and forget)
@@ -303,16 +393,14 @@ export function updateGeminiApiKey(key: string): boolean {
         console.error("[Gemini] Failed to persist key:", e);
       }
     })();
-    return true;
-  } catch {
-    return false;
   }
+  return success;
 }
 
 export function getGeminiStatus(): { hasKey: boolean; keyPrefix: string } {
   return {
     hasKey: apiKeyValid,
-    keyPrefix: GEMINI_API_KEY ? GEMINI_API_KEY.slice(0, 10) + "..." : "",
+    keyPrefix: currentApiKey ? currentApiKey.slice(0, 10) + "..." : "",
   };
 }
 

@@ -9,8 +9,19 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Use shared Gemini instance — key from environment
+// Use shared Gemini instance from gemini.ts (supports runtime key updates)
+// NOTE: Cannot import from ./gemini here due to circular dependency
+// Instead, use a lazy resolver that checks both shared and env
 function getGenAI(): GoogleGenerativeAI | null {
+  try {
+    // Try to use shared instance (updated via Settings page)
+    const geminiModule = require("./gemini");
+    if (geminiModule.getSharedGenAI) {
+      const shared = geminiModule.getSharedGenAI();
+      if (shared) return shared;
+    }
+  } catch {}
+  // Fallback to env var
   const key = process.env.GEMINI_API_KEY;
   if (!key || key.length < 10) return null;
   return new GoogleGenerativeAI(key);
@@ -113,7 +124,7 @@ export async function extractAndStoreFacts(
   try {
     const genAI = getGenAI();
     if (!genAI) return [];
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
     const conversationText = conversation
       .map(t => `${t.role === "user" ? "ลูกค้า" : "Agent"}: ${t.content}`)
@@ -187,7 +198,7 @@ export async function createEpisodicMemory(
   try {
     const genAI = getGenAI();
     if (!genAI) return null;
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
     const conversationText = conversation
       .map(t => `${t.role === "user" ? "ลูกค้า" : "Agent"}: ${t.content}`)

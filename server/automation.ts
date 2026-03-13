@@ -15,8 +15,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { storage } from "./storage";
 import { indexStoreData } from "./rag";
-
 function getGenAI(): GoogleGenerativeAI | null {
+  // Use shared instance from gemini.ts (supports runtime key updates)
+  try {
+    const geminiModule = require("./gemini");
+    if (geminiModule.getSharedGenAI) {
+      const shared = geminiModule.getSharedGenAI();
+      if (shared) return shared;
+    }
+  } catch {}
+  // Fallback to env var
   const key = process.env.GEMINI_API_KEY;
   if (!key || key.length < 10) return null;
   return new GoogleGenerativeAI(key);
@@ -252,7 +260,7 @@ async function runInventoryForecast(storeId: number): Promise<any> {
   const genAI = getGenAI();
   if (genAI && analysis.length > 0) {
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const prompt = `คุณคือ Inventory Forecast AI วิเคราะห์ข้อมูลสต็อกนี้และให้คำแนะนำ 3-5 ข้อ:
 
 ${JSON.stringify(analysis.slice(0, 20), null, 2)}
@@ -368,7 +376,7 @@ async function runDynamicPricing(storeId: number): Promise<any> {
   const genAI = getGenAI();
   if (genAI && suggestions.length > 0) {
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const prompt = `คุณคือ Dynamic Pricing AI วิเคราะห์ข้อมูลราคาสินค้าและให้กลยุทธ์ราคา:
 
 ${JSON.stringify(suggestions.slice(0, 15), null, 2)}
@@ -463,7 +471,7 @@ async function runRecommendationEngine(storeId: number): Promise<any> {
   const genAI = getGenAI();
   if (genAI) {
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const prompt = `คุณคือ Recommendation Engine AI วิเคราะห์ข้อมูล:
 
 สินค้ายอดนิยม: ${JSON.stringify(topProducts.slice(0, 5))}
