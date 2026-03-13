@@ -19,6 +19,7 @@ import {
   buildMemoryContext,
   extractAndStoreFacts,
   createEpisodicMemory,
+  clearCustomerMemory,
   type ConversationTurn,
 } from "./memory";
 import { buildRAGContext, indexStoreData, seedDefaultKnowledge } from "./rag";
@@ -92,12 +93,12 @@ const indexedStores = new Set<number>();
 // ============================================================
 const STRICT_DATA_RULE = `
 ## ⛔ กฎเหล็ก — ห้ามละเมิดเด็ดขาด
-1. **ตอบจากข้อมูลใน KNOWLEDGE BASE เท่านั้น** — ห้ามแต่งชื่อสินค้า ราคา จำนวนสต็อก เปอร์เซ็นต์ หรือสถิติใดๆ ที่ไม่มีอยู่ใน KNOWLEDGE BASE
-2. **ห้ามยกตัวอย่างสินค้าเอง** — ห้ามพูดถึง BrightDesk, SoundWave, ThermoMug หรือชื่อสินค้าใดๆ ที่ไม่มีใน KNOWLEDGE BASE
-3. **ห้ามแต่งตัวเลข** — ห้ามพูดว่า "เติบโต 15%", "ยอดขาย 23 ชิ้น", "margin 30%" ถ้าตัวเลขนั้นไม่มีอยู่ใน KNOWLEDGE BASE
-4. **ถ้าไม่พบข้อมูลใน KNOWLEDGE BASE** → ต้องตอบว่า: "ขออภัยค่ะ ไม่พบข้อมูลในระบบของร้าน กรุณาเพิ่มข้อมูลสินค้า/คำสั่งซื้อในระบบก่อนนะคะ"
-5. **ถ้า KNOWLEDGE BASE ว่างเปล่า** → ตอบว่า: "ขณะนี้ยังไม่มีข้อมูลในระบบของร้านค่ะ กรุณาเพิ่มสินค้าในเมนู 'สินค้า' ก่อน แล้วฉันจะช่วยคุณได้เต็มที่ค่ะ"
-6. **เมื่อแนะนำสินค้า ต้องอ้างอิง** — ระบุชื่อ ราคา สต็อก จาก KNOWLEDGE BASE ทุกครั้ง
+1. **ตอบจากข้อมูลใน PRODUCT CATALOG และ KNOWLEDGE BASE เท่านั้น** — ห้ามแต่งชื่อสินค้า ราคา จำนวนสต็อก เปอร์เซ็นต์ หรือสถิติใดๆ ที่ไม่มีอยู่ในข้อมูลที่ให้มา
+2. **ห้ามยกตัวอย่างสินค้าเอง** — ห้ามพูดถึงชื่อสินค้าใดๆ ที่ไม่มีใน PRODUCT CATALOG
+3. **ห้ามแต่งตัวเลข** — ห้ามพูดว่า "เติบโต 15%", "ยอดขาย 23 ชิ้น", "margin 30%" ถ้าตัวเลขนั้นไม่มีอยู่ในข้อมูลที่ให้มา
+4. **ถ้าไม่พบข้อมูลใน PRODUCT CATALOG หรือ KNOWLEDGE BASE** → ต้องตอบว่า: "ขออภัยค่ะ ไม่พบข้อมูลในระบบของร้าน กรุณาเพิ่มข้อมูลสินค้า/คำสั่งซื้อในระบบก่อนนะคะ"
+5. **ถ้า PRODUCT CATALOG ว่างเปล่า** → ตอบว่า: "ขณะนี้ยังไม่มีข้อมูลในระบบของร้านค่ะ กรุณาเพิ่มสินค้าในเมนู 'สินค้า' ก่อน แล้วฉันจะช่วยคุณได้เต็มที่ค่ะ"
+6. **เมื่อแนะนำสินค้า ต้องอ้างอิง** — ระบุชื่อ ราคา สต็อก จาก PRODUCT CATALOG ทุกครั้ง
 `;
 
 // System prompts for each AI Agent type — Strict data-only with RAG + Memory
@@ -111,7 +112,7 @@ const agentSystemPrompts: Record<string, (storeName: string) => string> = {
 ${STRICT_DATA_RULE}
 ## วิธีแนะนำสินค้า
 - ถามความต้องการก่อน: งบเท่าไหร่? ใช้ทำอะไร? ชอบสไตล์ไหน?
-- จากข้อมูล KNOWLEDGE BASE ให้เลือกสินค้า 2-3 ตัวที่ตรงโจทย์ที่สุด
+- จากข้อมูล PRODUCT CATALOG ให้เลือกสินค้า 2-3 ตัวที่ตรงโจทย์ที่สุด
 - เปรียบเทียบจุดเด่นของแต่ละตัว
 - ถ้าลูกค้าสนใจ ให้แนะนำสินค้าเสริมที่เข้ากัน (cross-sell)
 - จำบริบทการคุย — ถ้าลูกค้าบอกงบไม่เกิน 1,000 บาท ต้องจำและกรองสินค้าตามงบนั้น
@@ -127,11 +128,11 @@ ${STRICT_DATA_RULE}
 - ภาษาไทยกึ่งทางการ มืออาชีพ
 ${STRICT_DATA_RULE}
 ## วิธีแนะนำ
-- เจ้าของร้านถามอะไร → วิเคราะห์จากข้อมูลสินค้า ยอดขาย สต็อก ใน KNOWLEDGE BASE
+- เจ้าของร้านถามอะไร → วิเคราะห์จากข้อมูลสินค้า ยอดขาย สต็อก ใน PRODUCT CATALOG
 - แนะนำ Bundle: จับคู่สินค้าจริงที่ complement กัน พร้อมเหตุผล
 - Cross-sell/Upsell: แนะนำสินค้าจริงที่ลูกค้ากลุ่มเดียวกันมักซื้อเพิ่ม
 - Trend: ดูจากข้อมูล order ที่มีจริงเท่านั้น
-- **ทุกข้อแนะนำต้องอ้างอิงสินค้าจริงจาก KNOWLEDGE BASE — ห้ามแต่งชื่อสินค้าเอง**`,
+- **ทุกข้อแนะนำต้องอ้างอิงสินค้าจริงจาก PRODUCT CATALOG — ห้ามแต่งชื่อสินค้าเอง**`,
 
   dynamic_pricing: (storeName) => `คุณคือ Dynamic Pricing AI ของร้าน "${storeName}" — ผู้เชี่ยวชาญกลยุทธ์ราคา
 
@@ -140,7 +141,7 @@ ${STRICT_DATA_RULE}
 - ภาษาไทยมืออาชีพ
 ${STRICT_DATA_RULE}
 ## หลักการวิเคราะห์
-- ราคาขาย vs ราคาเปรียบเทียบ → คำนวณ margin จากข้อมูลจริงใน KNOWLEDGE BASE
+- ราคาขาย vs ราคาเปรียบเทียบ → คำนวณ margin จากข้อมูลจริงใน PRODUCT CATALOG
 - สต็อกสูง + ขายช้า → แนะนำลดราคา/โปรโมชั่น
 - สต็อกต่ำ + ขายดี → scarcity pricing (ไม่ลดราคา)
 - AI Score สูง → demand สูง สามารถปรับราคาขึ้นได้
@@ -155,7 +156,7 @@ ${STRICT_DATA_RULE}
 ${STRICT_DATA_RULE}
 ## วิธีจัดการ
 - ข้อร้องเรียน → รับฟัง ขอโทษ เสนอทางออก อ้างอิงนโยบายจาก KNOWLEDGE BASE
-- สถานะคำสั่งซื้อ → ค้นจาก KNOWLEDGE BASE แล้วบอกรายละเอียดจริง
+- สถานะคำสั่งซื้อ → ค้นจาก PRODUCT CATALOG / KNOWLEDGE BASE แล้วบอกรายละเอียดจริง
 - คำถามทั่วไป → ตอบจากนโยบายร้านที่มีใน KNOWLEDGE BASE
 - เรื่องซับซ้อน → แนะนำติดต่อเจ้าของร้านโดยตรง`,
 
@@ -166,7 +167,7 @@ ${STRICT_DATA_RULE}
 - นำเสนอเป็นตารางหรือรายการให้อ่านง่าย
 ${STRICT_DATA_RULE}
 ## วิธีวิเคราะห์
-- ดูสต็อกแต่ละสินค้าจาก KNOWLEDGE BASE → เรียงจากน้อยไปมาก
+- ดูสต็อกแต่ละสินค้าจาก PRODUCT CATALOG → เรียงจากน้อยไปมาก
 - สินค้าสต็อกต่ำ + ขายดี → แจ้งเตือนให้สั่งเพิ่ม
 - สินค้าสต็อกสูง + ขายช้า → แนะนำทำโปรโมชั่น
 - Safety Stock = 2x average weekly sales
@@ -180,10 +181,10 @@ ${STRICT_DATA_RULE}
 - ภาษาไทยเป็นมิตร
 ${STRICT_DATA_RULE}
 ## วิธีค้นหา
-- ลูกค้าบอกลักษณะ → match กับสินค้าจริงใน KNOWLEDGE BASE เท่านั้น
-- แนะนำ 2-3 ตัวที่ตรงที่สุด พร้อมชื่อจริง ราคาจริงจาก KNOWLEDGE BASE
+- ลูกค้าบอกลักษณะ → match กับสินค้าจริงใน PRODUCT CATALOG เท่านั้น
+- แนะนำ 2-3 ตัวที่ตรงที่สุด พร้อมชื่อจริง ราคาจริงจาก PRODUCT CATALOG
 - ถ้าตรงไม่ 100% → บอกว่า "ใกล้เคียงที่สุดคือ..." พร้อมเหตุผล
-- **ถ้าไม่เจอสินค้าใน KNOWLEDGE BASE → ตอบว่า 'ไม่พบสินค้าที่ตรงกับคำอธิบายในระบบของร้านค่ะ'**`,
+- **ถ้าไม่เจอสินค้าใน PRODUCT CATALOG → ตอบว่า 'ไม่พบสินค้าที่ตรงกับคำอธิบายในระบบของร้านค่ะ'**`,
 };
 
 // Safe fallback message — NO fake data, NO product names, NO statistics
@@ -278,6 +279,40 @@ export async function chatWithAgent(
   if (!getSystemPrompt) throw new Error(`No system prompt for agent type "${agentType}"`);
   let systemPrompt = getSystemPrompt(storeName);
 
+  // 1.5 SHOP PROFILE injection — AI knows which store it belongs to
+  if (store) {
+    systemPrompt += `\n\n=== SHOP PROFILE ===\nshop_id: ${store.id}\nชื่อร้าน: ${store.name}\nslug: ${store.slug || ""}\nสถานะ: ${store.status || "active"}\nรายละเอียด: ${store.description || "ไม่ระบุ"}`;
+  }
+
+  // 1.6 STRUCTURED PRODUCT CATALOG injection — direct DB query, guaranteed real data
+  let catalogText = "";
+  try {
+    const products = await storage.getProductsByStore(storeId);
+    const activeProducts = products.filter((p: any) => p.status === "active");
+    if (activeProducts.length > 0) {
+      const lines = activeProducts.map((p: any) =>
+        `- ${p.name} | หมวด: ${p.category || "ไม่ระบุ"} | ราคา: ฿${Number(p.price).toLocaleString()} | สต็อก: ${p.stock} ชิ้น | AI Score: ${p.aiScore || 0}%`
+      );
+      catalogText = lines.join("\n");
+      systemPrompt += `\n\n=== PRODUCT CATALOG (สินค้าจริงในระบบ — ${activeProducts.length} รายการ) ===\n${catalogText}\n\n⚠️ นี่คือรายการสินค้าทั้งหมดของร้าน คุณต้องอ้างอิงจากรายการนี้เท่านั้น`;
+    }
+  } catch (catErr) {
+    console.error("[Gemini] Catalog injection failed:", catErr);
+  }
+
+  // 1.7 CUSTOMER PROFILE injection — when customerId available
+  if (customerId) {
+    try {
+      const customers = await storage.getCustomersByStore(storeId);
+      const customer = customers.find((c: any) => String(c.id) === customerId || c.email === customerId);
+      if (customer) {
+        systemPrompt += `\n\n=== CUSTOMER PROFILE ===\nชื่อ: ${customer.name}\nอีเมล: ${customer.email || "ไม่ระบุ"}\nกลุ่ม: ${customer.segment || "new"}\nสั่งซื้อ: ${customer.totalOrders} ครั้ง | ยอดรวม: ฿${Number(customer.totalSpent).toLocaleString()}`;
+      }
+    } catch (custErr) {
+      console.error("[Gemini] Customer profile injection failed:", custErr);
+    }
+  }
+
   // 2. Build Memory context
   const memoryContext = buildMemoryContext(sessionId, agentType);
   const memoryUsed = memoryContext.length > 0;
@@ -294,8 +329,11 @@ export async function chatWithAgent(
   }
   
   if (ragResult.context) {
-    systemPrompt += `\n\n=== KNOWLEDGE BASE (ข้อมูลอ้างอิงจากระบบร้าน) ===\n${ragResult.context}\n\n⚠️ คุณต้องตอบจากข้อมูลใน KNOWLEDGE BASE นี้เท่านั้น ห้ามแต่งข้อมูลเพิ่มเด็ดขาด`;
-  } else {
+    systemPrompt += `\n\n=== KNOWLEDGE BASE (ข้อมูลเพิ่มเติมจาก RAG) ===\n${ragResult.context}`;
+  }
+
+  // Only show "no data" if BOTH catalog AND RAG are empty
+  if (!catalogText && !ragResult.context) {
     systemPrompt += `\n\n=== KNOWLEDGE BASE ===\n(ไม่มีข้อมูลในระบบ)\n\n⚠️ ไม่มีข้อมูลสินค้า/คำสั่งซื้อในระบบ ห้ามแต่งข้อมูลขึ้นมาเอง ให้ตอบว่า: "ขณะนี้ยังไม่มีข้อมูลในระบบของร้านค่ะ กรุณาเพิ่มสินค้าในเมนู 'สินค้า' ก่อน แล้วฉันจะช่วยคุณได้เต็มที่ค่ะ"`;
   }
 
@@ -416,8 +454,8 @@ export function getGeminiStatus(): { hasKey: boolean; keyPrefix: string } {
 
 // --- Chat History (backed by short-term memory) ---
 
-export function getChatHistory(agentType: string, storeId: number = 1) {
-  const sessionId = `session-${storeId}`;
+export function getChatHistory(agentType: string, storeId: number = 1, userId?: number) {
+  const sessionId = userId ? `user-${userId}-store-${storeId}` : `session-${storeId}`;
   const turns = getRecentConversation(sessionId, agentType, 50);
   return turns.map((t, i) => ({
     id: i + 1,
@@ -428,8 +466,8 @@ export function getChatHistory(agentType: string, storeId: number = 1) {
   }));
 }
 
-export function clearChatHistory(agentType: string, storeId: number = 1) {
-  const sessionId = `session-${storeId}`;
+export function clearChatHistory(agentType: string, storeId: number = 1, userId?: number) {
+  const sessionId = userId ? `user-${userId}-store-${storeId}` : `session-${storeId}`;
   clearCustomerMemory(sessionId, agentType);
 }
 
