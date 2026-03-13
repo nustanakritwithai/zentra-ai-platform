@@ -124,6 +124,27 @@ setInterval(() => {
   }
 }, 15 * 60 * 1000);
 
+// Default AI agents to auto-create for any store that has none
+const DEFAULT_AGENTS = [
+  { type: "shopping_assistant", name: "Shopping Assistant", description: "ผู้ช่วยช้อปปิ้ง AI แนะนำสินค้าตาม lifestyle ของลูกค้า", enabled: true, config: { responseSpeed: 8, creativity: 7, language: "th" }, icon: "ShoppingBag" },
+  { type: "recommendation", name: "Recommendation Engine", description: "เครื่องมือแนะนำสินค้าแบบ Real-time ด้วย Collaborative Filtering", enabled: true, config: { algorithm: "hybrid", minConfidence: 0.7, maxSuggestions: 8 }, icon: "Sparkles" },
+  { type: "dynamic_pricing", name: "Dynamic Pricing", description: "ปรับราคาอัตโนมัติตามอุปสงค์และราคาคู่แข่ง", enabled: true, config: { maxDiscount: 30, priceFloor: 0.7, updateFrequency: "hourly" }, icon: "TrendingUp" },
+  { type: "customer_support", name: "Customer Support", description: "ตอบคำถามลูกค้า 24/7 ด้วย AI ที่เข้าใจภาษาธรรมชาติ", enabled: true, config: { responseSpeed: 9, escalationThreshold: 0.3, tone: "friendly" }, icon: "Headphones" },
+  { type: "inventory_forecast", name: "Inventory Forecast", description: "พยากรณ์สต็อกสินค้าและแจ้งเตือนเมื่อใกล้หมด", enabled: true, config: { forecastDays: 30, safetyStock: 10, autoReorder: false }, icon: "BarChart3" },
+  { type: "visual_search", name: "Visual Search", description: "ค้นหาสินค้าด้วยรูปภาพ ใช้ Computer Vision ขั้นสูง", enabled: false, config: { accuracy: "high", maxResults: 12, similarityThreshold: 0.8 }, icon: "Eye" },
+];
+
+// Auto-create default agents for a store if it has none
+async function ensureAgentsExist(storeId: number): Promise<void> {
+  if (storeId <= 0) return;
+  const existing = await storage.getAiAgentsByStore(storeId);
+  if (existing.length > 0) return;
+  console.log(`[Agents] Auto-creating 6 default AI agents for store ${storeId}`);
+  for (const agent of DEFAULT_AGENTS) {
+    await storage.createAiAgent(storeId, agent as any);
+  }
+}
+
 export async function registerRoutes(server: Server, app: Express): Promise<void> {
 
   // DATABASE STATUS
@@ -600,6 +621,8 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   app.get("/api/ai-agents", async (req, res) => {
     const session = await requireAuth(req, res);
     if (!session) return;
+    // Auto-create default agents if store has none
+    await ensureAgentsExist(session.storeId);
     const agents = await storage.getAiAgentsByStore(session.storeId);
     res.json(agents);
   });
@@ -678,6 +701,8 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       if (!session) return;
       const { agentType, message } = req.body;
       if (!agentType || !message) return res.status(400).json({ error: "กรุณาระบุ agentType และ message" });
+      // Auto-create agents if missing (fixes 'Agent not found' error)
+      await ensureAgentsExist(session.storeId);
       const result = await chatWithAgent(agentType, message, session.storeId);
       res.json(result);
     } catch (error: any) {

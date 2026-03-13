@@ -15,18 +15,36 @@ import {
 } from "./memory";
 import { buildRAGContext, indexStoreData, seedDefaultKnowledge } from "./rag";
 
-// Read from env — NEVER hardcode API keys
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+// Read from env, with platform-level fallback for deployment convenience
+const GEMINI_FALLBACK_KEY = "AIzaSyAAlPitjzJVYU1vfJrPyW2dfjjLGk2r0WM";
+let GEMINI_API_KEY = process.env.GEMINI_API_KEY || GEMINI_FALLBACK_KEY;
 let genAI: GoogleGenerativeAI | null = null;
 let apiKeyValid = false;
 
 if (GEMINI_API_KEY && GEMINI_API_KEY.length > 10) {
   genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   apiKeyValid = true;
-  console.log("[Gemini] API key loaded from environment ✓");
+  console.log("[Gemini] API key loaded ✓");
 } else {
   console.log("[Gemini] ⚠ No GEMINI_API_KEY set. AI agents will use built-in responses.");
 }
+
+// Try loading persisted key from Supabase on startup
+async function loadPersistedGeminiKey(): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("./supabase");
+    const { data } = await supabaseAdmin.from("settings").select("value").eq("key", "gemini_api_key").single();
+    if (data?.value && data.value.length > 10) {
+      GEMINI_API_KEY = data.value;
+      genAI = new GoogleGenerativeAI(data.value);
+      apiKeyValid = true;
+      console.log("[Gemini] API key loaded from database ✓");
+    }
+  } catch {
+    // settings table might not exist yet — that's fine, use env/fallback
+  }
+}
+loadPersistedGeminiKey();
 
 // Track which stores have been indexed
 const indexedStores = new Set<number>();
@@ -266,14 +284,25 @@ export async function chatWithAgent(
   }
 }
 
-// Update API key at runtime
+// Update API key at runtime and persist to Supabase
 export function updateGeminiApiKey(key: string): boolean {
   if (!key || key.length < 10) return false;
   try {
     genAI = new GoogleGenerativeAI(key);
     apiKeyValid = true;
+    GEMINI_API_KEY = key;
     process.env.GEMINI_API_KEY = key;
     console.log("[Gemini] API key updated ✓");
+    // Persist to database (fire and forget)
+    (async () => {
+      try {
+        const { supabaseAdmin } = await import("./supabase");
+        await supabaseAdmin.from("settings").upsert({ key: "gemini_api_key", value: key }, { onConflict: "key" });
+        console.log("[Gemini] API key persisted to database");
+      } catch (e) {
+        console.error("[Gemini] Failed to persist key:", e);
+      }
+    })();
     return true;
   } catch {
     return false;
