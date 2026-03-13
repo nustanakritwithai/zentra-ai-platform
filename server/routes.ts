@@ -45,24 +45,68 @@ function scheduleReindex(storeId: number): void {
   }, 5000)); // Debounce 5s to batch rapid changes
 }
 
-// Simple per-request session map (keyed by a session token header)
-const sessions = new Map<string, { userId: number; storeId: number; role: string; createdAt: number }>();
+// Session management with signed tokens that survive server restarts
+// Token format: <hex payload>.<hex hmac>
+// Payload: JSON { userId, role, exp }
+const SESSION_SECRET = process.env.SESSION_SECRET || "zentra-ai-session-secret-2026-stable";
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-function generateToken(): string {
-  return crypto.randomBytes(32).toString("hex");
+// In-memory cache for fast lookups (rebuilt from token verification on miss)
+const sessionCache = new Map<string, { userId: number; storeId: number; role: string; cachedAt: number }>();
+
+function generateToken(userId: number, role: string): string {
+  const payload = JSON.stringify({ userId, role, exp: Date.now() + SESSION_TTL_MS });
+  const payloadHex = Buffer.from(payload).toString("hex");
+  const hmac = crypto.createHmac("sha256", SESSION_SECRET).update(payloadHex).digest("hex");
+  return `${payloadHex}.${hmac}`;
 }
 
-function getSession(req: Request): { userId: number; storeId: number; role: string } | null {
+function verifyToken(token: string): { userId: number; role: string } | null {
+  try {
+    const [payloadHex, hmac] = token.split(".");
+    if (!payloadHex || !hmac) return null;
+    const expectedHmac = crypto.createHmac("sha256", SESSION_SECRET).update(payloadHex).digest("hex");
+    if (hmac !== expectedHmac) return null;
+    const payload = JSON.parse(Buffer.from(payloadHex, "hex").toString());
+    if (!payload.userId || !payload.exp) return null;
+    if (Date.now() > payload.exp) return null; // Token expired
+    return { userId: payload.userId, role: payload.role || "seller" };
+  } catch {
+    return null;
+  }
+}
+
+async function getSession(req: Request): Promise<{ userId: number; storeId: number; role: string } | null> {
   const token = req.headers["x-session-token"] as string;
   if (!token) return null;
-  const session = sessions.get(token);
-  if (!session) return null;
-  session.createdAt = Date.now();
-  return session;
+
+  // Check in-memory cache first
+  const cached = sessionCache.get(token);
+  if (cached) {
+    cached.cachedAt = Date.now();
+    return cached;
+  }
+
+  // Cache miss (e.g., after server restart) — verify the token signature
+  const verified = verifyToken(token);
+  if (!verified) return null;
+
+  // Look up user and store from database to rebuild session
+  try {
+    const user = await storage.getUser(verified.userId);
+    if (!user) return null;
+    const stores = await storage.getStoresByUser(user.id);
+    const storeId = stores.length > 0 ? stores[0].id : 0;
+    const session = { userId: user.id, storeId, role: verified.role, cachedAt: Date.now() };
+    sessionCache.set(token, session);
+    return session;
+  } catch {
+    return null;
+  }
 }
 
-function requireAuth(req: Request, res: Response): { userId: number; storeId: number; role: string } | null {
-  const session = getSession(req);
+async function requireAuth(req: Request, res: Response): Promise<{ userId: number; storeId: number; role: string } | null> {
+  const session = await getSession(req);
   if (!session) {
     res.status(401).json({ error: "กรุณาเข้าสู่ระบบ" });
     return null;
@@ -70,15 +114,15 @@ function requireAuth(req: Request, res: Response): { userId: number; storeId: nu
   return session;
 }
 
-// Clean up expired sessions (older than 7 days)
+// Clean up old session cache entries periodically (older than 1 hour)
 setInterval(() => {
   const now = Date.now();
-  for (const [token, session] of sessions.entries()) {
-    if (now - session.createdAt > 7 * 24 * 60 * 60 * 1000) {
-      sessions.delete(token);
+  for (const [token, session] of sessionCache.entries()) {
+    if (now - session.cachedAt > 60 * 60 * 1000) {
+      sessionCache.delete(token);
     }
   }
-}, 60 * 60 * 1000);
+}, 15 * 60 * 1000);
 
 export async function registerRoutes(server: Server, app: Express): Promise<void> {
 
@@ -110,9 +154,10 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (role === "buyer") {
       await storage.updateUser(user.id, { role: "buyer" } as any);
     }
-    const token = generateToken();
-    sessions.set(token, { userId: user.id, storeId: 0, role: role || "seller", createdAt: Date.now() });
-    res.json({ user: { ...user, password: undefined, role: role || "seller" }, token });
+    const userRole = role || "seller";
+    const token = generateToken(user.id, userRole);
+    sessionCache.set(token, { userId: user.id, storeId: 0, role: userRole, cachedAt: Date.now() });
+    res.json({ user: { ...user, password: undefined, role: userRole }, token });
   });
 
   app.post("/api/auth/login", async (req, res) => {
@@ -122,26 +167,27 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const stores = await storage.getStoresByUser(user.id);
     const storeId = stores.length > 0 ? stores[0].id : 0;
     const userRole = (user as any).role || "seller";
-    const token = generateToken();
-    sessions.set(token, { userId: user.id, storeId, role: userRole, createdAt: Date.now() });
+    const token = generateToken(user.id, userRole);
+    sessionCache.set(token, { userId: user.id, storeId, role: userRole, cachedAt: Date.now() });
     res.json({ user: { ...user, password: undefined }, token, storeId, role: userRole });
   });
 
   app.get("/api/auth/me", async (req, res) => {
-    const session = getSession(req);
+    const session = await getSession(req);
     if (!session) return res.status(401).json({ error: "ไม่ได้เข้าสู่ระบบ" });
     const user = await storage.getUser(session.userId);
     if (!user) return res.status(401).json({ error: "ไม่พบผู้ใช้" });
     const stores = await storage.getStoresByUser(user.id);
     const storeId = stores.length > 0 ? stores[0].id : 0;
+    // Update cache with latest storeId
     const token = req.headers["x-session-token"] as string;
-    sessions.set(token, { userId: user.id, storeId, role: session.role, createdAt: Date.now() });
+    if (token) sessionCache.set(token, { userId: user.id, storeId, role: session.role, cachedAt: Date.now() });
     res.json({ user: { ...user, password: undefined }, storeId, role: session.role });
   });
 
   app.post("/api/auth/logout", (req, res) => {
     const token = req.headers["x-session-token"] as string;
-    if (token) sessions.delete(token);
+    if (token) sessionCache.delete(token);
     res.json({ ok: true });
   });
 
@@ -214,8 +260,8 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       }
       const stores = await storage.getStoresByUser(user.id);
       const storeId = stores.length > 0 ? stores[0].id : 0;
-      const token = generateToken();
-      sessions.set(token, { userId: user.id, storeId, role: "seller", createdAt: Date.now() });
+      const token = generateToken(user.id, "seller");
+      sessionCache.set(token, { userId: user.id, storeId, role: "seller", cachedAt: Date.now() });
       return res.redirect(`/#/auth?oauth_token=${token}`);
     } catch (err: any) {
       console.error("[Google OAuth] Error:", err);
@@ -246,8 +292,8 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
         }
         const stores = await storage.getStoresByUser(user.id);
         const storeId = stores.length > 0 ? stores[0].id : 0;
-        const token = generateToken();
-        sessions.set(token, { userId: user.id, storeId, role: "seller", createdAt: Date.now() });
+        const token = generateToken(user.id, "seller");
+        sessionCache.set(token, { userId: user.id, storeId, role: "seller", cachedAt: Date.now() });
         return res.redirect(`/#/auth?oauth_token=${token}`);
       }
       return res.redirect("/#/auth?error=no_code");
@@ -260,7 +306,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== ONBOARDING / STORE SETUP ===================
 
   app.post("/api/onboarding/create-store", async (req, res) => {
-    const session = getSession(req);
+    const session = await getSession(req);
     if (!session) return res.status(401).json({ error: "กรุณาเข้าสู่ระบบ" });
 
     const { name, slug, description, currency, category } = req.body;
@@ -307,7 +353,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     await storage.updateUser(session.userId, { onboarded: true });
 
     const token = req.headers["x-session-token"] as string;
-    sessions.set(token, { userId: session.userId, storeId: store.id, role: session.role, createdAt: Date.now() });
+    sessionCache.set(token, { userId: session.userId, storeId: store.id, role: session.role, cachedAt: Date.now() });
 
     // Auto-start AI automation for the new store
     setTimeout(() => {
@@ -327,7 +373,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== STORES ===================
 
   app.get("/api/stores", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const stores = await storage.getStoresByUser(session.userId);
     res.json(stores);
@@ -340,14 +386,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.post("/api/stores", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const store = await storage.createStore(session.userId, req.body);
     res.json(store);
   });
 
   app.put("/api/stores/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const store = await storage.updateStore(Number(req.params.id), req.body);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
@@ -357,14 +403,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== CATEGORIES ===================
 
   app.get("/api/categories", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const cats = await storage.getCategoriesByStore(session.storeId);
     res.json(cats);
   });
 
   app.post("/api/categories", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { name, slug, description, image, parentId, sortOrder } = req.body;
     if (!name) return res.status(400).json({ error: "กรุณากรอกชื่อหมวดหมู่" });
@@ -374,7 +420,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.put("/api/categories/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const cat = await storage.updateCategory(Number(req.params.id), req.body);
     if (!cat) return res.status(404).json({ error: "ไม่พบหมวดหมู่" });
@@ -382,7 +428,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.delete("/api/categories/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const ok = await storage.deleteCategory(Number(req.params.id));
     res.json({ ok });
@@ -391,7 +437,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== IMAGE UPLOAD ===================
 
   app.post("/api/upload", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     try {
       const { fileData, fileName, contentType, folder } = req.body;
@@ -419,14 +465,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== PRODUCTS ===================
 
   app.get("/api/products", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const products = await storage.getProductsByStore(session.storeId);
     res.json(products);
   });
 
   app.post("/api/products", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const product = await storage.createProduct(session.storeId, req.body);
     scheduleReindex(session.storeId);
@@ -434,7 +480,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.put("/api/products/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const product = await storage.updateProduct(Number(req.params.id), req.body);
     if (!product) return res.status(404).json({ error: "ไม่พบสินค้า" });
@@ -443,7 +489,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.delete("/api/products/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const ok = await storage.deleteProduct(Number(req.params.id));
     scheduleReindex(session.storeId);
@@ -453,14 +499,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== ORDERS ===================
 
   app.get("/api/orders", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const orders = await storage.getOrdersByStore(session.storeId);
     res.json(orders);
   });
 
   app.post("/api/orders", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const order = await storage.createOrder(session.storeId, req.body);
     scheduleReindex(session.storeId);
@@ -468,7 +514,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.put("/api/orders/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const order = await storage.updateOrder(Number(req.params.id), req.body);
     if (!order) return res.status(404).json({ error: "ไม่พบคำสั่งซื้อ" });
@@ -479,14 +525,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== CUSTOMERS ===================
 
   app.get("/api/customers", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const customers = await storage.getCustomersByStore(session.storeId);
     res.json(customers);
   });
 
   app.post("/api/customers", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const customer = await storage.createCustomer(session.storeId, req.body);
     scheduleReindex(session.storeId);
@@ -494,7 +540,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.put("/api/customers/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const customer = await storage.updateCustomer(Number(req.params.id), req.body);
     if (!customer) return res.status(404).json({ error: "ไม่พบลูกค้า" });
@@ -505,21 +551,21 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== DISCOUNTS ===================
 
   app.get("/api/discounts", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const discounts = await storage.getDiscountsByStore(session.storeId);
     res.json(discounts);
   });
 
   app.post("/api/discounts", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const discount = await storage.createDiscount(session.storeId, req.body);
     res.json(discount);
   });
 
   app.put("/api/discounts/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const discount = await storage.updateDiscount(Number(req.params.id), req.body);
     if (!discount) return res.status(404).json({ error: "ไม่พบโค้ดส่วนลด" });
@@ -527,7 +573,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.delete("/api/discounts/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const ok = await storage.deleteDiscount(Number(req.params.id));
     res.json({ ok });
@@ -552,14 +598,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== AI AGENTS ===================
 
   app.get("/api/ai-agents", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const agents = await storage.getAiAgentsByStore(session.storeId);
     res.json(agents);
   });
 
   app.put("/api/ai-agents/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const agent = await storage.updateAiAgent(Number(req.params.id), req.body);
     if (!agent) return res.status(404).json({ error: "ไม่พบ AI Agent" });
@@ -568,13 +614,13 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // AI Gemini status & key management
   app.get("/api/ai/gemini-status", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     res.json(getGeminiStatus());
   });
 
   app.post("/api/ai/gemini-key", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { apiKey } = req.body;
     const ok = updateGeminiApiKey(apiKey);
@@ -583,7 +629,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // AI Text Generation (#16)
   app.post("/api/ai/generate-text", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { prompt, type } = req.body; // type: description, seo, blog, product
     if (!prompt) return res.status(400).json({ error: "กรุณาระบุ prompt" });
@@ -597,7 +643,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // AI Image Generation placeholder (#16)
   app.post("/api/ai/generate-image", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { prompt } = req.body;
     // Gemini doesn't generate images directly, but we can generate a description
@@ -611,14 +657,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== DASHBOARD ===================
 
   app.get("/api/dashboard/stats", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const stats = await storage.getDashboardStats(session.storeId);
     res.json(stats);
   });
 
   app.get("/api/dashboard/chart", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const data = await storage.getChartData(session.storeId);
     res.json(data);
@@ -628,7 +674,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   app.post("/api/ai-chat", async (req, res) => {
     try {
-      const session = requireAuth(req, res);
+      const session = await requireAuth(req, res);
       if (!session) return;
       const { agentType, message } = req.body;
       if (!agentType || !message) return res.status(400).json({ error: "กรุณาระบุ agentType และ message" });
@@ -640,14 +686,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.get("/api/ai-chat/history/:agentType", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const history = getChatHistory(req.params.agentType, session.storeId);
     res.json(history);
   });
 
   app.delete("/api/ai-chat/history/:agentType", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     clearChatHistory(req.params.agentType, session.storeId);
     res.json({ ok: true });
@@ -656,14 +702,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== KNOWLEDGE BASE ===================
 
   app.get("/api/knowledge-base", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const entries = getKnowledgeEntries(session.storeId);
     res.json(entries);
   });
 
   app.post("/api/knowledge-base", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { title, content, category } = req.body;
     if (!title || !content || !category) return res.status(400).json({ error: "กรุณากรอก title, content, category" });
@@ -678,7 +724,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   app.post("/api/knowledge-base/reindex", async (req, res) => {
     try {
-      const session = requireAuth(req, res);
+      const session = await requireAuth(req, res);
       if (!session) return;
       const result = await reindexStore(session.storeId);
       res.json(result);
@@ -689,7 +735,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // MEMORY + RAG Stats
   app.get("/api/ai/stats", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const memory = getMemoryStats();
     const rag = getRAGStats(session.storeId);
@@ -699,14 +745,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== EMPLOYEES (#3) ===================
 
   app.get("/api/employees", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const employees = await storage.getEmployeesByStore(session.storeId);
     res.json(employees);
   });
 
   app.post("/api/employees", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { name, email, role, permissions, pin } = req.body;
     if (!name) return res.status(400).json({ error: "กรุณากรอกชื่อพนักงาน" });
@@ -715,7 +761,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.put("/api/employees/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const emp = await storage.updateEmployee(Number(req.params.id), req.body);
     if (!emp) return res.status(404).json({ error: "ไม่พบพนักงาน" });
@@ -723,7 +769,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.delete("/api/employees/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const ok = await storage.deleteEmployee(Number(req.params.id));
     res.json({ ok });
@@ -732,14 +778,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== STOCK LOGS (#3) ===================
 
   app.get("/api/stock-logs", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const logs = await storage.getStockLogsByStore(session.storeId);
     res.json(logs);
   });
 
   app.post("/api/stock-logs", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { productId, type, quantity, reason } = req.body;
     if (!productId || !type || quantity === undefined) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
@@ -756,7 +802,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== BLOG POSTS (#14) ===================
 
   app.get("/api/blog", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const posts = await storage.getBlogPostsByStore(session.storeId);
     res.json(posts);
@@ -770,7 +816,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.post("/api/blog", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { title, content, excerpt, coverImage, category, tags, status, seoTitle, seoDescription } = req.body;
     if (!title || !content) return res.status(400).json({ error: "กรุณากรอกหัวข้อและเนื้อหา" });
@@ -780,7 +826,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.put("/api/blog/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const post = await storage.updateBlogPost(Number(req.params.id), req.body);
     if (!post) return res.status(404).json({ error: "ไม่พบบทความ" });
@@ -788,7 +834,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.delete("/api/blog/:id", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const ok = await storage.deleteBlogPost(Number(req.params.id));
     res.json({ ok });
@@ -809,7 +855,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== POS (#6) ===================
 
   app.post("/api/pos/order", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { items, customerName, paymentMethod, employeeId } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ error: "กรุณาเพิ่มสินค้า" });
@@ -844,7 +890,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== LINE API ===================
 
   app.post("/api/line/setup", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { channelId, channelSecret, accessToken } = req.body;
     if (!channelId || !channelSecret) return res.status(400).json({ error: "กรุณากรอก Channel ID และ Channel Secret" });
@@ -853,7 +899,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.get("/api/line/status", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const store = await storage.getStore(session.storeId);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
@@ -897,7 +943,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.post("/api/line/send", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const store = await storage.getStore(session.storeId);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
@@ -913,7 +959,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.get("/api/line/messages", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const messages = await storage.getLineMessagesByStore(session.storeId);
     res.json(messages);
@@ -922,7 +968,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== META/FACEBOOK INTEGRATION (#1) ===================
 
   app.post("/api/meta/setup", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const { pixelId, accessToken, catalogId } = req.body;
     const store = await storage.updateStore(session.storeId, { metaPixelId: pixelId, metaAccessToken: accessToken, metaCatalogId: catalogId } as any);
@@ -930,7 +976,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   app.get("/api/meta/status", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const store = await storage.getStore(session.storeId);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
@@ -945,7 +991,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // =================== API CONNECTIONS STATUS (#1) ===================
 
   app.get("/api/integrations/status", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const store = await storage.getStore(session.storeId);
     if (!store) return res.json({ integrations: [] });
@@ -1079,7 +1125,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Get all automation states for store
   app.get("/api/automation/states", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const states = getAllAutomationStates(session.storeId);
     res.json(states);
@@ -1087,7 +1133,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Get single agent automation state
   app.get("/api/automation/state/:agentType", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const state = getAutomationState(req.params.agentType, session.storeId);
     res.json(state);
@@ -1095,7 +1141,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Trigger a specific agent manually
   app.post("/api/automation/trigger/:agentType", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     try {
       const task = await triggerAgent(req.params.agentType, session.storeId);
@@ -1113,7 +1159,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Trigger ALL enabled agents
   app.post("/api/automation/trigger-all", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     try {
       const agents = await storage.getAiAgentsByStore(session.storeId);
@@ -1137,7 +1183,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Get automation stats summary
   app.get("/api/automation/stats", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const stats = getAutomationStats(session.storeId);
     res.json(stats);
@@ -1145,7 +1191,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Get insights (all or by agent)
   app.get("/api/automation/insights", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     const agentType = req.query.agentType as string | undefined;
     const unreadOnly = req.query.unreadOnly === "true";
@@ -1161,7 +1207,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Start automation scheduler
   app.post("/api/automation/start", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     startAutomation(session.storeId);
     res.json({ ok: true, message: "Automation started" });
@@ -1169,7 +1215,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Stop automation scheduler
   app.post("/api/automation/stop", async (req, res) => {
-    const session = requireAuth(req, res);
+    const session = await requireAuth(req, res);
     if (!session) return;
     stopAutomation(session.storeId);
     res.json({ ok: true, message: "Automation stopped" });

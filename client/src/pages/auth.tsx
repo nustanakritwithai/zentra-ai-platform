@@ -27,12 +27,12 @@ export default function AuthPage() {
   // Check for OAuth callback token in URL on mount
   useEffect(() => {
     const hash = window.location.hash;
-    const match = hash.match(/[?&]oauth_token=([a-f0-9]+)/);
+    const match = hash.match(/[?&]oauth_token=([a-f0-9]+\.[a-f0-9]+)/);
     if (match) {
       const token = match[1];
       setSessionToken(token);
       // Clean up the URL
-      const cleanHash = hash.replace(/[?&]oauth_token=[a-f0-9]+/, "").replace(/[?&]$/, "");
+      const cleanHash = hash.replace(/[?&]oauth_token=[a-f0-9.]+/, "").replace(/[?&]$/, "");
       window.history.replaceState(null, "", cleanHash || "#/");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({ title: "เข้าสู่ระบบสำเร็จ", description: "ยินดีต้อนรับ!" });

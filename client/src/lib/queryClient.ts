@@ -10,7 +10,7 @@ let _sessionToken: string | null = null;
 function readTokenFromHash(): string | null {
   try {
     const hash = window.location.hash;
-    const match = hash.match(/[?&]_zt=([a-f0-9]+)/);
+    const match = hash.match(/[?&]_zt=([a-f0-9]+\.[a-f0-9]+)/);
     return match ? match[1] : null;
   } catch {
     return null;
@@ -21,7 +21,7 @@ function readTokenFromHash(): string | null {
 function cleanTokenFromHash() {
   try {
     let hash = window.location.hash || "#/";
-    hash = hash.replace(/[?&]_zt=[a-f0-9]+/, "");
+    hash = hash.replace(/[?&]_zt=[a-f0-9.]+/, "");
     hash = hash.replace(/[?&]$/, "");
     if (hash !== window.location.hash) {
       window.history.replaceState(null, "", hash);
@@ -45,7 +45,7 @@ function writeTokenToCookie(token: string | null) {
 
 function readTokenFromCookie(): string | null {
   try {
-    const match = document.cookie.match(/(?:^|;\s*)_zt=([a-f0-9]+)/);
+    const match = document.cookie.match(/(?:^|;\s*)_zt=([a-f0-9]+\.[a-f0-9]+)/);
     return match ? match[1] : null;
   } catch {
     return null;
@@ -95,6 +95,13 @@ function getAuthHeaders(): Record<string, string> {
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
+    if (res.status === 401) {
+      // Session expired or invalid — clear token and redirect to auth
+      setSessionToken(null);
+      if (!window.location.hash.includes("/auth")) {
+        window.location.hash = "#/auth";
+      }
+    }
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }

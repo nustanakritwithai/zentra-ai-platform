@@ -50,7 +50,7 @@ export default function AiChatPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const { data: agents = [] } = useQuery<AiAgent[]>({ queryKey: ["/api/ai-agents"] });
+  const { data: agents = [], isLoading: agentsLoading } = useQuery<AiAgent[]>({ queryKey: ["/api/ai-agents"] });
 
   // Load history when agent changes
   const { data: history = [] } = useQuery<ChatMsg[]>({
@@ -68,15 +68,21 @@ export default function AiChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [localMessages]);
 
-  // Auto-select first enabled agent if none selected
+  // Auto-select first enabled agent, or fallback to shopping_assistant if no agents loaded
   useEffect(() => {
-    if (!selectedAgent && agents.length > 0) {
-      const firstEnabled = agents.find(a => a.enabled);
-      if (firstEnabled) {
-        setSelectedAgent(firstEnabled.type);
+    if (!selectedAgent) {
+      if (agents.length > 0) {
+        const firstEnabled = agents.find(a => a.enabled);
+        if (firstEnabled) {
+          setSelectedAgent(firstEnabled.type);
+        }
+      } else if (!agentsLoading) {
+        // Agents list is empty (maybe user has no store yet, or agents not created)
+        // Default to shopping_assistant so the chat input still appears
+        setSelectedAgent("shopping_assistant");
       }
     }
-  }, [agents, selectedAgent]);
+  }, [agents, selectedAgent, agentsLoading]);
 
   const sendMut = useMutation({
     mutationFn: async (message: string) => {
