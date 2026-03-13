@@ -129,13 +129,7 @@ export async function indexStoreData(storeId: number): Promise<{ indexed: number
   // Index products
   const products = await storage.getProductsByStore(storeId);
   for (const product of products) {
-    const text = `สินค้า: ${product.name}
-หมวดหมู่: ${product.category || "ไม่ระบุ"}
-รายละเอียด: ${product.description || ""}
-ราคา: ฿${product.price.toLocaleString()}${product.comparePrice ? ` (จาก ฿${product.comparePrice.toLocaleString()})` : ""}
-สต็อก: ${product.stock} ชิ้น
-สถานะ: ${product.status}
-AI Score: ${product.aiScore}%`;
+    const text = `สินค้า: ${product.name}\nหมวดหมู่: ${product.category || "ไม่ระบุ"}\nรายละเอียด: ${product.description || ""}\nราคา: ฿${product.price.toLocaleString()}${product.comparePrice ? ` (จาก ฿${product.comparePrice.toLocaleString()})` : ""}\nสต็อก: ${product.stock} ชิ้น\nสถานะ: ${product.status}\nAI Score: ${product.aiScore}%`;
 
     try {
       const embedding = await getEmbedding(text);
@@ -162,13 +156,7 @@ AI Score: ${product.aiScore}%`;
   const orders = await storage.getOrdersByStore(storeId);
   for (const order of orders) {
     const items = (order.items as any[]).map((i: any) => `${i.name} x${i.qty}`).join(", ");
-    const text = `คำสั่งซื้อ #${String(order.id).padStart(4, "0")}
-ลูกค้า: ${order.customerName} (${order.customerEmail || ""})
-สินค้า: ${items}
-ยอดรวม: ฿${order.total.toLocaleString()}
-สถานะ: ${order.status}
-ที่อยู่จัดส่ง: ${order.shippingAddress || "ไม่ระบุ"}
-วันที่สั่ง: ${order.createdAt}`;
+    const text = `คำสั่งซื้อ #${String(order.id).padStart(4, "0")}\nลูกค้า: ${order.customerName} (${order.customerEmail || ""})\nสินค้า: ${items}\nยอดรวม: ฿${order.total.toLocaleString()}\nสถานะ: ${order.status}\nที่อยู่จัดส่ง: ${order.shippingAddress || "ไม่ระบุ"}\nวันที่สั่ง: ${order.createdAt}`;
 
     try {
       const embedding = await getEmbedding(text);
@@ -194,12 +182,7 @@ AI Score: ${product.aiScore}%`;
   const customers = await storage.getCustomersByStore(storeId);
   for (const customer of customers) {
     const segmentLabels: Record<string, string> = { vip: "VIP", returning: "ขาประจำ", new: "ใหม่", at_risk: "เสี่ยงหาย" };
-    const text = `ลูกค้า: ${customer.name}
-อีเมล: ${customer.email || "ไม่ระบุ"}
-โทรศัพท์: ${customer.phone || "ไม่ระบุ"}
-กลุ่ม: ${segmentLabels[customer.segment || "new"] || customer.segment}
-จำนวนคำสั่งซื้อ: ${customer.totalOrders} ครั้ง
-ยอดรวม: ฿${customer.totalSpent.toLocaleString()}`;
+    const text = `ลูกค้า: ${customer.name}\nอีเมล: ${customer.email || "ไม่ระบุ"}\nโทรศัพท์: ${customer.phone || "ไม่ระบุ"}\nกลุ่ม: ${segmentLabels[customer.segment || "new"] || customer.segment}\nจำนวนคำสั่งซื้อ: ${customer.totalOrders} ครั้ง\nยอดรวม: ฿${customer.totalSpent.toLocaleString()}`;
 
     try {
       const embedding = await getEmbedding(text);
@@ -308,8 +291,8 @@ export async function buildRAGContext(
   
   const results = await searchKnowledge(query, storeId, {
     sources: agentSources,
-    limit: 6,
-    minScore: 0.25,
+    limit: 5,
+    minScore: 0.4,
   });
 
   if (results.length === 0) {
@@ -400,11 +383,6 @@ export function seedDefaultKnowledge(storeId: number): void {
       title: "วิธีติดต่อเรา",
       content: "อีเมล: support@zentra.ai | LINE: @zentramart | โทร: 02-xxx-xxxx (จันทร์-ศุกร์ 9:00-18:00) | Live Chat: ผ่านเว็บไซต์ 24/7 (AI + พนักงาน) | เวลาตอบกลับ: อีเมลภายใน 24 ชม., LINE/Chat ภายใน 5 นาที",
       category: "faq" as const,
-    },
-    {
-      title: "โปรโมชั่นประจำเดือน มีนาคม 2026",
-      content: "1) ลด 20% สำหรับสินค้าอุปกรณ์อิเล็กทรอนิกส์เมื่อใช้โค้ด TECHMAR26 | 2) ซื้อ 2 ชิ้นขึ้นไปในหมวดเสื้อผ้าลด 15% | 3) สมาชิก VIP รับส่วนลดเพิ่ม 5% ทุกรายการ | 4) Free shipping ทุกออเดอร์ไม่มีขั้นต่ำ ถึง 15 มี.ค. นี้",
-      category: "guide" as const,
     },
   ];
 
