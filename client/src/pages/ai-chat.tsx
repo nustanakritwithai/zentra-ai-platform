@@ -432,7 +432,7 @@ export default function AiChatPage() {
                       <Database className="w-3 h-3" /> RAG
                     </span>
                     <span className="flex items-center gap-1 text-[10px] text-white/30">
-                      <Sparkles className="w-3 h-3" /> Gemini 2.5 Flash
+                      <Sparkles className="w-3 h-3" /> Gemini 2.0 Flash
                     </span>
                   </div>
                 </div>
