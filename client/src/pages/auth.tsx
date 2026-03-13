@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { ShoppingBag, Store } from "lucide-react";
+import { ShoppingBag, Store, Loader2 } from "lucide-react";
+import { setSessionToken } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+
+const API_BASE = "__PORT_5000__".startsWith("__") ? "" : "__PORT_5000__";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,9 +19,26 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"seller" | "buyer">("seller");
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const { login, register, isLoginPending, isRegisterPending } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+
+  // Check for OAuth callback token in URL on mount
+  useEffect(() => {
+    const hash = window.location.hash;
+    const match = hash.match(/[?&]oauth_token=([a-f0-9]+)/);
+    if (match) {
+      const token = match[1];
+      setSessionToken(token);
+      // Clean up the URL
+      const cleanHash = hash.replace(/[?&]oauth_token=[a-f0-9]+/, "").replace(/[?&]$/, "");
+      window.history.replaceState(null, "", cleanHash || "#/");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      toast({ title: "เข้าสู่ระบบสำเร็จ", description: "ยินดีต้อนรับ!" });
+      navigate("/dashboard");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,10 +59,41 @@ export default function AuthPage() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setSocialLoading("Google");
+    try {
+      // Get Google OAuth URL from our server
+      const res = await fetch(`${API_BASE}/api/auth/google/url`);
+      const data = await res.json();
+      if (data.url) {
+        // Redirect to Google OAuth
+        window.location.href = data.url;
+      } else {
+        toast({
+          title: "Google Login",
+          description: data.error || "ไม่สามารถเชื่อมต่อ Google ได้ กรุณาลองใหม่",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถเชื่อมต่อ Google ได้",
+        variant: "destructive",
+      });
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
   const handleSocialLogin = (provider: string) => {
+    if (provider === "Google") {
+      handleGoogleLogin();
+      return;
+    }
     toast({
       title: `เข้าสู่ระบบด้วย ${provider}`,
-      description: "กำลังเชื่อมต่อ... ฟีเจอร์นี้จะเปิดให้บริการเร็วๆ นี้",
+      description: "ฟีเจอร์นี้จะเปิดให้บริการเร็วๆ นี้",
     });
   };
 
@@ -110,8 +162,13 @@ export default function AuthPage() {
               variant="outline"
               className="bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.08] text-white/80 h-11"
               onClick={() => handleSocialLogin("Google")}
+              disabled={socialLoading === "Google"}
             >
-              <svg className="w-4 h-4 mr-1.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              {socialLoading === "Google" ? (
+                <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+              ) : (
+                <svg className="w-4 h-4 mr-1.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              )}
               Google
             </Button>
             <Button

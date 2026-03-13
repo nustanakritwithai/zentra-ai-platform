@@ -47,6 +47,7 @@ export default function AiChatPage() {
   const [localMessages, setLocalMessages] = useState<ChatMsg[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const { data: agents = [] } = useQuery<AiAgent[]>({ queryKey: ["/api/ai-agents"] });
@@ -66,6 +67,16 @@ export default function AiChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [localMessages]);
+
+  // Auto-select first enabled agent if none selected
+  useEffect(() => {
+    if (!selectedAgent && agents.length > 0) {
+      const firstEnabled = agents.find(a => a.enabled);
+      if (firstEnabled) {
+        setSelectedAgent(firstEnabled.type);
+      }
+    }
+  }, [agents, selectedAgent]);
 
   const sendMut = useMutation({
     mutationFn: async (message: string) => {
@@ -139,7 +150,7 @@ export default function AiChatPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] overflow-hidden">
+      <div ref={containerRef} className="flex flex-col" style={{ height: "calc(100dvh - 6rem)", minHeight: "400px" }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-3 shrink-0 px-1">
           <div className="min-w-0">
@@ -165,7 +176,7 @@ export default function AiChatPage() {
 
         {/* Mobile Agent Selector - OUTSIDE flex row */}
         <div className="md:hidden shrink-0 mb-2">
-          <div className="flex gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex gap-2 overflow-x-auto pb-2 px-1 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' as any }}>
             {agents.map(agent => {
               const Icon = iconMap[agent.icon || ""] || Sparkles;
               const isSelected = selectedAgent === agent.type;
@@ -384,8 +395,8 @@ export default function AiChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input */}
-                <div className="shrink-0 pt-3 border-t border-white/[0.06]">
+                {/* Input — always visible at bottom */}
+                <div className="shrink-0 pt-3 mt-auto border-t border-white/[0.06] bg-[hsl(240,20%,4%)]">
                   <div className="flex gap-2">
                     <Textarea
                       ref={textareaRef}
@@ -394,7 +405,7 @@ export default function AiChatPage() {
                       onChange={e => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
                       placeholder={`พิมพ์ข้อความถึง ${currentAgent?.name || "AI Agent"}...`}
-                      className="min-h-[44px] max-h-[120px] resize-none bg-white/[0.04] border-white/[0.06] focus:border-violet-500/30"
+                      className="min-h-[44px] max-h-[120px] resize-none bg-white/[0.04] border-white/[0.06] focus:border-violet-500/30 text-white placeholder:text-white/30"
                       rows={1}
                     />
                     <Button

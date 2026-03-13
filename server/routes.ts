@@ -70,11 +70,11 @@ function requireAuth(req: Request, res: Response): { userId: number; storeId: nu
   return session;
 }
 
-// Clean up expired sessions (older than 24h)
+// Clean up expired sessions (older than 7 days)
 setInterval(() => {
   const now = Date.now();
   for (const [token, session] of sessions.entries()) {
-    if (now - session.createdAt > 24 * 60 * 60 * 1000) {
+    if (now - session.createdAt > 7 * 24 * 60 * 60 * 1000) {
       sessions.delete(token);
     }
   }
@@ -143,6 +143,118 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const token = req.headers["x-session-token"] as string;
     if (token) sessions.delete(token);
     res.json({ ok: true });
+  });
+
+  // =================== GOOGLE OAUTH ===================
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+  // Determine the redirect URI based on the deploy URL or localhost
+  function getGoogleRedirectUri(req: Request): string {
+    const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
+    const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost:5000";
+    return `${proto}://${host}/api/auth/google/callback`;
+  }
+
+  app.get("/api/auth/google/url", (req, res) => {
+    // If Google OAuth isn't configured, try Supabase OAuth as fallback
+    if (!GOOGLE_CLIENT_ID) {
+      // Use Supabase OAuth flow
+      const redirectTo = `${req.headers["x-forwarded-proto"] || req.protocol}://${req.headers["x-forwarded-host"] || req.headers.host}/api/auth/supabase/callback`;
+      const supabaseAuthUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+      return res.json({ url: supabaseAuthUrl, method: "supabase" });
+    }
+    // Direct Google OAuth
+    const redirectUri = getGoogleRedirectUri(req);
+    const scope = encodeURIComponent("openid email profile");
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+    res.json({ url, method: "google" });
+  });
+
+  // Direct Google OAuth callback
+  app.get("/api/auth/google/callback", async (req, res) => {
+    const { code } = req.query;
+    if (!code || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+      return res.redirect("/#/auth?error=google_auth_failed");
+    }
+    try {
+      const redirectUri = getGoogleRedirectUri(req);
+      // Exchange code for tokens
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code: code as string,
+          client_id: GOOGLE_CLIENT_ID,
+          client_secret: GOOGLE_CLIENT_SECRET,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }),
+      });
+      const tokens = await tokenRes.json();
+      if (!tokens.access_token) {
+        console.error("[Google OAuth] Token exchange failed:", tokens);
+        return res.redirect("/#/auth?error=google_token_failed");
+      }
+      // Get user info
+      const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
+      const googleUser = await userInfoRes.json();
+      if (!googleUser.email) {
+        return res.redirect("/#/auth?error=google_no_email");
+      }
+      // Find or create user
+      let user = await storage.getUserByEmail(googleUser.email);
+      if (!user) {
+        user = await storage.createUser({
+          email: googleUser.email,
+          password: crypto.randomBytes(32).toString("hex"),
+          name: googleUser.name || googleUser.email.split("@")[0],
+        });
+      }
+      const stores = await storage.getStoresByUser(user.id);
+      const storeId = stores.length > 0 ? stores[0].id : 0;
+      const token = generateToken();
+      sessions.set(token, { userId: user.id, storeId, role: "seller", createdAt: Date.now() });
+      return res.redirect(`/#/auth?oauth_token=${token}`);
+    } catch (err: any) {
+      console.error("[Google OAuth] Error:", err);
+      return res.redirect("/#/auth?error=google_auth_error");
+    }
+  });
+
+  // Supabase OAuth callback (for when Google is configured in Supabase dashboard)
+  app.get("/api/auth/supabase/callback", async (req, res) => {
+    try {
+      // Supabase sends the tokens as URL fragments, but for server-side we need the code flow
+      const { code } = req.query;
+      if (code) {
+        // Exchange the code for a session
+        const { data, error } = await supabaseAdmin.auth.exchangeCodeForSession(code as string);
+        if (error || !data.user?.email) {
+          console.error("[Supabase OAuth] Error:", error);
+          return res.redirect("/#/auth?error=supabase_auth_failed");
+        }
+        // Find or create internal user
+        let user = await storage.getUserByEmail(data.user.email);
+        if (!user) {
+          user = await storage.createUser({
+            email: data.user.email,
+            password: crypto.randomBytes(32).toString("hex"),
+            name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email.split("@")[0],
+          });
+        }
+        const stores = await storage.getStoresByUser(user.id);
+        const storeId = stores.length > 0 ? stores[0].id : 0;
+        const token = generateToken();
+        sessions.set(token, { userId: user.id, storeId, role: "seller", createdAt: Date.now() });
+        return res.redirect(`/#/auth?oauth_token=${token}`);
+      }
+      return res.redirect("/#/auth?error=no_code");
+    } catch (err: any) {
+      console.error("[Supabase OAuth] Error:", err);
+      return res.redirect("/#/auth?error=supabase_callback_error");
+    }
   });
 
   // =================== ONBOARDING / STORE SETUP ===================

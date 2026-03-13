@@ -133,6 +133,19 @@ export default function AiAgentsPage() {
     stateMap[s.agentType] = s;
   }
 
+  // Auto-trigger all agents on first load if no data exists
+  const [autoTriggered, setAutoTriggered] = useState(false);
+  useEffect(() => {
+    if (!autoTriggered && agents.length > 0 && autoStates.length === 0 && !isLoading && !triggerAllMut.isPending) {
+      setAutoTriggered(true);
+      // Auto-run agents after a short delay
+      const timer = setTimeout(() => {
+        triggerAllMut.mutate();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [agents, autoStates, isLoading, autoTriggered, triggerAllMut]);
+
   // Filter insights by selected agent
   const filteredInsights = selectedAgentType
     ? insights.filter((i: any) => i.agentType === selectedAgentType)

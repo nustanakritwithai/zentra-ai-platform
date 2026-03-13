@@ -165,30 +165,23 @@ function ProductForm({ initial, categories, onSubmit, isPending }: { initial?: P
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "ไฟล์ใหญ่เกินไป", description: "ขนาดสูงสุด 5MB", variant: "destructive" });
-      return;
-    }
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      try {
-        const res = await apiRequest("POST", "/api/upload", {
-          fileData: base64,
-          fileName: file.name,
-          contentType: file.type,
-          folder: "products",
-        });
-        const data = await res.json();
-        setImage(data.url);
-        toast({ title: "อัปโหลดรูปสำเร็จ" });
-      } catch (err: any) {
-        toast({ title: "อัปโหลดไม่สำเร็จ", description: err.message, variant: "destructive" });
-      }
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const { prepareMediaUpload } = await import("@/lib/media-upload");
+      const prepared = await prepareMediaUpload(file);
+      const res = await apiRequest("POST", "/api/upload", {
+        fileData: prepared.base64,
+        fileName: prepared.fileName,
+        contentType: prepared.contentType,
+        folder: "products",
+      });
+      const data = await res.json();
+      setImage(data.url);
+      toast({ title: prepared.type === "video" ? "อัปโหลดวิดีโอสำเร็จ" : "อัปโหลดรูปสำเร็จ" });
+    } catch (err: any) {
+      toast({ title: "อัปโหลดไม่สำเร็จ", description: err.message, variant: "destructive" });
+    }
+    setUploading(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -227,8 +220,8 @@ function ProductForm({ initial, categories, onSubmit, isPending }: { initial?: P
           <div className="flex-1 space-y-2">
             <label className={`cursor-pointer flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors text-sm ${uploading ? "opacity-50 pointer-events-none" : "text-white/60"}`}>
               <Upload className="w-4 h-4" />
-              {uploading ? "กำลังอัปโหลด..." : "อัปโหลดรูป"}
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+              {uploading ? "กำลังอัปโหลด..." : "อัปโหลดรูป/วิดีโอ"}
+              <input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" className="hidden" onChange={handleImageUpload} disabled={uploading} />
             </label>
             <Input value={image} onChange={e => setImage(e.target.value)} placeholder="หรือวาง URL รูปภาพ" className="bg-white/[0.04] border-white/[0.06] text-xs h-8" />
           </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest, setSessionToken, getSessionToken } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
@@ -12,17 +12,24 @@ interface AuthState {
 export function useAuth() {
   const [storeId, setStoreId] = useState<number>(0);
 
-  const { data, isLoading } = useQuery<{ user: User; storeId: number } | null>({
+  const { data, isLoading, refetch } = useQuery<{ user: User; storeId: number } | null>({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
       const token = getSessionToken();
       if (!token) return null;
       try {
+        const API_BASE = "__PORT_5000__".startsWith("__") ? "" : "__PORT_5000__";
         const res = await fetch(
-          ("__PORT_5000__".startsWith("__") ? "" : "__PORT_5000__") + "/api/auth/me",
+          `${API_BASE}/api/auth/me`,
           { headers: { "x-session-token": token } }
         );
-        if (!res.ok) return null;
+        if (!res.ok) {
+          // Token is invalid — clear it
+          if (res.status === 401) {
+            setSessionToken(null);
+          }
+          return null;
+        }
         const data = await res.json();
         if (data.storeId) setStoreId(data.storeId);
         return data;
@@ -32,7 +39,20 @@ export function useAuth() {
     },
     retry: false,
     staleTime: 30000,
+    refetchOnWindowFocus: true,
   });
+
+  // Re-check auth when window regains focus (helps with session persistence)
+  useEffect(() => {
+    const handleFocus = () => {
+      const token = getSessionToken();
+      if (token) {
+        refetch();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [refetch]);
 
   const loginMutation = useMutation({
     mutationFn: async (creds: { email: string; password: string }) => {
@@ -46,7 +66,7 @@ export function useAuth() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: { name: string; email: string; password: string }) => {
+    mutationFn: async (data: { name: string; email: string; password: string; role?: string }) => {
       const res = await apiRequest("POST", "/api/auth/register", data);
       const json = await res.json();
       if (json.token) setSessionToken(json.token);

@@ -40,24 +40,21 @@ function CategoryForm({ category, onClose }: { category?: Category; onClose: () 
   const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      try {
-        const res = await apiRequest("POST", "/api/upload", {
-          fileData: base64,
-          fileName: file.name,
-          contentType: file.type,
-          folder: "categories",
-        });
-        const data = await res.json();
-        setImage(data.url);
-        toast({ title: "อัปโหลดรูปแล้ว" });
-      } catch (err: any) {
-        toast({ title: "อัปโหลดไม่สำเร็จ", description: err.message, variant: "destructive" });
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const { prepareMediaUpload } = await import("@/lib/media-upload");
+      const prepared = await prepareMediaUpload(file);
+      const res = await apiRequest("POST", "/api/upload", {
+        fileData: prepared.base64,
+        fileName: prepared.fileName,
+        contentType: prepared.contentType,
+        folder: "categories",
+      });
+      const data = await res.json();
+      setImage(data.url);
+      toast({ title: "อัปโหลดรูปแล้ว" });
+    } catch (err: any) {
+      toast({ title: "อัปโหลดไม่สำเร็จ", description: err.message, variant: "destructive" });
+    }
   };
 
   return (

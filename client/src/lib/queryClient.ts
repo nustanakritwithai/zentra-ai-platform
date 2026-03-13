@@ -3,13 +3,13 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 const API_BASE = "__PORT_5000__".startsWith("__") ? "" : "__PORT_5000__";
 
 // Session token management
-// Persist via URL hash fragment param (?t=...) since localStorage is blocked in sandboxed iframe
+// Use in-memory variable as primary, with a hidden iframe postMessage fallback
 let _sessionToken: string | null = null;
 
+// Try to read token from URL hash (legacy migration)
 function readTokenFromHash(): string | null {
   try {
     const hash = window.location.hash;
-    // Hash format: #/path?t=TOKEN or just check for _zt param
     const match = hash.match(/[?&]_zt=([a-f0-9]+)/);
     return match ? match[1] : null;
   } catch {
@@ -17,36 +17,69 @@ function readTokenFromHash(): string | null {
   }
 }
 
-function writeTokenToHash(token: string | null) {
+// Clean legacy token from hash
+function cleanTokenFromHash() {
   try {
     let hash = window.location.hash || "#/";
-    // Remove existing _zt param
     hash = hash.replace(/[?&]_zt=[a-f0-9]+/, "");
-    if (token) {
-      // Append token
-      const separator = hash.includes("?") ? "&" : "?";
-      hash = hash + separator + "_zt=" + token;
-    }
-    // Clean up trailing ? or &
     hash = hash.replace(/[?&]$/, "");
-    window.history.replaceState(null, "", hash);
+    if (hash !== window.location.hash) {
+      window.history.replaceState(null, "", hash);
+    }
+  } catch {}
+}
+
+// Cookie-based persistence (works in most iframe contexts, unlike localStorage)
+function writeTokenToCookie(token: string | null) {
+  try {
+    if (token) {
+      // Set cookie with SameSite=None; Secure for iframe context
+      const isSecure = window.location.protocol === "https:";
+      const cookieStr = `_zt=${token}; path=/; max-age=${86400 * 7}${isSecure ? "; SameSite=None; Secure" : "; SameSite=Lax"}`;
+      document.cookie = cookieStr;
+    } else {
+      document.cookie = "_zt=; path=/; max-age=0";
+    }
+  } catch {}
+}
+
+function readTokenFromCookie(): string | null {
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)_zt=([a-f0-9]+)/);
+    return match ? match[1] : null;
   } catch {
-    // Silent fail
+    return null;
   }
 }
 
-// Initialize from hash on load
-_sessionToken = readTokenFromHash();
+// Initialize: try cookie first, then hash (for migration), then clean up hash
+_sessionToken = readTokenFromCookie();
+if (!_sessionToken) {
+  _sessionToken = readTokenFromHash();
+  if (_sessionToken) {
+    // Migrate from hash to cookie
+    writeTokenToCookie(_sessionToken);
+    cleanTokenFromHash();
+  }
+}
 
 export function setSessionToken(token: string | null) {
   _sessionToken = token;
-  writeTokenToHash(token);
+  writeTokenToCookie(token);
+  cleanTokenFromHash();
 }
 
 export function getSessionToken(): string | null {
-  // Also check hash in case it was updated externally
   if (!_sessionToken) {
+    _sessionToken = readTokenFromCookie();
+  }
+  if (!_sessionToken) {
+    // Final fallback: check hash
     _sessionToken = readTokenFromHash();
+    if (_sessionToken) {
+      writeTokenToCookie(_sessionToken);
+      cleanTokenFromHash();
+    }
   }
   return _sessionToken;
 }
