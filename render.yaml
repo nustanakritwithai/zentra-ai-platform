@@ -17,4 +17,4 @@ services:
       - key: SUPABASE_SERVICE_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4dXZrZmxpd3FsZm5weGhtdXlqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzMwNjAwNCwiZXhwIjoyMDg4ODgyMDA0fQ.reqCn0SRTxLgFIKlvWmHHcaBR5RjvVqXB1G7HPU_4pg
       - key: GEMINI_API_KEY
-        value: AIzaSyCdm1zk0R-YEoCy-vxLBQdvB5E73GQ70Vc
+        sync: false  # Set this in Render Dashboard > Environment — NEVER commit API keys to public repos
