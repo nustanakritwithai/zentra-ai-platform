@@ -275,9 +275,11 @@ async function callGeminiWithFallback(
       const msg = err?.message || String(err);
       console.error(`[Gemini] ✗ ${modelName} failed: ${msg}`);
       
-      // If key is leaked/invalid, don't try other models — key is the problem
-      if (msg.includes("leaked") || msg.includes("API_KEY_INVALID") || msg.includes("PERMISSION_DENIED")) {
-        throw new Error(`API Key ถูกระงับโดย Google — กรุณาสร้าง API Key ใหม่ที่ https://aistudio.google.com/apikey แล้วอัพเดทในหน้าตั้งค่า`);
+      // If key is leaked/invalid/expired, don't try other models — key is the problem
+      if (msg.includes("leaked") || msg.includes("API_KEY_INVALID") || msg.includes("PERMISSION_DENIED") || msg.includes("key expired")) {
+        apiKeyValid = false; // Mark key as invalid to prevent automation spam
+        console.error("[Gemini] API Key is invalid/expired — marking as invalid");
+        throw new Error(`API Key ถูกระงับหรือหมดอายุ — กรุณาสร้าง API Key ใหม่ที่ https://aistudio.google.com/apikey แล้วอัพเดทในหน้าตั้งค่า`);
       }
       
       // 429 rate limit — don't try more models, just wait
