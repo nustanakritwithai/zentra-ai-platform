@@ -124,7 +124,7 @@ export async function extractAndStoreFacts(
   try {
     const genAI = getGenAI();
     if (!genAI) return [];
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const conversationText = conversation
       .map(t => `${t.role === "user" ? "ลูกค้า" : "Agent"}: ${t.content}`)
@@ -198,7 +198,7 @@ export async function createEpisodicMemory(
   try {
     const genAI = getGenAI();
     if (!genAI) return null;
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const conversationText = conversation
       .map(t => `${t.role === "user" ? "ลูกค้า" : "Agent"}: ${t.content}`)

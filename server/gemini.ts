@@ -7,8 +7,8 @@
  * 3. No fallback — user MUST set their own key
  * 
  * Model Priority:
- * 1. gemini-2.0-flash (fast, reliable)
- * 2. gemini-1.5-flash (fallback)
+ * 1. gemini-2.5-flash (latest, fastest)
+ * 2. gemini-2.0-flash (fallback)
  */
 
 import { GoogleGenerativeAI, type Content } from "@google/generative-ai";
@@ -30,9 +30,9 @@ let apiKeyValid = false;
 
 // Preferred model list (will try in order)
 const MODEL_PRIORITY = [
+  "gemini-2.5-flash",
   "gemini-2.0-flash",
-  "gemini-2.0-flash-lite",
-  "gemini-1.5-flash",
+  "gemini-2.5-flash-lite",
 ];
 
 function initializeWithKey(key: string): boolean {
