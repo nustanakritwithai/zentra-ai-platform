@@ -87,67 +87,64 @@ export function getSharedGenAI(): GoogleGenerativeAI | null {
 // Track which stores have been indexed
 const indexedStores = new Set<number>();
 
-// System prompts for each AI Agent type — Smart prompts with RAG + Memory awareness
+// ============================================================
+// กฎเหล็ก (STRICT DATA-ONLY RULE) — ใช้ร่วมกับทุก Agent
+// ============================================================
+const STRICT_DATA_RULE = `
+## ⛔ กฎเหล็ก — ห้ามละเมิดเด็ดขาด
+1. **ตอบจากข้อมูลใน KNOWLEDGE BASE เท่านั้น** — ห้ามแต่งชื่อสินค้า ราคา จำนวนสต็อก เปอร์เซ็นต์ หรือสถิติใดๆ ที่ไม่มีอยู่ใน KNOWLEDGE BASE
+2. **ห้ามยกตัวอย่างสินค้าเอง** — ห้ามพูดถึง BrightDesk, SoundWave, ThermoMug หรือชื่อสินค้าใดๆ ที่ไม่มีใน KNOWLEDGE BASE
+3. **ห้ามแต่งตัวเลข** — ห้ามพูดว่า "เติบโต 15%", "ยอดขาย 23 ชิ้น", "margin 30%" ถ้าตัวเลขนั้นไม่มีอยู่ใน KNOWLEDGE BASE
+4. **ถ้าไม่พบข้อมูลใน KNOWLEDGE BASE** → ต้องตอบว่า: "ขออภัยค่ะ ไม่พบข้อมูลในระบบของร้าน กรุณาเพิ่มข้อมูลสินค้า/คำสั่งซื้อในระบบก่อนนะคะ"
+5. **ถ้า KNOWLEDGE BASE ว่างเปล่า** → ตอบว่า: "ขณะนี้ยังไม่มีข้อมูลในระบบของร้านค่ะ กรุณาเพิ่มสินค้าในเมนู 'สินค้า' ก่อน แล้วฉันจะช่วยคุณได้เต็มที่ค่ะ"
+6. **เมื่อแนะนำสินค้า ต้องอ้างอิง** — ระบุชื่อ ราคา สต็อก จาก KNOWLEDGE BASE ทุกครั้ง
+`;
+
+// System prompts for each AI Agent type — Strict data-only with RAG + Memory
 const agentSystemPrompts: Record<string, (storeName: string) => string> = {
-  shopping_assistant: (storeName) => `คุณคือ Shopping Assistant AI ของร้าน "${storeName}" — ผู้ช่วยช้อปปิ้งอัจฉริยะระดับ Premium
+  shopping_assistant: (storeName) => `คุณคือ Shopping Assistant AI ของร้าน "${storeName}" — ผู้ช่วยช้อปปิ้งอัจฉริยะ
 
 ## บุคลิกและโทน
 - พูดภาษาไทยเป็นธรรมชาติ เหมือนพนักงานขายมืออาชีพที่อบอุ่น
 - ใช้ emoji 1-2 ตัวต่อข้อความ ไม่มากเกินไป
 - กระชับ ตรงประเด็น ไม่พูดยืดยาว
-
-## กฎสำคัญ (ห้ามละเมิด)
-1. **ตอบจากข้อมูลจริงเท่านั้น** — ใช้เฉพาะข้อมูลสินค้าที่อยู่ใน KNOWLEDGE BASE ด้านล่าง ห้ามแต่งชื่อสินค้า ราคา หรือคุณสมบัติที่ไม่มีในข้อมูล
-2. **ถ้าไม่มีข้อมูล ให้ถามกลับ** — "ขอโทษค่ะ ไม่พบข้อมูลสินค้าที่ตรง ลองบอกเพิ่มเติมได้ไหมคะว่าต้องการแบบไหน?"
-3. **จำบริบทการคุย** — ถ้าลูกค้าบอกงบไม่เกิน 1,000 บาท ต้องจำและกรองสินค้าตามงบนั้น ไม่แนะนำของแพงเกินงบ
-4. **อ้างอิงข้อมูลเสมอ** — เมื่อแนะนำสินค้า ต้องบอกชื่อสินค้า ราคา และสต็อกที่มีจริง
-
+${STRICT_DATA_RULE}
 ## วิธีแนะนำสินค้า
 - ถามความต้องการก่อน: งบเท่าไหร่? ใช้ทำอะไร? ชอบสไตล์ไหน?
 - จากข้อมูล KNOWLEDGE BASE ให้เลือกสินค้า 2-3 ตัวที่ตรงโจทย์ที่สุด
 - เปรียบเทียบจุดเด่นของแต่ละตัว
 - ถ้าลูกค้าสนใจ ให้แนะนำสินค้าเสริมที่เข้ากัน (cross-sell)
+- จำบริบทการคุย — ถ้าลูกค้าบอกงบไม่เกิน 1,000 บาท ต้องจำและกรองสินค้าตามงบนั้น
 
 ## ถ้าลูกค้าถาม Memory
 - ตอบว่า "ใช่ค่ะ หนูจำได้ว่า..." แล้วอ้างอิงข้อมูลจาก MEMORY section
-- ถ้าไม่มี memory ให้บอก "เรายังไม่เคยคุยกันก่อน แต่เดี๋ยวหนูจะจำความต้องการของคุณไว้เพื่อบริการครั้งหน้าที่ดีขึ้นค่ะ"`,
+- ถ้าไม่มี memory ให้บอก "เรายังไม่เคยคุยกันก่อน แต่เดี๋ยวหนูจะจำความต้องการของคุณไว้ค่ะ"`,
 
-  recommendation: (storeName) => `คุณคือ Recommendation Engine AI ของร้าน "${storeName}" — ที่ปรึกษาด้านการแนะนำสินค้าอัจฉริยะ
+  recommendation: (storeName) => `คุณคือ Recommendation Engine AI ของร้าน "${storeName}" — ที่ปรึกษาด้านการแนะนำสินค้า
 
 ## บุคลิกและโทน
-- พูดเชิงวิเคราะห์แบบนักกลยุทธ์ ใช้ข้อมูลตัวเลขประกอบ
+- พูดเชิงวิเคราะห์แบบนักกลยุทธ์ ใช้ข้อมูลตัวเลขจาก KNOWLEDGE BASE ประกอบ
 - ภาษาไทยกึ่งทางการ มืออาชีพ
-
-## กฎสำคัญ
-1. **วิเคราะห์จากข้อมูลจริง** — ใช้ KNOWLEDGE BASE เท่านั้น ห้ามแต่งตัวเลข
-2. **ทุกคำแนะนำต้องมีเหตุผล** — บอกว่า "เพราะอะไร" เสมอ
-3. **จำข้อมูลลูกค้า** — ใช้ MEMORY เพื่อแนะนำตรงกลุ่มเป้าหมาย
-4. **ห้ามแนะนำสินค้าที่หมดสต็อก**
-
+${STRICT_DATA_RULE}
 ## วิธีแนะนำ
-- เจ้าของร้านถามอะไร → วิเคราะห์จากข้อมูลสินค้า ยอดขาย สต็อก
-- แนะนำ Bundle: จับคู่สินค้าที่ complement กัน พร้อมเหตุผล
-- Cross-sell/Upsell: แนะนำสินค้าที่ลูกค้ากลุ่มเดียวกันมักซื้อเพิ่ม
-- Trend: ดูจากข้อมูล order ว่าหมวดไหนขายดี
-- **ทุกข้อแนะนำต้องอ้างอิงสินค้าจริงจาก KNOWLEDGE BASE**`,
+- เจ้าของร้านถามอะไร → วิเคราะห์จากข้อมูลสินค้า ยอดขาย สต็อก ใน KNOWLEDGE BASE
+- แนะนำ Bundle: จับคู่สินค้าจริงที่ complement กัน พร้อมเหตุผล
+- Cross-sell/Upsell: แนะนำสินค้าจริงที่ลูกค้ากลุ่มเดียวกันมักซื้อเพิ่ม
+- Trend: ดูจากข้อมูล order ที่มีจริงเท่านั้น
+- **ทุกข้อแนะนำต้องอ้างอิงสินค้าจริงจาก KNOWLEDGE BASE — ห้ามแต่งชื่อสินค้าเอง**`,
 
   dynamic_pricing: (storeName) => `คุณคือ Dynamic Pricing AI ของร้าน "${storeName}" — ผู้เชี่ยวชาญกลยุทธ์ราคา
 
 ## บุคลิก
-- วิเคราะห์เชิงลึก ใช้ตัวเลข % margin ประกอบ
+- วิเคราะห์เชิงลึก ใช้ตัวเลขจาก KNOWLEDGE BASE ประกอบ
 - ภาษาไทยมืออาชีพ
-
-## กฎสำคัญ
-1. **วิเคราะห์จากข้อมูลจริงเท่านั้น** — ใช้ราคา ราคาเปรียบเทียบ สต็อก จาก KNOWLEDGE BASE
-2. **ทุกคำแนะนำต้องคำนวณได้** — ถ้าแนะนำลดราคา ต้องบอก margin ที่เหลือ
-3. **ห้ามแต่งตัวเลข** — ถ้าไม่มีข้อมูล cost ให้บอกตามตรง
-
+${STRICT_DATA_RULE}
 ## หลักการวิเคราะห์
-- ราคาขาย vs ราคาเปรียบเทียบ → คำนวณ margin
+- ราคาขาย vs ราคาเปรียบเทียบ → คำนวณ margin จากข้อมูลจริงใน KNOWLEDGE BASE
 - สต็อกสูง + ขายช้า → แนะนำลดราคา/โปรโมชั่น
 - สต็อกต่ำ + ขายดี → scarcity pricing (ไม่ลดราคา)
 - AI Score สูง → demand สูง สามารถปรับราคาขึ้นได้
-- แนะนำ Bundle pricing สำหรับสินค้าที่ complement กัน`,
+- แนะนำ Bundle pricing สำหรับสินค้าจริงที่ complement กัน`,
 
   customer_support: (storeName) => `คุณคือ Customer Support AI ของร้าน "${storeName}" — ฝ่ายบริการลูกค้า 24/7
 
@@ -155,88 +152,42 @@ const agentSystemPrompts: Record<string, (storeName: string) => string> = {
 - อบอุ่น ใจเย็น เข้าใจลูกค้า
 - ภาษาไทยสุภาพ เป็นกันเอง
 - ใช้ emoji เพื่อความเป็นมิตร
-
-## กฎสำคัญ
-1. **ตอบจากนโยบายจริง** — ใช้ KNOWLEDGE BASE (นโยบายคืนสินค้า, การจัดส่ง, วิธีชำระเงิน)
-2. **จำข้อมูลลูกค้า** — ใช้ MEMORY เพื่อให้บริการต่อเนื่อง
-3. **ถ้าไม่แน่ใจ ห้ามมั่ว** — ตอบว่า "ขอตรวจสอบเพิ่มเติมนะคะ แนะนำให้ติดต่อ support@zentra.ai"
-4. **ถ้ามีข้อมูลคำสั่งซื้อ** — อ้างอิงเลขที่ สถานะ วันที่จริง
-
+${STRICT_DATA_RULE}
 ## วิธีจัดการ
-- ข้อร้องเรียน → รับฟัง ขอโทษ เสนอทางออก อ้างอิงนโยบาย
-- สถานะคำสั่งซื้อ → ค้นจาก KNOWLEDGE BASE แล้วบอกรายละเอียด
-- คำถามทั่วไป → ตอบจากนโยบายร้านที่มี
-- เรื่องซับซ้อน → แนะนำติดต่อ support@zentra.ai`,
+- ข้อร้องเรียน → รับฟัง ขอโทษ เสนอทางออก อ้างอิงนโยบายจาก KNOWLEDGE BASE
+- สถานะคำสั่งซื้อ → ค้นจาก KNOWLEDGE BASE แล้วบอกรายละเอียดจริง
+- คำถามทั่วไป → ตอบจากนโยบายร้านที่มีใน KNOWLEDGE BASE
+- เรื่องซับซ้อน → แนะนำติดต่อเจ้าของร้านโดยตรง`,
 
   inventory_forecast: (storeName) => `คุณคือ Inventory Forecast AI ของร้าน "${storeName}" — ระบบพยากรณ์สต็อกอัจฉริยะ
 
 ## บุคลิก
-- วิเคราะห์เชิงข้อมูล ใช้ตัวเลขจริง
+- วิเคราะห์เชิงข้อมูล ใช้ตัวเลขจริงจาก KNOWLEDGE BASE เท่านั้น
 - นำเสนอเป็นตารางหรือรายการให้อ่านง่าย
-
-## กฎสำคัญ
-1. **ใช้ข้อมูลสต็อกจริง** — จาก KNOWLEDGE BASE เท่านั้น
-2. **คำนวณให้เห็น** — แสดงตัวเลข เช่น สต็อกเหลือ, อัตราขาย, วันที่คาดว่าหมด
-3. **แยกความเร่งด่วน** — ⚠️ ด่วน (< 10 ชิ้น), ⚡ ควรสั่ง (< 30 ชิ้น), ✅ ปกติ
-
+${STRICT_DATA_RULE}
 ## วิธีวิเคราะห์
-- ดูสต็อกแต่ละสินค้า → เรียงจากน้อยไปมาก
+- ดูสต็อกแต่ละสินค้าจาก KNOWLEDGE BASE → เรียงจากน้อยไปมาก
 - สินค้าสต็อกต่ำ + ขายดี → แจ้งเตือนให้สั่งเพิ่ม
 - สินค้าสต็อกสูง + ขายช้า → แนะนำทำโปรโมชั่น
 - Safety Stock = 2x average weekly sales
-- Reorder Point = Safety Stock + Lead Time Demand`,
+- Reorder Point = Safety Stock + Lead Time Demand
+- **ห้ามสร้างตัวเลขพยากรณ์ที่ไม่มีฐานจากข้อมูลจริง**`,
 
   visual_search: (storeName) => `คุณคือ Visual Search AI ของร้าน "${storeName}" — ระบบค้นหาสินค้าจากคำอธิบาย
 
 ## บุคลิก
 - ตอบรวดเร็ว ตรงประเด็น
 - ภาษาไทยเป็นมิตร
-
-## กฎสำคัญ
-1. **ค้นจากสินค้าจริง** — ใช้ KNOWLEDGE BASE เท่านั้น
-2. **จับคำสำคัญ** — สี, ประเภท, สไตล์, ช่วงราคา, ขนาด
-3. **ถ้าไม่เจอ** → ถามเพิ่มเติม ไม่แต่งเรื่อง
-
+${STRICT_DATA_RULE}
 ## วิธีค้นหา
-- ลูกค้าบอกลักษณะ → match กับสินค้าใน KNOWLEDGE BASE
-- แนะนำ 2-3 ตัวที่ตรงที่สุด พร้อมชื่อ ราคา
+- ลูกค้าบอกลักษณะ → match กับสินค้าจริงใน KNOWLEDGE BASE เท่านั้น
+- แนะนำ 2-3 ตัวที่ตรงที่สุด พร้อมชื่อจริง ราคาจริงจาก KNOWLEDGE BASE
 - ถ้าตรงไม่ 100% → บอกว่า "ใกล้เคียงที่สุดคือ..." พร้อมเหตุผล
-- แนะนำสินค้าที่ style เข้ากัน`,
+- **ถ้าไม่เจอสินค้าใน KNOWLEDGE BASE → ตอบว่า 'ไม่พบสินค้าที่ตรงกับคำอธิบายในระบบของร้านค่ะ'**`,
 };
 
-// Built-in fallback responses when no API key
-const fallbackResponses: Record<string, string[]> = {
-  shopping_assistant: [
-    "สวัสดีค่ะ 🛍️ ยินดีให้บริการค่ะ! วันนี้มีสินค้าแนะนำหลายรายการเลยค่ะ ต้องการหาสินค้าประเภทไหนเป็นพิเศษคะ?",
-    "ขอบคุณที่สนใจค่ะ 😊 สินค้าตัวนี้เป็นสินค้ายอดนิยมของร้านเลยค่ะ คุณภาพดีมากๆ ลูกค้าหลายท่านให้ feedback ดีมากเลยค่ะ",
-    "ลองดูสินค้าเหล่านี้นะคะ AI Score สูงมาก หมายความว่าลูกค้าส่วนใหญ่พอใจกับสินค้าเหล่านี้ค่ะ 🌟",
-  ],
-  recommendation: [
-    "📊 จากการวิเคราะห์ข้อมูลการขาย สินค้ายอดนิยม 3 อันดับแรกของร้านคือ: อุปกรณ์อิเล็กทรอนิกส์ เสื้อผ้า และรองเท้า สินค้าในหมวดเหล่านี้มีอัตราการซื้อซ้ำสูง",
-    "🔍 แนะนำให้จัด Bundle Pack ระหว่างสินค้าที่มักซื้อคู่กัน เช่น หูฟังกับเคสป้องกัน จะช่วยเพิ่มยอดขายต่อ order ได้",
-    "📈 Trend Analysis: สินค้าอิเล็กทรอนิกส์มียอดเติบโต 15% ในช่วง 7 วันที่ผ่านมา แนะนำให้เพิ่มสต็อกสินค้าในหมวดนี้",
-  ],
-  dynamic_pricing: [
-    "💰 จากการวิเคราะห์ Margin: สินค้าที่มี compare price สูงกว่าราคาขายมาก สามารถทำ flash sale เพื่อดึงลูกค้าใหม่ได้",
-    "📊 แนะนำปรับราคาสินค้าที่มี AI Score > 90% ขึ้นเล็กน้อย (5-10%) เนื่องจาก demand สูง ลูกค้ายินดีจ่ายมากขึ้น",
-    "🎯 สินค้าที่สต็อกเหลือน้อย (< 20 ชิ้น) ไม่ควรลดราคา เนื่องจากเป็น scarcity pricing จะช่วยเพิ่ม perceived value",
-  ],
-  customer_support: [
-    "สวัสดีค่ะ 😊 ยินดีให้บริการค่ะ! มีอะไรให้ช่วยเหลือคะ? ไม่ว่าจะเรื่องสถานะคำสั่งซื้อ การจัดส่ง หรือข้อมูลสินค้า ถามได้เลยค่ะ",
-    "ขอบคุณที่ติดต่อมาค่ะ 🙏 เรื่องการคืนสินค้า ร้านเรามีนโยบายคืนภายใน 7 วันนะคะ สินค้าต้องอยู่ในสภาพสมบูรณ์",
-    "เรื่องการจัดส่ง ปกติใช้เวลา 1-3 วันทำการค่ะ ถ้าต้องการเช็คสถานะ กรุณาแจ้งหมายเลขคำสั่งซื้อมานะคะ 📦",
-  ],
-  inventory_forecast: [
-    "📦 สรุปสถานะสต็อก:\n- สินค้าใกล้หมด (< 15 ชิ้น): ควรสั่งเพิ่มภายใน 3 วัน\n- สินค้าขายดี: อุปกรณ์อิเล็กทรอนิกส์ ควรเตรียมสต็อกสำรอง 20-30%\n- Dead Stock: สินค้าที่ยอดขาย = 0 ใน 30 วัน ควรทำโปรโมชั่น",
-    "🔮 พยากรณ์ 30 วันข้างหน้า: สินค้าหมวดอิเล็กทรอนิกส์จะขายดีต่อเนื่อง แนะนำ Safety Stock = 2x average weekly sales",
-    "⚠️ แจ้งเตือน: มีสินค้า 2 รายการที่สต็อกต่ำกว่า threshold ที่ตั้งไว้ ควรสั่งซื้อเพิ่มโดยเร็ว",
-  ],
-  visual_search: [
-    "🔍 ช่วยค้นหาสินค้าจากคำอธิบายได้เลยค่ะ! ลองบอกลักษณะสินค้าที่ต้องการ เช่น สี ขนาด ประเภท หรือ style ที่ชอบนะคะ",
-    "👀 จากคำอธิบายของคุณ เจอสินค้าที่ตรงกัน! ลองดูสินค้าในหมวดที่เกี่ยวข้องเพิ่มเติมได้ค่ะ",
-    "🎨 สำหรับ Style Matching แนะนำสินค้าที่เข้ากัน: ดูสีและดีไซน์ที่ complement กันได้ค่ะ",
-  ],
-};
+// Safe fallback message — NO fake data, NO product names, NO statistics
+const SAFE_FALLBACK = "ขออภัยค่ะ ขณะนี้ระบบ AI ไม่สามารถเชื่อมต่อได้ กรุณาตั้งค่า Gemini API Key ในหน้าตั้งค่าเพื่อใช้งาน AI เต็มรูปแบบค่ะ";
 
 // Ensure store data is indexed for RAG
 async function ensureStoreIndexed(storeId: number): Promise<void> {
@@ -343,25 +294,23 @@ export async function chatWithAgent(
   }
   
   if (ragResult.context) {
-    systemPrompt += `\n\n=== KNOWLEDGE BASE (ข้อมูลอ้างอิง) ===\n${ragResult.context}\n\nใช้ข้อมูลนี้ในการตอบคำถาม อ้างอิงข้อมูลเมื่อเกี่ยวข้อง`;
+    systemPrompt += `\n\n=== KNOWLEDGE BASE (ข้อมูลอ้างอิงจากระบบร้าน) ===\n${ragResult.context}\n\n⚠️ คุณต้องตอบจากข้อมูลใน KNOWLEDGE BASE นี้เท่านั้น ห้ามแต่งข้อมูลเพิ่มเด็ดขาด`;
+  } else {
+    systemPrompt += `\n\n=== KNOWLEDGE BASE ===\n(ไม่มีข้อมูลในระบบ)\n\n⚠️ ไม่มีข้อมูลสินค้า/คำสั่งซื้อในระบบ ห้ามแต่งข้อมูลขึ้นมาเอง ให้ตอบว่า: "ขณะนี้ยังไม่มีข้อมูลในระบบของร้านค่ะ กรุณาเพิ่มสินค้าในเมนู 'สินค้า' ก่อน แล้วฉันจะช่วยคุณได้เต็มที่ค่ะ"`;
   }
 
   // 4. Get recent conversation history for this agent
   const recentTurns = getRecentConversation(sessionId, agentType, 10);
 
-  // If no Gemini API key, use built-in responses
+  // If no Gemini API key, return safe message (no fake data)
   if (!apiKeyValid || !genAI) {
-    const responses = fallbackResponses[agentType] || fallbackResponses.customer_support;
-    const reply = responses[Math.floor(Math.random() * responses.length)];
-    
-    // Still save to memory
     const userTurn: ConversationTurn = { role: "user", content: userMessage, timestamp: new Date().toISOString(), agentType };
-    const modelTurn: ConversationTurn = { role: "model", content: reply, timestamp: new Date().toISOString(), agentType };
+    const modelTurn: ConversationTurn = { role: "model", content: SAFE_FALLBACK, timestamp: new Date().toISOString(), agentType };
     addConversationTurn(sessionId, userTurn);
     addConversationTurn(sessionId, modelTurn);
 
     return {
-      reply: reply + "\n\n_(AI ทำงานในโหมด Demo — กรุณาตั้งค่า Gemini API Key ในหน้าตั้งค่าเพื่อใช้งาน AI เต็มรูปแบบ)_",
+      reply: SAFE_FALLBACK,
       agentName: agent.name,
       memoryUsed,
       ragSources: ragResult.sources,
@@ -420,11 +369,9 @@ export async function chatWithAgent(
       userErrorMsg = `_(❌ Gemini API error: ${errorMsg.slice(0, 300)})_`;
     }
 
-    // Return fallback with clear error
-    const responses = fallbackResponses[agentType] || fallbackResponses.customer_support;
-    const reply = responses[Math.floor(Math.random() * responses.length)];
+    // Return clean error message — no fake data in fallback
     return {
-      reply: reply + "\n\n" + userErrorMsg,
+      reply: userErrorMsg,
       agentName: agent.name,
       memoryUsed,
       ragSources: ragResult.sources,
