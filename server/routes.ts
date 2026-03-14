@@ -213,8 +213,18 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // =================== GOOGLE OAUTH ===================
-  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
-  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+  // Read from env vars first, fallback to Render Secret Files (/etc/secrets/)
+  function readSecret(name: string): string {
+    if (process.env[name]) return process.env[name]!;
+    try {
+      const fs = require("fs");
+      const val = fs.readFileSync(`/etc/secrets/${name}`, "utf8").trim();
+      if (val) return val;
+    } catch {}
+    return "";
+  }
+  const GOOGLE_CLIENT_ID = readSecret("GOOGLE_CLIENT_ID");
+  const GOOGLE_CLIENT_SECRET = readSecret("GOOGLE_CLIENT_SECRET");
   // Determine the redirect URI based on the deploy URL or localhost
   function getGoogleRedirectUri(req: Request): string {
     const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
