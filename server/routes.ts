@@ -232,10 +232,27 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     return `${proto}://${host}/api/auth/google/callback`;
   }
 
+  // Debug endpoint (temporary) to check Google OAuth env vars
+  app.get("/api/auth/google/debug", (_req, res) => {
+    const envId = process.env.GOOGLE_CLIENT_ID || "";
+    const secretId = readSecret("GOOGLE_CLIENT_ID");
+    const allEnvKeys = Object.keys(process.env).filter(k => k.includes("GOOGLE")).join(", ");
+    res.json({
+      envVarSet: !!envId,
+      envVarLength: envId.length,
+      envVarPrefix: envId.slice(0, 10) + "...",
+      secretFileSet: !!secretId,
+      secretFileLength: secretId.length,
+      resolvedSet: !!GOOGLE_CLIENT_ID,
+      resolvedLength: GOOGLE_CLIENT_ID.length,
+      googleEnvKeys: allEnvKeys || "none",
+    });
+  });
+
   app.get("/api/auth/google/url", (req, res) => {
     // Require GOOGLE_CLIENT_ID — Direct Google OAuth (most reliable)
     if (!GOOGLE_CLIENT_ID) {
-      console.error("[Google OAuth] GOOGLE_CLIENT_ID not set in environment variables");
+      console.error("[Google OAuth] GOOGLE_CLIENT_ID not set. env:", !!process.env.GOOGLE_CLIENT_ID, "secret:", !!readSecret("GOOGLE_CLIENT_ID"));
       return res.json({ error: "Google Login ยังไม่ได้ตั้งค่า กรุณาติดต่อผู้ดูแลระบบ" });
     }
     // Direct Google OAuth
