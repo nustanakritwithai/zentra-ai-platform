@@ -1,1 +1,1262 @@
-aW1wb3J0IHR5cGUgeyBFeHByZXNzLCBSZXF1ZXN0LCBSZXNwb25zZSwgTmV4dEZ1bmN0aW9uIH0gZnJvbSAiZXhwcmVzcyI7CmltcG9ydCB0eXBlIHsgU2VydmVyIH0gZnJvbSAiaHR0cCI7CmltcG9ydCB7IHN0b3JhZ2UgfSBmcm9tICIuL3N0b3JhZ2UiOwppbXBvcnQgeyBzdXBhYmFzZUFkbWluLCBTVVBBQkFTRV9VUkwsIFNVUEFCQVNFX0FOT05fS0VZIH0gZnJvbSAiLi9zdXBhYmFzZSI7CmltcG9ydCB7CiAgY2hhdFdpdGhBZ2VudCwKICBnZXRDaGF0SGlzdG9yeSwKICBjbGVhckNoYXRIaXN0b3J5LAogIGdldEtub3dsZWRnZUVudHJpZXMsCiAgYWRkS25vd2xlZGdlRW50cnksCiAgZGVsZXRlS25vd2xlZGdlRW50cnksCiAgZ2V0UkFHU3RhdHMsCiAgcmVpbmRleFN0b3JlLAogIGdldE1lbW9yeVN0YXRzLAogIHVwZGF0ZUdlbWluaUFwaUtleSwKICBnZXRHZW1pbmlTdGF0dXMsCn0gZnJvbSAiLi9nZW1pbmkiOwppbXBvcnQgeyBpbmRleFN0b3JlRGF0YSB9IGZyb20gIi4vcmFnIjsKaW1wb3J0IHsKICBzdGFydEF1dG9tYXRpb24sCiAgc3RvcEF1dG9tYXRpb24sCiAgdHJpZ2dlckFnZW50LAogIGdldEF1dG9tYXRpb25TdGF0ZSwKICBnZXRBbGxBdXRvbWF0aW9uU3RhdGVzLAogIGdldEluc2lnaHRzLAogIG1hcmtJbnNpZ2h0UmVhZCwKICBnZXRBdXRvbWF0aW9uU3RhdHMsCn0gZnJvbSAiLi9hdXRvbWF0aW9uIjsKaW1wb3J0IGNyeXB0byBmcm9tICJjcnlwdG8iOwoKLy8gLS0tIFJBRyBBdXRvLVJlaW5kZXggRGVib3VuY2UgLS0tCmNvbnN0IHJlaW5kZXhUaW1lcnM6IE1hcDxudW1iZXIsIFJldHVyblR5cGU8dHlwZW9mIHNldFRpbWVvdXQ+PiA9IG5ldyBNYXAoKTsKZnVuY3Rpb24gc2NoZWR1bGVSZWluZGV4KHN0b3JlSWQ6IG51bWJlcik6IHZvaWQgewogIGlmIChzdG9yZUlkIDw9IDApIHJldHVybjsKICBjb25zdCBleGlzdGluZyA9IHJlaW5kZXhUaW1lcnMuZ2V0KHN0b3JlSWQpOwogIGlmIChleGlzdGluZykgY2xlYXJUaW1lb3V0KGV4aXN0aW5nKTsKICByZWluZGV4VGltZXJzLnNldChzdG9yZUlkLCBzZXRUaW1lb3V0KGFzeW5jICgpID0+IHsKICAgIHJlaW5kZXhUaW1lcnMuZGVsZXRlKHN0b3JlSWQpOwogICAgdHJ5IHsKICAgICAgYXdhaXQgaW5kZXhTdG9yZURhdGEoc3RvcmVJZCk7CiAgICAgIGNvbnNvbGUubG9nKGBbUkFHXSBBdXRvLXJlaW5kZXhlZCBzdG9yZSAke3N0b3JlSWR9YCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoYFtSQUddIEF1dG8tcmVpbmRleCBmYWlsZWQgZm9yIHN0b3JlICR7c3RvcmVJZH06YCwgZSk7CiAgICB9CiAgfSwgNTAwMCkpOyAvLyBEZWJvdW5jZSA1cyB0byBiYXRjaCByYXBpZCBjaGFuZ2VzCn0KCi8vIFNlc3Npb24gbWFuYWdlbWVudCB3aXRoIHNpZ25lZCB0b2tlbnMgdGhhdCBzdXJ2aXZlIHNlcnZlciByZXN0YXJ0cwovLyBUb2tlbiBmb3JtYXQ6IDxoZXggcGF5bG9hZD4uPGhleCBobWFjPgovLyBQYXlsb2FkOiBKU09OIHsgdXNlcklkLCByb2xlLCBleHAgfQpjb25zdCBTRVNTSU9OX1NFQ1JFVCA9IHByb2Nlc3MuZW52LlNFU1NJT05fU0VDUkVUIHx8ICJ6ZW50cmEtYWktc2Vzc2lvbi1zZWNyZXQtMjAyNi1zdGFibGUiOwpjb25zdCBTRVNTSU9OX1RUTF9NUyA9IDMwICogMjQgKiA2MCAqIDYwICogMTAwMDsgLy8gMzAgZGF5cwoKLy8gSW4tbWVtb3J5IGNhY2hlIGZvciBmYXN0IGxvb2t1cHMgKHJlYnVpbHQgZnJvbSB0b2tlbiB2ZXJpZmljYXRpb24gb24gbWlzcykKY29uc3Qgc2Vzc2lvbkNhY2hlID0gbmV3IE1hcDxzdHJpbmcsIHsgdXNlcklkOiBudW1iZXI7IHN0b3JlSWQ6IG51bWJlcjsgcm9sZTogc3RyaW5nOyBjYWNoZWRBdDogbnVtYmVyIH0+KCk7CgpmdW5jdGlvbiBnZW5lcmF0ZVRva2VuKHVzZXJJZDogbnVtYmVyLCByb2xlOiBzdHJpbmcpOiBzdHJpbmcgewogIGNvbnN0IHBheWxvYWQgPSBKU09OLnN0cmluZ2lmeSh7IHVzZXJJZCwgcm9sZSwgZXhwOiBEYXRlLm5vdygpICsgU0VTU0lPTl9UVExfTVMgfSk7CiAgY29uc3QgcGF5bG9hZEhleCA9IEJ1ZmZlci5mcm9tKHBheWxvYWQpLnRvU3RyaW5nKCJoZXgiKTsKICBjb25zdCBobWFjID0gY3J5cHRvLmNyZWF0ZUhtYWMoInNoYTI1NiIsIFNFU1NJT05fU0VDUkVUKS51cGRhdGUocGF5bG9hZEhleCkuZGlnZXN0KCJoZXgiKTsKICByZXR1cm4gYCR7cGF5bG9hZEhleH0uJHtobWFjfWA7Cn0KCmZ1bmN0aW9uIHZlcmlmeVRva2VuKHRva2VuOiBzdHJpbmcpOiB7IHVzZXJJZDogbnVtYmVyOyByb2xlOiBzdHJpbmcgfSB8IG51bGwgewogIHRyeSB7CiAgICBjb25zdCBbcGF5bG9hZEhleCwgaG1hY10gPSB0b2tlbi5zcGxpdCgiLiIpOwogICAgaWYgKCFwYXlsb2FkSGV4IHx8ICFobWFjKSByZXR1cm4gbnVsbDsKICAgIGNvbnN0IGV4cGVjdGVkSG1hYyA9IGNyeXB0by5jcmVhdGVIbWFjKCJzaGEyNTYiLCBTRVNTSU9OX1NFQ1JFVCkudXBkYXRlKHBheWxvYWRIZXgpLmRpZ2VzdCgiaGV4Iik7CiAgICBpZiAoaG1hYyAhPT0gZXhwZWN0ZWRIbWFjKSByZXR1cm4gbnVsbDsKICAgIGNvbnN0IHBheWxvYWQgPSBKU09OLnBhcnNlKEJ1ZmZlci5mcm9tKHBheWxvYWRIZXgsICJoZXgiKS50b1N0cmluZygpKTsKICAgIGlmICghcGF5bG9hZC51c2VySWQgfHwgIXBheWxvYWQuZXhwKSByZXR1cm4gbnVsbDsKICAgIGlmIChEYXRlLm5vdygpID4gcGF5bG9hZC5leHApIHJldHVybiBudWxsOyAvLyBUb2tlbiBleHBpcmVkCiAgICByZXR1cm4geyB1c2VySWQ6IHBheWxvYWQudXNlcklkLCByb2xlOiBwYXlsb2FkLnJvbGUgfHwgInNlbGxlciIgfTsKICB9IGNhdGNoIHsKICAgIHJldHVybiBudWxsOwogIH0KfQoKYXN5bmMgZnVuY3Rpb24gZ2V0U2Vzc2lvbihyZXE6IFJlcXVlc3QpOiBQcm9taXNlPHsgdXNlcklkOiBudW1iZXI7IHN0b3JlSWQ6IG51bWJlcjsgcm9sZTogc3RyaW5nIH0gfCBudWxsPiB7CiAgY29uc3QgdG9rZW4gPSByZXEuaGVhZGVyc1sieC1zZXNzaW9uLXRva2VuIl0gYXMgc3RyaW5nOwogIGlmICghdG9rZW4pIHJldHVybiBudWxsOwoKICAvLyBDaGVjayBpbi1tZW1vcnkgY2FjaGUgZmlyc3QKICBjb25zdCBjYWNoZWQgPSBzZXNzaW9uQ2FjaGUuZ2V0KHRva2VuKTsKICBpZiAoY2FjaGVkKSB7CiAgICBjYWNoZWQuY2FjaGVkQXQgPSBEYXRlLm5vdygpOwogICAgcmV0dXJuIGNhY2hlZDsKICB9CgogIC8vIENhY2hlIG1pc3MgKGUuZy4sIGFmdGVyIHNlcnZlciByZXN0YXJ0KSDigJQgdmVyaWZ5IHRoZSB0b2tlbiBzaWduYXR1cmUKICBjb25zdCB2ZXJpZmllZCA9IHZlcmlmeVRva2VuKHRva2VuKTsKICBpZiAoIXZlcmlmaWVkKSByZXR1cm4gbnVsbDsKCiAgLy8gTG9vayB1cCB1c2VyIGFuZCBzdG9yZSBmcm9tIGRhdGFiYXNlIHRvIHJlYnVpbGQgc2Vzc2lvbgogIHRyeSB7CiAgICBjb25zdCB1c2VyID0gYXdhaXQgc3RvcmFnZS5nZXRVc2VyKHZlcmlmaWVkLnVzZXJJZCk7CiAgICBpZiAoIXVzZXIpIHJldHVybiBudWxsOwogICAgY29uc3Qgc3RvcmVzID0gYXdhaXQgc3RvcmFnZS5nZXRTdG9yZXNCeVVzZXIodXNlci5pZCk7CiAgICBjb25zdCBzdG9yZUlkID0gc3RvcmVzLmxlbmd0aCA+IDAgPyBzdG9yZXNbMF0uaWQgOiAwOwogICAgY29uc3Qgc2Vzc2lvbiA9IHsgdXNlcklkOiB1c2VyLmlkLCBzdG9yZUlkLCByb2xlOiB2ZXJpZmllZC5yb2xlLCBjYWNoZWRBdDogRGF0ZS5ub3coKSB9OwogICAgc2Vzc2lvbkNhY2hlLnNldCh0b2tlbiwgc2Vzc2lvbik7CiAgICByZXR1cm4gc2Vzc2lvbjsKICB9IGNhdGNoIHsKICAgIHJldHVybiBudWxsOwogIH0KfQoKYXN5bmMgZnVuY3Rpb24gcmVxdWlyZUF1dGgocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKTogUHJvbWlzZTx7IHVzZXJJZDogbnVtYmVyOyBzdG9yZUlkOiBudW1iZXI7IHJvbGU6IHN0cmluZyB9IHwgbnVsbD4gewogIGNvbnN0IHNlc3Npb24gPSBhd2FpdCBnZXRTZXNzaW9uKHJlcSk7CiAgaWYgKCFzZXNzaW9uKSB7CiAgICByZXMuc3RhdHVzKDQwMSkuanNvbih7IGVycm9yOiAi4LiB4Lij4Li44LiT4Liy4LmA4LiC4LmJ4Liy4Liq4Li54LmI4Lij4Liw4Lia4LiaIiB9KTsKICAgIHJldHVybiBudWxsOwogIH0KICByZXR1cm4gc2Vzc2lvbjsKfQoKLy8gQ2xlYW4gdXAgb2xkIHNlc3Npb24gY2FjaGUgZW50cmllcyBwZXJpb2RpY2FsbHkgKG9sZGVyIHRoYW4gMSBob3VyKQpzZXRJbnRlcnZhbCgoKSA9PiB7CiAgY29uc3Qgbm93ID0gRGF0ZS5ub3coKTsKICBmb3IgKGNvbnN0IFt0b2tlbiwgc2Vzc2lvbl0gb2Ygc2Vzc2lvbkNhY2hlLmVudHJpZXMoKSkgewogICAgaWYgKG5vdyAtIHNlc3Npb24uY2FjaGVkQXQgPiA2MCAqIDYwICogMTAwMCkgewogICAgICBzZXNzaW9uQ2FjaGUuZGVsZXRlKHRva2VuKTsKICAgIH0KICB9Cn0sIDE1ICogNjAgKiAxMDAwKTsKCi8vIERlZmF1bHQgQUkgYWdlbnRzIHRvIGF1dG8tY3JlYXRlIGZvciBhbnkgc3RvcmUgdGhhdCBoYXMgbm9uZQpjb25zdCBERUZBVUxUX0FHRU5UUyA9IFsKICB7IHR5cGU6ICJzaG9wcGluZ19hc3Npc3RhbnQiLCBuYW1lOiAiU2hvcHBpbmcgQXNzaXN0YW50IiwgZGVzY3JpcHRpb246ICLguJzguLnguYnguIrguYjguKfguKLguIrguYnguK3guJvguJvguLTguYnguIcgQUkg4LmB4LiZ4Liw4LiZ4Liz4Liq4Li04LiZ4LiE4LmJ4Liy4LiV4Liy4LihIGxpZmVzdHlsZSDguILguK3guIfguKXguLnguIHguITguYnguLIiLCBlbmFibGVkOiB0cnVlLCBjb25maWc6IHsgcmVzcG9uc2VTcGVlZDogOCwgY3JlYXRpdml0eTogNywgbGFuZ3VhZ2U6ICJ0aCIgfSwgaWNvbjogIlNob3BwaW5nQmFnIiB9LAogIHsgdHlwZTogInJlY29tbWVuZGF0aW9uIiwgbmFtZTogIlJlY29tbWVuZGF0aW9uIEVuZ2luZSIsIGRlc2NyaXB0aW9uOiAi4LmA4LiE4Lij4Li34LmI4Lit4LiH4Lih4Li34Lit4LmB4LiZ4Liw4LiZ4Liz4Liq4Li04LiZ4LiE4LmJ4Liy4LmB4Lia4LiaIFJlYWwtdGltZSDguJTguYnguKfguKIgQ29sbGFib3JhdGl2ZSBGaWx0ZXJpbmciLCBlbmFibGVkOiB0cnVlLCBjb25maWc6IHsgYWxnb3JpdGhtOiAiaHlicmlkIiwgbWluQ29uZmlkZW5jZTogMC43LCBtYXhTdWdnZXN0aW9uczogOCB9LCBpY29uOiAiU3BhcmtsZXMiIH0sCiAgeyB0eXBlOiAiZHluYW1pY19wcmljaW5nIiwgbmFtZTogIkR5bmFtaWMgUHJpY2luZyIsIGRlc2NyaXB0aW9uOiAi4Lib4Lij4Lix4Lia4Lij4Liy4LiE4Liy4Lit4Lix4LiV4LmC4LiZ4Lih4Lix4LiV4Li04LiV4Liy4Lih4Lit4Li44Lib4Liq4LiH4LiE4LmM4LmB4Lil4Liw4Lij4Liy4LiE4Liy4LiE4Li54LmI4LmB4LiC4LmI4LiHIiwgZW5hYmxlZDogdHJ1ZSwgY29uZmlnOiB7IG1heERpc2NvdW50OiAzMCwgcHJpY2VGbG9vcjogMC43LCB1cGRhdGVGcmVxdWVuY3k6ICJob3VybHkiIH0sIGljb246ICJUcmVuZGluZ1VwIiB9LAogIHsgdHlwZTogImN1c3RvbWVyX3N1cHBvcnQiLCBuYW1lOiAiQ3VzdG9tZXIgU3VwcG9ydCIsIGRlc2NyaXB0aW9uOiAi4LiV4Lit4Lia4LiE4Liz4LiW4Liy4Lih4Lil4Li54LiB4LiE4LmJ4LiyIDI0Lzcg4LiU4LmJ4Lin4LiiIEFJIOC4l+C4teC5iOC5gOC4guC5ieC4suC5g+C4iOC4oOC4suC4qeC4suC4mOC4o+C4o+C4oeC4iuC4suC4leC4tCIsIGVuYWJsZWQ6IHRydWUsIGNvbmZpZzogeyByZXNwb25zZVNwZWVkOiA5LCBlc2NhbGF0aW9uVGhyZXNob2xkOiAwLjMsIHRvbmU6ICJmcmllbmRseSIgfSwgaWNvbjogIkhlYWRwaG9uZXMiIH0sCiAgeyB0eXBlOiAiaW52ZW50b3J5X2ZvcmVjYXN0IiwgbmFtZTogIkludmVudG9yeSBGb3JlY2FzdCIsIGRlc2NyaXB0aW9uOiAi4Lie4Lii4Liy4LiB4Lij4LiT4LmM4Liq4LiV4LmH4Lit4LiB4Liq4Li04LiZ4LiE4LmJ4Liy4LmB4Lil4Liw4LmB4LiI4LmJ4LiH4LmA4LiV4Li34Lit4LiZ4LmA4Lih4Li34LmI4Lit4LmD4LiB4Lil4LmJ4Lir4Lih4LiUIiwgZW5hYmxlZDogdHJ1ZSwgY29uZmlnOiB7IGZvcmVjYXN0RGF5czogMzAsIHNhZmV0eVN0b2NrOiAxMCwgYXV0b1Jlb3JkZXI6IGZhbHNlIH0sIGljb246ICJCYXJDaGFydDMiIH0sCiAgeyB0eXBlOiAidmlzdWFsX3NlYXJjaCIsIG5hbWU6ICJWaXN1YWwgU2VhcmNoIiwgZGVzY3JpcHRpb246ICLguITguYnguJnguKvguLLguKrguLTguJnguITguYnguLLguJTguYnguKfguKLguKPguLnguJvguKDguLLguJ4g4LmD4LiK4LmJIENvbXB1dGVyIFZpc2lvbiDguILguLHguYnguJnguKrguLnguIciLCBlbmFibGVkOiBmYWxzZSwgY29uZmlnOiB7IGFjY3VyYWN5OiAiaGlnaCIsIG1heFJlc3VsdHM6IDEyLCBzaW1pbGFyaXR5VGhyZXNob2xkOiAwLjggfSwgaWNvbjogIkV5ZSIgfSwKXTsKCi8vIEF1dG8tY3JlYXRlIGRlZmF1bHQgYWdlbnRzIGZvciBhIHN0b3JlIGlmIGl0IGhhcyBub25lCmFzeW5jIGZ1bmN0aW9uIGVuc3VyZUFnZW50c0V4aXN0KHN0b3JlSWQ6IG51bWJlcik6IFByb21pc2U8dm9pZD4gewogIGlmIChzdG9yZUlkIDw9IDApIHJldHVybjsKICBjb25zdCBleGlzdGluZyA9IGF3YWl0IHN0b3JhZ2UuZ2V0QWlBZ2VudHNCeVN0b3JlKHN0b3JlSWQpOwogIGlmIChleGlzdGluZy5sZW5ndGggPiAwKSByZXR1cm47CiAgY29uc29sZS5sb2coYFtBZ2VudHNdIEF1dG8tY3JlYXRpbmcgNiBkZWZhdWx0IEFJIGFnZW50cyBmb3Igc3RvcmUgJHtzdG9yZUlkfWApOwogIGZvciAoY29uc3QgYWdlbnQgb2YgREVGQVVMVF9BR0VOVFMpIHsKICAgIGF3YWl0IHN0b3JhZ2UuY3JlYXRlQWlBZ2VudChzdG9yZUlkLCBhZ2VudCBhcyBhbnkpOwogIH0KfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHJlZ2lzdGVyUm91dGVzKHNlcnZlcjogU2VydmVyLCBhcHA6IEV4cHJlc3MpOiBQcm9taXNlPHZvaWQ+IHsKCiAgLy8gREFUQUJBU0UgU1RBVFVTCiAgYXBwLmdldCgiL2FwaS9kYi9zdGF0dXMiLCBhc3luYyAoX3JlcSwgcmVzKSA9PiB7CiAgICB0cnkgewogICAgICBjb25zdCB7IGRhdGEsIGVycm9yIH0gPSBhd2FpdCBzdXBhYmFzZUFkbWluLmZyb20oInVzZXJzIikuc2VsZWN0KCJpZCIpLmxpbWl0KDEpOwogICAgICBpZiAoZXJyb3IpIHJldHVybiByZXMuanNvbih7IGNvbm5lY3RlZDogZmFsc2UsIG1vZGU6ICJtZW1vcnkiLCBlcnJvcjogZXJyb3IubWVzc2FnZSwgc3VwYWJhc2VVcmw6IFNVUEFCQVNFX1VSTCB9KTsKICAgICAgcmV0dXJuIHJlcy5qc29uKHsgY29ubmVjdGVkOiB0cnVlLCBtb2RlOiAic3VwYWJhc2UiLCBzdXBhYmFzZVVybDogU1VQQUJBU0VfVVJMIH0pOwogICAgfSBjYXRjaCAoZTogYW55KSB7CiAgICAgIHJldHVybiByZXMuanNvbih7IGNvbm5lY3RlZDogZmFsc2UsIG1vZGU6ICJtZW1vcnkiLCBlcnJvcjogZS5tZXNzYWdlIH0pOwogICAgfQogIH0pOwoKICAvLyBTVVBBQkFTRSBDT05GSUcgKGZvciBmcm9udGVuZCkKICBhcHAuZ2V0KCIvYXBpL2NvbmZpZyIsIChfcmVxLCByZXMpID0+IHsKICAgIHJlcy5qc29uKHsgc3VwYWJhc2VVcmw6IFNVUEFCQVNFX1VSTCwgc3VwYWJhc2VBbm9uS2V5OiBTVVBBQkFTRV9BTk9OX0tFWSB9KTsKICB9KTsKCiAgLy8gPT09PT09PT09PT09PT09PT09PSBBVVRIID09PT09PT09PT09PT09PT09PT0KCiAgYXBwLnBvc3QoIi9hcGkvYXV0aC9yZWdpc3RlciIsIGFzeW5jIChyZXEsIHJlcykgPT4gewogICAgY29uc3QgeyBlbWFpbCwgcGFzc3dvcmQsIG5hbWUsIHJvbGUgfSA9IHJlcS5ib2R5OwogICAgaWYgKCFlbWFpbCB8fCAhcGFzc3dvcmQgfHwgIW5hbWUpIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiAi4LiB4Lij4Li44LiT4Liy4LiB4Lij4Lit4LiB4LiC4LmJ4Lit4Lih4Li54Lil4LmD4Lir4LmJ4LiE4Lij4LiaIiB9KTsKICAgIGNvbnN0IGV4aXN0aW5nID0gYXdhaXQgc3RvcmFnZS5nZXRVc2VyQnlFbWFpbChlbWFpbCk7CiAgICBpZiAoZXhpc3RpbmcpIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiAi4Lit4Li14LmA4Lih4Lil4LiZ4Li14LmJ4LiW4Li54LiB4LmD4LiK4LmJ4LmB4Lil4LmJ4LinIiB9KTsKICAgIGNvbnN0IHVzZXIgPSBhd2FpdCBzdG9yYWdlLmNyZWF0ZVVzZXIoeyBlbWFpbCwgcGFzc3dvcmQsIG5hbWUgfSk7CiAgICAvLyBTZXQgcm9sZSBpZiBzcGVjaWZpZWQKICAgIGlmIChyb2xlID09PSAiYnV5ZXIiKSB7CiAgICAgIGF3YWl0IHN0b3JhZ2UudXBkYXRlVXNlcih1c2VyLmlkLCB7IHJvbGU6ICJidXllciIgfSBhcyBhbnkpOwogICAgfQogICAgY29uc3QgdXNlclJvbGUgPSByb2xlIHx8ICJzZWxsZXIiOwogICAgY29uc3QgdG9rZW4gPSBnZW5lcmF0ZVRva2VuKHVzZXIuaWQsIHVzZXJSb2xlKTsKICAgIHNlc3Npb25DYWNoZS5zZXQodG9rZW4sIHsgdXNlcklkOiB1c2VyLmlkLCBzdG9yZUlkOiAwLCByb2xlOiB1c2VyUm9sZSwgY2FjaGVkQXQ6IERhdGUubm93KCkgfSk7CiAgICByZXMuanNvbih7IHVzZXI6IHsgLi4udXNlciwgcGFzc3dvcmQ6IHVuZGVmaW5lZCwgcm9sZTogdXNlclJvbGUgfSwgdG9rZW4gfSk7CiAgfSk7CgogIGFwcC5wb3N0KCIvYXBpL2F1dGgvbG9naW4iLCBhc3luYyAocmVxLCByZXMpID0+IHsKICAgIGNvbnN0IHsgZW1haWwsIHBhc3N3b3JkIH0gPSByZXEuYm9keTsKICAgIGNvbnN0IHVzZXIgPSBhd2FpdCBzdG9yYWdlLmdldFVzZXJCeUVtYWlsKGVtYWlsKTsKICAgIGlmICghdXNlciB8fCB1c2VyLnBhc3N3b3JkICE9PSBwYXNzd29yZCkgcmV0dXJuIHJlcy5zdGF0dXMoNDAxKS5qc29uKHsgZXJyb3I6ICLguK3guLXguYDguKHguKXguKvguKPguLfguK3guKPguKvguLHguKrguJzguYjguLLguJnguYTguKHguYjguJbguLnguIHguJXguYnguK3guIciIH0pOwogICAgY29uc3Qgc3RvcmVzID0gYXdhaXQgc3RvcmFnZS5nZXRTdG9yZXNCeVVzZXIodXNlci5pZCk7CiAgICBjb25zdCBzdG9yZUlkID0gc3RvcmVzLmxlbmd0aCA+IDAgPyBzdG9yZXNbMF0uaWQgOiAwOwogICAgY29uc3QgdXNlclJvbGUgPSAodXNlciBhcyBhbnkpLnJvbGUgfHwgInNlbGxlciI7CiAgICBjb25zdCB0b2tlbiA9IGdlbmVyYXRlVG9rZW4odXNlci5pZCwgdXNlclJvbGUpOwogICAgc2Vzc2lvbkNhY2hlLnNldCh0b2tlbiwgeyB1c2VySWQ6IHVzZXIuaWQsIHN0b3JlSWQ6IHN0b3JlSWQsIHJvbGU6IHVzZXJSb2xlLCBjYWNoZWRBdDogRGF0ZS5ub3coKSB9KTsKICAgIHJlcy5qc29uKHsgdXNlcjogeyAuLi51c2VyLCBwYXNzd29yZDogdW5kZWZpbmVkIH0sIHRva2VuLCBzdG9yZUlkLCByb2xlOiB1c2VyUm9sZSB9KTsKICB9KTsKCiAgYXBwLmdldCgiL2FwaS9hdXRoL21lIiwgYXN5bmMgKHJlcSwgcmVzKSA9PiB7CiAgICBjb25zdCBzZXNzaW9uID0gYXdhaXQgZ2V0U2Vzc2lvbihyZXEpOwogICAgaWYgKCFzZXNzaW9uKSByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogIuC5hOC4oeC5iOC5hOC4lOC5ieC5gOC4guC5ieC4suC4quC4ueC5iOC4o+C4sOC4muC4miIgfSk7CiAgICBjb25zdCB1c2VyID0gYXdhaXQgc3RvcmFnZS5nZXRVc2VyKHNlc3Npb24udXNlcklkKTsKICAgIGlmICghdXNlcikgcmV0dXJuIHJlcy5zdGF0dXMoNDAxKS5qc29uKHsgZXJyb3I6ICLguYTguKHguYjguJ7guJrguJzguLnguYnguYPguIrguYkiIH0pOwogICAgY29uc3Qgc3RvcmVzID0gYXdhaXQgc3RvcmFnZS5nZXRTdG9yZXNCeVVzZXIodXNlci5pZCk7CiAgICBjb25zdCBzdG9yZUlkID0gc3RvcmVzLmxlbmd0aCA+IDAgPyBzdG9yZXNbMF0uaWQgOiAwOwogICAgLy8gVXBkYXRlIGNhY2hlIHdpdGggbGF0ZXN0IHN0b3JlSWQKICAgIGNvbnN0IHRva2VuID0gcmVxLmhlYWRlcnNbIngtc2Vzc2lvbi10b2tlbiJdIGFzIHN0cmluZzsKICAgIGlmICh0b2tlbikgc2Vzc2lvbkNhY2hlLnNldCh0b2tlbiwgeyB1c2VySWQ6IHVzZXIuaWQsIHN0b3JlSWQ6IHN0b3JlSWQsIHJvbGU6IHNlc3Npb24ucm9sZSwgY2FjaGVkQXQ6IERhdGUubm93KCkgfSk7CiAgICByZXMuanNvbih7IHVzZXI6IHsgLi4udXNlciwgcGFzc3dvcmQ6IHVuZGVmaW5lZCB9LCBzdG9yZUlkLCByb2xlOiBzZXNzaW9uLnJvbGUgfSk7CiAgfSk7CgogIGFwcC5wb3N0KCIvYXBpL2F1dGgvbG9nb3V0IiwgKHJlcSwgcmVzKSA9PiB7CiAgICBjb25zdCB0b2tlbiA9IHJlcS5oZWFkZXJzWyJ4LXNlc3Npb24tdG9rZW4iXSBhcyBzdHJpbmc7CiAgICBpZiAodG9rZW4pIHNlc3Npb25DYWNoZS5kZWxldGUodG9rZW4pOwogICAgcmVzLmpzb24oeyBvazogdHJ1ZSB9KTsKICB9KTsKCiAgLy8gPT09PT09PT09PT09PT09PT09PSBHT09HTEUgT0FVVEggPT09PT09PT09PT09PT09PT09PQogIGNvbnN0IEdPT0dMRV9DTElFTlRfSUQgPSBwcm9jZXNzLmVudi5HT09HTEVfQ0xJRU5UX0lEIHx8ICIiOwogIGNvbnN0IEdPT0dMRV9DTElFTlRfU0VDUkVUID0gcHJvY2Vzcy5lbnYuR09PR0xFX0NMSUVOVF9TRUNSRVQgfHwgIiI7CiAgLy8gRGV0ZXJtaW5lIHRoZSByZWRpcmVjdCBVUkkgYmFzZWQgb24gdGhlIGRlcGxveSBVUkwgb3IgbG9jYWxob3N0CiAgZnVuY3Rpb24gZ2V0R29vZ2xlUmVkaXJlY3RVcmkocmVxOiBSZXF1ZXN0KTogc3RyaW5nIHsKICAgIGNvbnN0IHByb3RvID0gcmVxLmhlYWRlcnNbIngtZm9yd2FyZGVkLXByb3RvIl0gfHwgcmVxLnByb3RvY29sIHx8ICJodHRwIjsKICAgIGNvbnN0IGhvc3QgPSByZXEuaGVhZGVyc1sieC1mb3J3YXJkZWQtaG9zdCJdIHx8IHJlcS5oZWFkZXJzLmhvc3QgfHwgImxvY2FsaG9zdDo1MDAwIjsKICAgIHJldHVybiBgJHtwcm90b306Ly8ke2hvc3R9L2FwaS9hdXRoL2dvb2dsZS9jYWxsYmFja2A7CiAgfQoKICBhcHAuZ2V0KCIvYXBpL2F1dGgvZ29vZ2xlL3VybCIsIChyZXEsIHJlcykgPT4gewogICAgLy8gUmVxdWlyZSBHT09HTEVfQ0xJRU5UX0lEIOKAlCBEaXJlY3QgR29vZ2xlIE9BdXRoIChtb3N0IHJlbGlhYmxlKQogICAgaWYgKCFHT09HTEVfQ0xJRU5UX0lEKSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoIltHb29nbGUgT0F1dGhdIEdPT0dMRV9DTElFTlRfSUQgbm90IHNldCBpbiBlbnZpcm9ubWVudCB2YXJpYWJsZXMiKTsKICAgICAgcmV0dXJuIHJlcy5qc29uKHsgZXJyb3I6ICJHb29nbGUgTG9naW4g4Lii4Lix4LiH4LmE4Lih4LmI4LmE4LiU4LmJ4LiV4Lix4LmJ4LiH4LiE4LmI4LiyIOC4geC4o+C4uOC4k+C4suC4leC4tOC4lOC4leC5iOC4reC4nOC4ueC5ieC4lOC4ueC5geC4peC4o+C4sOC4muC4miIgfSk7CiAgICB9CiAgICAvLyBEaXJlY3QgR29vZ2xlIE9BdXRoCiAgICBjb25zdCByZWRpcmVjdFVyaSA9IGdldEdvb2dsZVJlZGlyZWN0VXJpKHJlcSk7CiAgICBjb25zdCBzY29wZSA9IGVuY29kZVVSSUNvbXBvbmVudCgib3BlbmlkIGVtYWlsIHByb2ZpbGUiKTsKICAgIGNvbnN0IHVybCA9IGBodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvdjIvYXV0aD9jbGllbnRfaWQ9JHtHT09HTEVfQ0xJRU5UX0lEfSZyZWRpcmVjdF91cmk9JHtlbmNvZGVVUklDb21wb25lbnQocmVkaXJlY3RVcmkpfSZyZXNwb25zZV90eXBlPWNvZGUmc2NvcGU9JHtzY29wZX0mYWNjZXNzX3R5cGU9b2ZmbGluZSZwcm9tcHQ9Y29uc2VudGA7CiAgICByZXMuanNvbih7IHVybCwgbWV0aG9kOiAiZ29vZ2xlIiB9KTsKICB9KTsKCiAgLy8gRGlyZWN0IEdvb2dsZSBPQXV0aCBjYWxsYmFjawogIGFwcC5nZXQoIi9hcGkvYXV0aC9nb29nbGUvY2FsbGJhY2siLCBhc3luYyAocmVxLCByZXMpID0+IHsKICAgIGNvbnN0IHsgY29kZSB9ID0gcmVxLnF1ZXJ5OwogICAgaWYgKCFjb2RlIHx8ICFHT09HTEVfQ0xJRU5UX0lEIHx8ICFHT09HTEVfQ0xJRU5UX1NFQ1JFVCkgewogICAgICByZXR1cm4gcmVzLnJlZGlyZWN0KCIvIy9hdXRoP2Vycm9yPWdvb2dsZV9hdXRoX2ZhaWxlZCIpOwogICAgfQogICAgdHJ5IHsKICAgICAgY29uc3QgcmVkaXJlY3RVcmkgPSBnZXRHb29nbGVSZWRpcmVjdFVyaShyZXEpOwogICAgICAvLyBFeGNoYW5nZSBjb2RlIGZvciB0b2tlbnMKICAgICAgY29uc3QgdG9rZW5SZXMgPSBhd2FpdCBmZXRjaCgiaHR0cHM6Ly9vYXV0aDIuZ29vZ2xlYXBpcy5jb20vdG9rZW4iLCB7CiAgICAgICAgbWV0aG9kOiAiUE9TVCIsCiAgICAgICAgaGVhZGVyczogeyAiQ29udGVudC1UeXBlIjogImFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZCIgfSwKICAgICAgICBib2R5OiBuZXcgVVJMU2VhcmNoUGFyYW1zKHsKICAgICAgICAgIGNvZGU6IGNvZGUgYXMgc3RyaW5nLAogICAgICAgICAgY2xpZW50X2lkOiBHT09HTEVfQ0xJRU5UX0lELAogICAgICAgICAgY2xpZW50X3NlY3JldDogR09PR0xFX0NMSUVOVF9TRUNSRVQsCiAgICAgICAgICByZWRpcmVjdF91cmk6IHJlZGlyZWN0VXJpLAogICAgICAgICAgZ3JhbnRfdHlwZTogImF1dGhvcml6YXRpb25fY29kZSIsCiAgICAgICAgfSksCiAgICAgIH0pOwogICAgICBjb25zdCB0b2tlbnMgPSBhd2FpdCB0b2tlblJlcy5qc29uKCk7CiAgICAgIGlmICghdG9rZW5zLmFjY2Vzc190b2tlbikgewogICAgICAgIGNvbnNvbGUuZXJyb3IoIltHb29nbGUgT0F1dGhdIFRva2VuIGV4Y2hhbmdlIGZhaWxlZDoiLCB0b2tlbnMpOwogICAgICAgIHJldHVybiByZXMucmVkaXJlY3QoIi8jL2F1dGg/ZXJyb3I9Z29vZ2xlX3Rva2VuX2ZhaWxlZCIpOwogICAgICB9CiAgICAgIC8vIEdldCB1c2VyIGluZm8KICAgICAgY29uc3QgdXNlckluZm9SZXMgPSBhd2FpdCBmZXRjaCgiaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vb2F1dGgyL3YyL3VzZXJpbmZvIiwgewogICAgICAgIGhlYWRlcnM6IHsgQXV0aG9yaXphdGlvbjogYEJlYXJlciAke3Rva2Vucy5hY2Nlc3NfdG9rZW59YCB9LAogICAgICB9KTsKICAgICAgY29uc3QgZ29vZ2xlVXNlciA9IGF3YWl0IHVzZXJJbmZvUmVzLmpzb24oKTsKICAgICAgaWYgKCFnb29nbGVVc2VyLmVtYWlsKSB7CiAgICAgICAgcmV0dXJuIHJlcy5yZWRpcmVjdCgiLyMvYXV0aD9lcnJvcj1nb29nbGVfbm9fZW1haWwiKTsKICAgICAgfQogICAgICAvLyBGaW5kIG9yIGNyZWF0ZSB1c2VyCiAgICAgIGxldCB1c2VyID0gYXdhaXQgc3RvcmFnZS5nZXRVc2VyQnlFbWFpbChnb29nbGVVc2VyLmVtYWlsKTsKICAgICAgaWYgKCF1c2VyKSB7CiAgICAgICAgdXNlciA9IGF3YWl0IHN0b3JhZ2UuY3JlYXRlVXNlcih7CiAgICAgICAgICBlbWFpbDogZ29vZ2xlVXNlci5lbWFpbCwKICAgICAgICAgIHBhc3N3b3JkOiBjcnlwdG8ucmFuZG9tQnl0ZXMoMzIpLnRvU3RyaW5nKCJoZXgiKSwKICAgICAgICAgIG5hbWU6IGdvb2dsZVVzZXIubmFtZSB8fCBnb29nbGVVc2VyLmVtYWlsLnNwbGl0KCJAIilbMF0sCiAgICAgICAgfSk7CiAgICAgIH0KICAgICAgY29uc3Qgc3RvcmVzID0gYXdhaXQgc3RvcmFnZS5nZXRTdG9yZXNCeVVzZXIodXNlci5pZCk7CiAgICAgIGNvbnN0IHN0b3JlSWQgPSBzdG9yZXMubGVuZ3RoID4gMCA/IHN0b3Jlc1swXS5pZCA6IDA7CiAgICAgIGNvbnN0IHRva2VuID0gZ2VuZXJhdGVUb2tlbih1c2VyLmlkLCAic2VsbGVyIik7CiAgICAgIHNlc3Npb25DYWNoZS5zZXQodG9rZW4sIHsgdXNlcklkOiB1c2VyLmlkLCBzdG9yZUlkLCByb2xlOiAic2VsbGVyIiwgY2FjaGVkQXQ6IERhdGUubm93KCkgfSk7CiAgICAgIHJldHVybiByZXMucmVkaXJlY3QoYC8jL2F1dGg/b2F1dGhfdG9rZW49JHt0b2tlbn1gKTsKICAgIH0gY2F0Y2ggKGVycjogYW55KSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoIltHb29nbGUgT0F1dGhdIEVycm9yOiIsIGVycik7CiAgICAgIHJldHVybiByZXMucmVkaXJlY3QoIi8jL2F1dGg/ZXJyb3I9Z29vZ2xlX2F1dGhfZXJyb3IiKTsKICAgIH0KICB9KTsKCiAgLy8gU3VwYWJhc2UgT0F1dGggY2FsbGJhY2sgKGZvciB3aGVuIEdvb2dsZSBpcyBjb25maWd1cmVkIGluIFN1cGFiYXNlIGRhc2hib2FyZCkKICBhcHAuZ2V0KCIvYXBpL2F1dGgvc3VwYWJhc2UvY2FsbGJhY2siLCBhc3luYyAocmVxLCByZXMpID0+IHsKICAgIHRyeSB7CiAgICAgIC8vIFN1cGFiYXNlIHNlbmRzIHRoZSB0b2tlbnMgYXMgVVJMIGZyYWdtZW50cywgYnV0IGZvciBzZXJ2ZXItc2lkZSB3ZSBuZWVkIHRoZSBjb2RlIGZsb3cKICAgICAgY29uc3QgeyBjb2RlIH0gPSByZXEucXVlcnk7CiAgICAgIGlmIChjb2RlKSB7CiAgICAgICAgLy8gRXhjaGFuZ2UgdGhlIGNvZGUgZm9yIGEgc2Vzc2lvbgogICAgICAgIGNvbnN0IHsgZGF0YSwgZXJyb3IgfSA9IGF3YWl0IHN1cGFiYXNlQWRtaW4uYXV0aC5leGNoYW5nZUNvZGVGb3JTZXNzaW9uKGNvZGUgYXMgc3RyaW5nKTsKICAgICAgICBpZiAoZXJyb3IgfHwgIWRhdGEudXNlcj8uZW1haWwpIHsKICAgICAgICAgIGNvbnNvbGUuZXJyb3IoIltTdXBhYmFzZSBPQXV0aF0gRXJyb3I6IiwgZXJyb3IpOwogICAgICAgICAgcmV0dXJuIHJlcy5yZWRpcmVjdCgiLyMvYXV0aD9lcnJvcj1zdXBhYmFzZV9hdXRoX2ZhaWxlZCIpOwogICAgICAgIH0KICAgICAgICAvLyBGaW5kIG9yIGNyZWF0ZSBpbnRlcm5hbCB1c2VyCiAgICAgICAgbGV0IHVzZXIgPSBhd2FpdCBzdG9yYWdlLmdldFVzZXJCeUVtYWlsKGRhdGEudXNlci5lbWFpbCk7CiAgICAgICAgaWYgKCF1c2VyKSB7CiAgICAgICAgICB1c2VyID0gYXdhaXQgc3RvcmFnZS5jcmVhdGVVc2VyKHsKICAgICAgICAgICAgZW1haWw6IGRhdGEudXNlci5lbWFpbCwKICAgICAgICAgICAgcGFzc3dvcmQ6IGNyeXB0by5yYW5kb21CeXRlcygzMikudG9TdHJpbmcoImhleCIpLAogICAgICAgICAgICBuYW1lOiBkYXRhLnVzZXIudXNlcl9tZXRhZGF0YT8uZnVsbF9uYW1lIHx8IGRhdGEudXNlci51c2VyX21ldGFkYXRhPy5uYW1lIHx8IGRhdGEudXNlci5lbWFpbC5zcGxpdCgiQCIpWzBdLAogICAgICAgICAgfSk7CiAgICAgICAgfQogICAgICAgIGNvbnN0IHN0b3JlcyA9IGF3YWl0IHN0b3JhZ2UuZ2V0U3RvcmVzQnlVc2VyKHVzZXIuaWQpOwogICAgICAgIGNvbnN0IHN0b3JlSWQgPSBzdG9yZXMubGVuZ3RoID4gMCA/IHN0b3Jlc1swXS5pZCA6IDA7CiAgICAgICAgY29uc3QgdG9rZW4gPSBnZW5lcmF0ZVRva2VuKHVzZXIuaWQsICJzZWxsZXIiKTsKICAgICAgICBzZXNzaW9uQ2FjaGUuc2V0KHRva2VuLCB7IHVzZXJJZDogdXNlci5pZCwgc3RvcmVJZCwgcm9sZTogInNlbGxlciIsIGNhY2hlZEF0OiBEYXRlLm5vdygpIH0pOwogICAgICAgIHJldHVybiByZXMucmVkaXJlY3QoYC8jL2F1dGg/b2F1dGhfdG9rZW49JHt0b2tlbn1gKTsKICAgICAgfQogICAgICByZXR1cm4gcmVzLnJlZGlyZWN0KCIvIy9hdXRoP2Vycm9yPW5vX2NvZGUiKTsKICAgIH0gY2F0Y2ggKGVycjogYW55KSB7CiAgICAgIGNvbnNvbGUuZXJyb3IoIltTdXBhYmFzZSBPQXV0aF0gRXJyb3I6IiwgZXJyKTsKICAgICAgcmV0dXJuIHJlcy5yZWRpcmVjdCgiLyMvYXV0aD9lcnJvcj1zdXBhYmFzZV9jYWxsYmFja19lcnJvciIpOwogICAgfQogIH0pOwoKICAvLyA9PT09PT09PT09PT09PT09PT09IE9OQk9BUkRJTkcgLyBTVE9SRSBTRVRVUCA9PT09PT09PT09PT09PT09PT09CgogIGFwcC5wb3N0KCIvYXBpL29uYm9hcmRpbmcvY3JlYXRlLXN0b3JlIiwgYXN5bmMgKHJlcSwgcmVzKSA9PiB7CiAgICBjb25zdCBzZXNzaW9uID0gYXdhaXQgZ2V0U2Vzc2lvbihyZXEpOwogICAgaWYgKCFzZXNzaW9uKSByZXR1cm4gcmVzLnN0YXR1cyg0MDEpLmpzb24oeyBlcnJvcjogIuC4geC4o+C4uOC4k+C4suC5gOC4guC5ieC4suC4quC4ueC5iOC4o+C4sOC4muC4miIgfSk7CgogICAgY29uc3QgeyBuYW1lLCBzbHVnLCBkZXNjcmlwdGlvbiwgY3VycmVuY3ksIGNhdGVnb3J5IH0gPSByZXEuYm9keTsKICAgIGlmICghbmFtZSB8fCAhc2x1ZykgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6ICLguIHguKPguLjguJPguLLguIHguKPguK3guIHguIrguLfguYjguK3guKPguYnguLLguJnguYHguKXguLAgVVJMIiB9KTsKCiAgICBjb25zdCBleGlzdGluZ1N0b3JlID0gYXdhaXQgc3RvcmFnZS5nZXRTdG9yZUJ5U2x1ZyhzbHVnKTsKICAgIGlmIChleGlzdGluZ1N0b3JlKSByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogIlVSTCDguJnguLXguYnguJbguLnguIHguYPguIrguYnguYHguKXguYnguKcg4LiB4Lij4Li44LiT4Liy4LmA4Lil4Li34Lit4LiBIFVSTCDguK3guLfguYjguJkiIH0pOwoKICAgIGNvbnN0IHN0b3JlID0gYXdhaXQgc3RvcmFnZS5jcmVhdGVTdG9yZShzZXNzaW9uLnVzZXJJZCwgewogICAgICBuYW1lLAogICAgICBzbHVnOiBzbHVnLnRvTG93ZXJDYXNlKCkucmVwbGFjZSgvW15hLXowLTktXS9nLCAiIiksCiAgICAgIGRlc2NyaXB0aW9uOiBkZXNjcmlwdGlvbiB8fCAiIiwKICAgICAgdGhlbWU6ICJtb2Rlcm4tZGFyayIsCiAgICAgIGN1cnJlbmN5OiBjdXJyZW5jeSB8fCAiVEhCIiwKICAgIH0pOwoKICAgIC8vIENyZWF0ZSBkZWZhdWx0IEFJ
+import type { Express, Request, Response, NextFunction } from "express";
+import type { Server } from "http";
+import { storage } from "./storage";
+import { supabaseAdmin, SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase";
+import {
+  chatWithAgent,
+  getChatHistory,
+  clearChatHistory,
+  getKnowledgeEntries,
+  addKnowledgeEntry,
+  deleteKnowledgeEntry,
+  getRAGStats,
+  reindexStore,
+  getMemoryStats,
+  updateGeminiApiKey,
+  getGeminiStatus,
+} from "./gemini";
+import { indexStoreData } from "./rag";
+import {
+  startAutomation,
+  stopAutomation,
+  triggerAgent,
+  getAutomationState,
+  getAllAutomationStates,
+  getInsights,
+  markInsightRead,
+  getAutomationStats,
+} from "./automation";
+import crypto from "crypto";
+
+// --- RAG Auto-Reindex Debounce ---
+const reindexTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
+function scheduleReindex(storeId: number): void {
+  if (storeId <= 0) return;
+  const existing = reindexTimers.get(storeId);
+  if (existing) clearTimeout(existing);
+  reindexTimers.set(storeId, setTimeout(async () => {
+    reindexTimers.delete(storeId);
+    try {
+      await indexStoreData(storeId);
+      console.log(`[RAG] Auto-reindexed store ${storeId}`);
+    } catch (e) {
+      console.error(`[RAG] Auto-reindex failed for store ${storeId}:`, e);
+    }
+  }, 5000)); // Debounce 5s to batch rapid changes
+}
+
+// Session management with signed tokens that survive server restarts
+// Token format: <hex payload>.<hex hmac>
+// Payload: JSON { userId, role, exp }
+const SESSION_SECRET = process.env.SESSION_SECRET || "zentra-ai-session-secret-2026-stable";
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// In-memory cache for fast lookups (rebuilt from token verification on miss)
+const sessionCache = new Map<string, { userId: number; storeId: number; role: string; cachedAt: number }>();
+
+function generateToken(userId: number, role: string): string {
+  const payload = JSON.stringify({ userId, role, exp: Date.now() + SESSION_TTL_MS });
+  const payloadHex = Buffer.from(payload).toString("hex");
+  const hmac = crypto.createHmac("sha256", SESSION_SECRET).update(payloadHex).digest("hex");
+  return `${payloadHex}.${hmac}`;
+}
+
+function verifyToken(token: string): { userId: number; role: string } | null {
+  try {
+    const [payloadHex, hmac] = token.split(".");
+    if (!payloadHex || !hmac) return null;
+    const expectedHmac = crypto.createHmac("sha256", SESSION_SECRET).update(payloadHex).digest("hex");
+    if (hmac !== expectedHmac) return null;
+    const payload = JSON.parse(Buffer.from(payloadHex, "hex").toString());
+    if (!payload.userId || !payload.exp) return null;
+    if (Date.now() > payload.exp) return null; // Token expired
+    return { userId: payload.userId, role: payload.role || "seller" };
+  } catch {
+    return null;
+  }
+}
+
+async function getSession(req: Request): Promise<{ userId: number; storeId: number; role: string } | null> {
+  const token = req.headers["x-session-token"] as string;
+  if (!token) return null;
+
+  // Check in-memory cache first
+  const cached = sessionCache.get(token);
+  if (cached) {
+    cached.cachedAt = Date.now();
+    return cached;
+  }
+
+  // Cache miss (e.g., after server restart) — verify the token signature
+  const verified = verifyToken(token);
+  if (!verified) return null;
+
+  // Look up user and store from database to rebuild session
+  try {
+    const user = await storage.getUser(verified.userId);
+    if (!user) return null;
+    const stores = await storage.getStoresByUser(user.id);
+    const storeId = stores.length > 0 ? stores[0].id : 0;
+    const session = { userId: user.id, storeId, role: verified.role, cachedAt: Date.now() };
+    sessionCache.set(token, session);
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+async function requireAuth(req: Request, res: Response): Promise<{ userId: number; storeId: number; role: string } | null> {
+  const session = await getSession(req);
+  if (!session) {
+    res.status(401).json({ error: "กรุณาเข้าสู่ระบบ" });
+    return null;
+  }
+  return session;
+}
+
+// Clean up old session cache entries periodically (older than 1 hour)
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, session] of sessionCache.entries()) {
+    if (now - session.cachedAt > 60 * 60 * 1000) {
+      sessionCache.delete(token);
+    }
+  }
+}, 15 * 60 * 1000);
+
+// Default AI agents to auto-create for any store that has none
+const DEFAULT_AGENTS = [
+  { type: "shopping_assistant", name: "Shopping Assistant", description: "ผู้ช่วยช้อปปิ้ง AI แนะนำสินค้าตาม lifestyle ของลูกค้า", enabled: true, config: { responseSpeed: 8, creativity: 7, language: "th" }, icon: "ShoppingBag" },
+  { type: "recommendation", name: "Recommendation Engine", description: "เครื่องมือแนะนำสินค้าแบบ Real-time ด้วย Collaborative Filtering", enabled: true, config: { algorithm: "hybrid", minConfidence: 0.7, maxSuggestions: 8 }, icon: "Sparkles" },
+  { type: "dynamic_pricing", name: "Dynamic Pricing", description: "ปรับราคาอัตโนมัติตามอุปสงค์และราคาคู่แข่ง", enabled: true, config: { maxDiscount: 30, priceFloor: 0.7, updateFrequency: "hourly" }, icon: "TrendingUp" },
+  { type: "customer_support", name: "Customer Support", description: "ตอบคำถามลูกค้า 24/7 ด้วย AI ที่เข้าใจภาษาธรรมชาติ", enabled: true, config: { responseSpeed: 9, escalationThreshold: 0.3, tone: "friendly" }, icon: "Headphones" },
+  { type: "inventory_forecast", name: "Inventory Forecast", description: "พยากรณ์สต็อกสินค้าและแจ้งเตือนเมื่อใกล้หมด", enabled: true, config: { forecastDays: 30, safetyStock: 10, autoReorder: false }, icon: "BarChart3" },
+  { type: "visual_search", name: "Visual Search", description: "ค้นหาสินค้าด้วยรูปภาพ ใช้ Computer Vision ขั้นสูง", enabled: false, config: { accuracy: "high", maxResults: 12, similarityThreshold: 0.8 }, icon: "Eye" },
+];
+
+// Auto-create default agents for a store if it has none
+async function ensureAgentsExist(storeId: number): Promise<void> {
+  if (storeId <= 0) return;
+  const existing = await storage.getAiAgentsByStore(storeId);
+  if (existing.length > 0) return;
+  console.log(`[Agents] Auto-creating 6 default AI agents for store ${storeId}`);
+  for (const agent of DEFAULT_AGENTS) {
+    await storage.createAiAgent(storeId, agent as any);
+  }
+}
+
+export async function registerRoutes(server: Server, app: Express): Promise<void> {
+
+  // DATABASE STATUS
+  app.get("/api/db/status", async (_req, res) => {
+    try {
+      const { data, error } = await supabaseAdmin.from("users").select("id").limit(1);
+      if (error) return res.json({ connected: false, mode: "memory", error: error.message, supabaseUrl: SUPABASE_URL });
+      return res.json({ connected: true, mode: "supabase", supabaseUrl: SUPABASE_URL });
+    } catch (e: any) {
+      return res.json({ connected: false, mode: "memory", error: e.message });
+    }
+  });
+
+  // SUPABASE CONFIG (for frontend)
+  app.get("/api/config", (_req, res) => {
+    res.json({ supabaseUrl: SUPABASE_URL, supabaseAnonKey: SUPABASE_ANON_KEY });
+  });
+
+  // =================== AUTH ===================
+
+  app.post("/api/auth/register", async (req, res) => {
+    const { email, password, name, role } = req.body;
+    if (!email || !password || !name) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
+    const existing = await storage.getUserByEmail(email);
+    if (existing) return res.status(400).json({ error: "อีเมลนี้ถูกใช้แล้ว" });
+    const user = await storage.createUser({ email, password, name });
+    // Set role if specified
+    if (role === "buyer") {
+      await storage.updateUser(user.id, { role: "buyer" } as any);
+    }
+    const userRole = role || "seller";
+    const token = generateToken(user.id, userRole);
+    sessionCache.set(token, { userId: user.id, storeId: 0, role: userRole, cachedAt: Date.now() });
+    res.json({ user: { ...user, password: undefined, role: userRole }, token });
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    const { email, password } = req.body;
+    const user = await storage.getUserByEmail(email);
+    if (!user || user.password !== password) return res.status(401).json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" });
+    const stores = await storage.getStoresByUser(user.id);
+    const storeId = stores.length > 0 ? stores[0].id : 0;
+    const userRole = (user as any).role || "seller";
+    const token = generateToken(user.id, userRole);
+    sessionCache.set(token, { userId: user.id, storeId, role: userRole, cachedAt: Date.now() });
+    res.json({ user: { ...user, password: undefined }, token, storeId, role: userRole });
+  });
+
+  app.get("/api/auth/me", async (req, res) => {
+    const session = await getSession(req);
+    if (!session) return res.status(401).json({ error: "ไม่ได้เข้าสู่ระบบ" });
+    const user = await storage.getUser(session.userId);
+    if (!user) return res.status(401).json({ error: "ไม่พบผู้ใช้" });
+    const stores = await storage.getStoresByUser(user.id);
+    const storeId = stores.length > 0 ? stores[0].id : 0;
+    // Update cache with latest storeId
+    const token = req.headers["x-session-token"] as string;
+    if (token) sessionCache.set(token, { userId: user.id, storeId, role: session.role, cachedAt: Date.now() });
+    res.json({ user: { ...user, password: undefined }, storeId, role: session.role });
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    const token = req.headers["x-session-token"] as string;
+    if (token) sessionCache.delete(token);
+    res.json({ ok: true });
+  });
+
+  // =================== GOOGLE OAUTH ===================
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+  const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+  // Determine the redirect URI based on the deploy URL or localhost
+  function getGoogleRedirectUri(req: Request): string {
+    const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
+    const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost:5000";
+    return `${proto}://${host}/api/auth/google/callback`;
+  }
+
+  app.get("/api/auth/google/url", (req, res) => {
+    // Require GOOGLE_CLIENT_ID — Direct Google OAuth (most reliable)
+    if (!GOOGLE_CLIENT_ID) {
+      console.error("[Google OAuth] GOOGLE_CLIENT_ID not set in environment variables");
+      return res.json({ error: "Google Login ยังไม่ได้ตั้งค่า กรุณาติดต่อผู้ดูแลระบบ" });
+    }
+    // Direct Google OAuth
+    const redirectUri = getGoogleRedirectUri(req);
+    const scope = encodeURIComponent("openid email profile");
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+    res.json({ url, method: "google" });
+  });
+
+  // Direct Google OAuth callback
+  app.get("/api/auth/google/callback", async (req, res) => {
+    const { code } = req.query;
+    if (!code || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+      return res.redirect("/#/auth?error=google_auth_failed");
+    }
+    try {
+      const redirectUri = getGoogleRedirectUri(req);
+      // Exchange code for tokens
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code: code as string,
+          client_id: GOOGLE_CLIENT_ID,
+          client_secret: GOOGLE_CLIENT_SECRET,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }),
+      });
+      const tokens = await tokenRes.json();
+      if (!tokens.access_token) {
+        console.error("[Google OAuth] Token exchange failed:", tokens);
+        return res.redirect("/#/auth?error=google_token_failed");
+      }
+      // Get user info
+      const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
+      const googleUser = await userInfoRes.json();
+      if (!googleUser.email) {
+        return res.redirect("/#/auth?error=google_no_email");
+      }
+      // Find or create user
+      let user = await storage.getUserByEmail(googleUser.email);
+      if (!user) {
+        user = await storage.createUser({
+          email: googleUser.email,
+          password: crypto.randomBytes(32).toString("hex"),
+          name: googleUser.name || googleUser.email.split("@")[0],
+        });
+      }
+      const stores = await storage.getStoresByUser(user.id);
+      const storeId = stores.length > 0 ? stores[0].id : 0;
+      const token = generateToken(user.id, "seller");
+      sessionCache.set(token, { userId: user.id, storeId, role: "seller", cachedAt: Date.now() });
+      return res.redirect(`/#/auth?oauth_token=${token}`);
+    } catch (err: any) {
+      console.error("[Google OAuth] Error:", err);
+      return res.redirect("/#/auth?error=google_auth_error");
+    }
+  });
+
+  // Supabase OAuth callback (for when Google is configured in Supabase dashboard)
+  app.get("/api/auth/supabase/callback", async (req, res) => {
+    try {
+      // Supabase sends the tokens as URL fragments, but for server-side we need the code flow
+      const { code } = req.query;
+      if (code) {
+        // Exchange the code for a session
+        const { data, error } = await supabaseAdmin.auth.exchangeCodeForSession(code as string);
+        if (error || !data.user?.email) {
+          console.error("[Supabase OAuth] Error:", error);
+          return res.redirect("/#/auth?error=supabase_auth_failed");
+        }
+        // Find or create internal user
+        let user = await storage.getUserByEmail(data.user.email);
+        if (!user) {
+          user = await storage.createUser({
+            email: data.user.email,
+            password: crypto.randomBytes(32).toString("hex"),
+            name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email.split("@")[0],
+          });
+        }
+        const stores = await storage.getStoresByUser(user.id);
+        const storeId = stores.length > 0 ? stores[0].id : 0;
+        const token = generateToken(user.id, "seller");
+        sessionCache.set(token, { userId: user.id, storeId, role: "seller", cachedAt: Date.now() });
+        return res.redirect(`/#/auth?oauth_token=${token}`);
+      }
+      return res.redirect("/#/auth?error=no_code");
+    } catch (err: any) {
+      console.error("[Supabase OAuth] Error:", err);
+      return res.redirect("/#/auth?error=supabase_callback_error");
+    }
+  });
+
+  // =================== ONBOARDING / STORE SETUP ===================
+
+  app.post("/api/onboarding/create-store", async (req, res) => {
+    const session = await getSession(req);
+    if (!session) return res.status(401).json({ error: "กรุณาเข้าสู่ระบบ" });
+
+    const { name, slug, description, currency, category } = req.body;
+    if (!name || !slug) return res.status(400).json({ error: "กรุณากรอกชื่อร้านและ URL" });
+
+    const existingStore = await storage.getStoreBySlug(slug);
+    if (existingStore) return res.status(400).json({ error: "URL นี้ถูกใช้แล้ว กรุณาเลือก URL อื่น" });
+
+    const store = await storage.createStore(session.userId, {
+      name,
+      slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+      description: description || "",
+      theme: "modern-dark",
+      currency: currency || "THB",
+    });
+
+    // Create default AI agents for this store
+    const defaultAgents = [
+      { type: "shopping_assistant", name: "Shopping Assistant", description: "ผู้ช่วยช้อปปิ้ง AI แนะนำสินค้าตาม lifestyle ของลูกค้า", enabled: true, config: { responseSpeed: 8, creativity: 7, language: "th" }, icon: "ShoppingBag" },
+      { type: "recommendation", name: "Recommendation Engine", description: "เครื่องมือแนะนำสินค้าแบบ Real-time ด้วย Collaborative Filtering", enabled: true, config: { algorithm: "hybrid", minConfidence: 0.7, maxSuggestions: 8 }, icon: "Sparkles" },
+      { type: "dynamic_pricing", name: "Dynamic Pricing", description: "ปรับราคาอัตโนมัติตามอุปสงค์และราคาคู่แข่ง", enabled: true, config: { maxDiscount: 30, priceFloor: 0.7, updateFrequency: "hourly" }, icon: "TrendingUp" },
+      { type: "customer_support", name: "Customer Support", description: "ตอบคำถามลูกค้า 24/7 ด้วย AI ที่เข้าใจภาษาธรรมชาติ", enabled: true, config: { responseSpeed: 9, escalationThreshold: 0.3, tone: "friendly" }, icon: "Headphones" },
+      { type: "inventory_forecast", name: "Inventory Forecast", description: "พยากรณ์สต็อกสินค้าและแจ้งเตือนเมื่อใกล้หมด", enabled: true, config: { forecastDays: 30, safetyStock: 10, autoReorder: false }, icon: "BarChart3" },
+      { type: "visual_search", name: "Visual Search", description: "ค้นหาสินค้าด้วยรูปภาพ ใช้ Computer Vision ขั้นสูง", enabled: false, config: { accuracy: "high", maxResults: 12, similarityThreshold: 0.8 }, icon: "Eye" },
+    ];
+
+    for (const agent of defaultAgents) {
+      await storage.createAiAgent(store.id, agent as any);
+    }
+
+    // Create default categories
+    const defaultCategories = [
+      { name: "ทั่วไป", slug: "general", sortOrder: 0 },
+      { name: "อุปกรณ์อิเล็กทรอนิกส์", slug: "electronics", sortOrder: 1 },
+      { name: "เสื้อผ้า", slug: "clothing", sortOrder: 2 },
+      { name: "รองเท้า", slug: "shoes", sortOrder: 3 },
+      { name: "กระเป๋า", slug: "bags", sortOrder: 4 },
+    ];
+
+    for (const cat of defaultCategories) {
+      await storage.createCategory(store.id, cat as any);
+    }
+
+    await storage.updateUser(session.userId, { onboarded: true });
+
+    const token = req.headers["x-session-token"] as string;
+    sessionCache.set(token, { userId: session.userId, storeId: store.id, role: session.role, cachedAt: Date.now() });
+
+    // Auto-start AI automation for the new store
+    setTimeout(() => {
+      startAutomation(store.id);
+      console.log(`[Automation] Auto-started for new store ${store.id}`);
+    }, 3000);
+
+    res.json({ store, storeId: store.id });
+  });
+
+  app.get("/api/onboarding/check-slug/:slug", async (req, res) => {
+    const slug = req.params.slug.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const existing = await storage.getStoreBySlug(slug);
+    res.json({ available: !existing, slug });
+  });
+
+  // =================== STORES ===================
+
+  app.get("/api/stores", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const stores = await storage.getStoresByUser(session.userId);
+    res.json(stores);
+  });
+
+  app.get("/api/stores/:id", async (req, res) => {
+    const store = await storage.getStore(Number(req.params.id));
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    res.json(store);
+  });
+
+  app.post("/api/stores", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.createStore(session.userId, req.body);
+    res.json(store);
+  });
+
+  app.put("/api/stores/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.updateStore(Number(req.params.id), req.body);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    res.json(store);
+  });
+
+  // =================== CATEGORIES ===================
+
+  app.get("/api/categories", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const cats = await storage.getCategoriesByStore(session.storeId);
+    res.json(cats);
+  });
+
+  app.post("/api/categories", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { name, slug, description, image, parentId, sortOrder } = req.body;
+    if (!name) return res.status(400).json({ error: "กรุณากรอกชื่อหมวดหมู่" });
+    const autoSlug = slug || name.toLowerCase().replace(/[^a-z0-9ก-๙]+/g, "-").replace(/^-|-$/g, "");
+    const cat = await storage.createCategory(session.storeId, { name, slug: autoSlug, description, image, parentId, sortOrder: sortOrder || 0 });
+    res.json(cat);
+  });
+
+  app.put("/api/categories/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const cat = await storage.updateCategory(Number(req.params.id), req.body);
+    if (!cat) return res.status(404).json({ error: "ไม่พบหมวดหมู่" });
+    res.json(cat);
+  });
+
+  app.delete("/api/categories/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteCategory(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // =================== IMAGE UPLOAD ===================
+
+  app.post("/api/upload", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    try {
+      const { fileData, fileName, contentType, folder } = req.body;
+      if (!fileData || !fileName) return res.status(400).json({ error: "กรุณาแนบไฟล์" });
+      const buffer = Buffer.from(fileData, "base64");
+      const path = `stores/${session.storeId}/${folder || "products"}/${Date.now()}-${fileName}`;
+      const { data, error } = await supabaseAdmin.storage.from("zentra-uploads").upload(path, buffer, { contentType: contentType || "image/jpeg", upsert: false });
+      if (error) {
+        if (error.message?.includes("not found") || error.message?.includes("Bucket")) {
+          await supabaseAdmin.storage.createBucket("zentra-uploads", { public: true });
+          const retry = await supabaseAdmin.storage.from("zentra-uploads").upload(path, buffer, { contentType: contentType || "image/jpeg", upsert: false });
+          if (retry.error) throw retry.error;
+          const { data: urlData } = supabaseAdmin.storage.from("zentra-uploads").getPublicUrl(path);
+          return res.json({ url: urlData.publicUrl, path });
+        }
+        throw error;
+      }
+      const { data: urlData } = supabaseAdmin.storage.from("zentra-uploads").getPublicUrl(path);
+      res.json({ url: urlData.publicUrl, path });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "อัพโหลดไม่สำเร็จ" });
+    }
+  });
+
+  // =================== PRODUCTS ===================
+
+  app.get("/api/products", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const products = await storage.getProductsByStore(session.storeId);
+    res.json(products);
+  });
+
+  app.post("/api/products", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const product = await storage.createProduct(session.storeId, req.body);
+    scheduleReindex(session.storeId);
+    res.json(product);
+  });
+
+  app.put("/api/products/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const product = await storage.updateProduct(Number(req.params.id), req.body);
+    if (!product) return res.status(404).json({ error: "ไม่พบสินค้า" });
+    scheduleReindex(session.storeId);
+    res.json(product);
+  });
+
+  app.delete("/api/products/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteProduct(Number(req.params.id));
+    scheduleReindex(session.storeId);
+    res.json({ ok });
+  });
+
+  // =================== ORDERS ===================
+
+  app.get("/api/orders", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const orders = await storage.getOrdersByStore(session.storeId);
+    res.json(orders);
+  });
+
+  app.post("/api/orders", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const order = await storage.createOrder(session.storeId, req.body);
+    scheduleReindex(session.storeId);
+    res.json(order);
+  });
+
+  app.put("/api/orders/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const order = await storage.updateOrder(Number(req.params.id), req.body);
+    if (!order) return res.status(404).json({ error: "ไม่พบคำสั่งซื้อ" });
+    scheduleReindex(session.storeId);
+    res.json(order);
+  });
+
+  // =================== CUSTOMERS ===================
+
+  app.get("/api/customers", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const customers = await storage.getCustomersByStore(session.storeId);
+    res.json(customers);
+  });
+
+  app.post("/api/customers", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const customer = await storage.createCustomer(session.storeId, req.body);
+    scheduleReindex(session.storeId);
+    res.json(customer);
+  });
+
+  app.put("/api/customers/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const customer = await storage.updateCustomer(Number(req.params.id), req.body);
+    if (!customer) return res.status(404).json({ error: "ไม่พบลูกค้า" });
+    scheduleReindex(session.storeId);
+    res.json(customer);
+  });
+
+  // =================== DISCOUNTS ===================
+
+  app.get("/api/discounts", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const discounts = await storage.getDiscountsByStore(session.storeId);
+    res.json(discounts);
+  });
+
+  app.post("/api/discounts", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const discount = await storage.createDiscount(session.storeId, req.body);
+    res.json(discount);
+  });
+
+  app.put("/api/discounts/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const discount = await storage.updateDiscount(Number(req.params.id), req.body);
+    if (!discount) return res.status(404).json({ error: "ไม่พบโค้ดส่วนลด" });
+    res.json(discount);
+  });
+
+  app.delete("/api/discounts/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteDiscount(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // Validate discount code (public)
+  app.post("/api/public/validate-discount", async (req, res) => {
+    const { code, storeSlug, total } = req.body;
+    if (!code || !storeSlug) return res.status(400).json({ valid: false });
+    const store = await storage.getStoreBySlug(storeSlug);
+    if (!store) return res.status(404).json({ valid: false });
+    const discounts = await storage.getDiscountsByStore(store.id);
+    const discount = discounts.find(d => d.code.toLowerCase() === code.toLowerCase() && d.active);
+    if (!discount) return res.json({ valid: false, error: "ไม่พบโค้ดส่วนลด" });
+    if (discount.expiresAt && new Date(discount.expiresAt) < new Date()) return res.json({ valid: false, error: "โค้ดหมดอายุ" });
+    if (discount.maxUses && (discount.usedCount || 0) >= discount.maxUses) return res.json({ valid: false, error: "โค้ดถูกใช้หมดแล้ว" });
+    if (discount.minPurchase && total < discount.minPurchase) return res.json({ valid: false, error: `ยอดขั้นต่ำ ฿${discount.minPurchase}` });
+    const discountAmount = discount.type === "percentage" ? (total * discount.value / 100) : discount.value;
+    res.json({ valid: true, discount: { ...discount }, discountAmount });
+  });
+
+  // =================== AI AGENTS ===================
+
+  app.get("/api/ai-agents", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    // Auto-create default agents if store has none
+    await ensureAgentsExist(session.storeId);
+    const agents = await storage.getAiAgentsByStore(session.storeId);
+    res.json(agents);
+  });
+
+  app.put("/api/ai-agents/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const agent = await storage.updateAiAgent(Number(req.params.id), req.body);
+    if (!agent) return res.status(404).json({ error: "ไม่พบ AI Agent" });
+    res.json(agent);
+  });
+
+  // AI Gemini status & key management
+  // Public Gemini status (no auth) for debugging
+  app.get("/api/ai/gemini-status", async (req, res) => {
+    const status = getGeminiStatus();
+    res.json(status);
+  });
+
+  // Debug test endpoint to verify Gemini API connectivity
+  app.get("/api/ai/test", async (_req, res) => {
+    const status = getGeminiStatus();
+    if (!status.hasKey) {
+      return res.json({ ok: false, error: "No API key configured", status });
+    }
+    try {
+      const result = await chatWithAgent("customer_support", "ทดสอบ: ตอบว่า OK", 1);
+      return res.json({ ok: true, reply: result.reply.slice(0, 200), agentName: result.agentName, memoryUsed: result.memoryUsed });
+    } catch (e: any) {
+      return res.json({ ok: false, error: e.message, status });
+    }
+  });
+
+  app.post("/api/ai/gemini-key", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { apiKey } = req.body;
+    const ok = updateGeminiApiKey(apiKey);
+    res.json({ ok, status: getGeminiStatus() });
+  });
+
+  // AI Text Generation (#16)
+  app.post("/api/ai/generate-text", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { prompt, type } = req.body; // type: description, seo, blog, product
+    if (!prompt) return res.status(400).json({ error: "กรุณาระบุ prompt" });
+    try {
+      const result = await chatWithAgent("shopping_assistant", `[GENERATE ${type?.toUpperCase() || "TEXT"}] ${prompt}`, session.storeId);
+      res.json({ text: result.reply, agentName: result.agentName });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // AI Image Generation placeholder (#16)
+  app.post("/api/ai/generate-image", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { prompt } = req.body;
+    // Gemini doesn't generate images directly, but we can generate a description
+    res.json({
+      success: false,
+      message: "การสร้างรูปภาพด้วย AI ต้องใช้ API เพิ่มเติม (เช่น DALL-E, Stable Diffusion) กรุณาเชื่อมต่อ API ในหน้าการตั้งค่า",
+      prompt,
+    });
+  });
+
+  // =================== DASHBOARD ===================
+
+  app.get("/api/dashboard/stats", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const stats = await storage.getDashboardStats(session.storeId);
+    res.json(stats);
+  });
+
+  app.get("/api/dashboard/chart", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const data = await storage.getChartData(session.storeId);
+    res.json(data);
+  });
+
+  // =================== AI CHAT ===================
+
+  app.post("/api/ai-chat", async (req, res) => {
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const { agentType, message } = req.body;
+      if (!agentType || !message) return res.status(400).json({ error: "กรุณาระบุ agentType และ message" });
+      // Auto-create agents if missing (fixes 'Agent not found' error)
+      await ensureAgentsExist(session.storeId);
+      // Per-user session key so each user gets their own conversation memory
+      const customerId = `user-${session.userId}-store-${session.storeId}`;
+      const result = await chatWithAgent(agentType, message, session.storeId, customerId);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "AI ไม่สามารถตอบกลับได้" });
+    }
+  });
+
+  app.get("/api/ai-chat/history/:agentType", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const history = getChatHistory(req.params.agentType, session.storeId, session.userId);
+    res.json(history);
+  });
+
+  app.delete("/api/ai-chat/history/:agentType", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    clearChatHistory(req.params.agentType, session.storeId, session.userId);
+    res.json({ ok: true });
+  });
+
+  // =================== KNOWLEDGE BASE ===================
+
+  app.get("/api/knowledge-base", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const entries = getKnowledgeEntries(session.storeId);
+    res.json(entries);
+  });
+
+  app.post("/api/knowledge-base", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { title, content, category } = req.body;
+    if (!title || !content || !category) return res.status(400).json({ error: "กรุณากรอก title, content, category" });
+    const entry = addKnowledgeEntry(session.storeId, { title, content, category });
+    res.json(entry);
+  });
+
+  app.delete("/api/knowledge-base/:id", async (req, res) => {
+    const ok = deleteKnowledgeEntry(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  app.post("/api/knowledge-base/reindex", async (req, res) => {
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const result = await reindexStore(session.storeId);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "ไม่สามารถ reindex ได้" });
+    }
+  });
+
+  // MEMORY + RAG Stats
+  app.get("/api/ai/stats", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const memory = getMemoryStats();
+    const rag = getRAGStats(session.storeId);
+    res.json({ memory, rag, gemini: getGeminiStatus() });
+  });
+
+  // =================== EMPLOYEES (#3) ===================
+
+  app.get("/api/employees", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const employees = await storage.getEmployeesByStore(session.storeId);
+    res.json(employees);
+  });
+
+  app.post("/api/employees", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { name, email, role, permissions, pin } = req.body;
+    if (!name) return res.status(400).json({ error: "กรุณากรอกชื่อพนักงาน" });
+    const employee = await storage.createEmployee({ storeId: session.storeId, name, email, role: role || "staff", permissions, pin });
+    res.json(employee);
+  });
+
+  app.put("/api/employees/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const emp = await storage.updateEmployee(Number(req.params.id), req.body);
+    if (!emp) return res.status(404).json({ error: "ไม่พบพนักงาน" });
+    res.json(emp);
+  });
+
+  app.delete("/api/employees/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteEmployee(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // =================== STOCK LOGS (#3) ===================
+
+  app.get("/api/stock-logs", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const logs = await storage.getStockLogsByStore(session.storeId);
+    res.json(logs);
+  });
+
+  app.post("/api/stock-logs", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { productId, type, quantity, reason } = req.body;
+    if (!productId || !type || quantity === undefined) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
+    // Update product stock
+    const product = await storage.getProduct(productId);
+    if (product) {
+      const newStock = type === "adjustment" ? quantity : product.stock + quantity;
+      await storage.updateProduct(productId, { stock: Math.max(0, newStock) });
+    }
+    const log = await storage.createStockLog({ storeId: session.storeId, productId, type, quantity, reason });
+    res.json(log);
+  });
+
+  // =================== BLOG POSTS (#14) ===================
+
+  app.get("/api/blog", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const posts = await storage.getBlogPostsByStore(session.storeId);
+    res.json(posts);
+  });
+
+  app.get("/api/blog/:id", async (req, res) => {
+    const posts = await storage.getAllPublishedPosts();
+    const post = posts.find(p => p.id === Number(req.params.id));
+    if (!post) return res.status(404).json({ error: "ไม่พบบทความ" });
+    res.json(post);
+  });
+
+  app.post("/api/blog", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { title, content, excerpt, coverImage, category, tags, status, seoTitle, seoDescription } = req.body;
+    if (!title || !content) return res.status(400).json({ error: "กรุณากรอกหัวข้อและเนื้อหา" });
+    const slug = title.toLowerCase().replace(/[^a-z0-9ก-๙]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now();
+    const post = await storage.createBlogPost({ storeId: session.storeId, title, slug, content, excerpt, coverImage, category, tags, status: status || "draft", authorId: session.userId, seoTitle, seoDescription });
+    res.json(post);
+  });
+
+  app.put("/api/blog/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const post = await storage.updateBlogPost(Number(req.params.id), req.body);
+    if (!post) return res.status(404).json({ error: "ไม่พบบทความ" });
+    res.json(post);
+  });
+
+  app.delete("/api/blog/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const ok = await storage.deleteBlogPost(Number(req.params.id));
+    res.json({ ok });
+  });
+
+  // Public blog posts
+  app.get("/api/public/blog", async (req, res) => {
+    const posts = await storage.getAllPublishedPosts();
+    res.json(posts);
+  });
+
+  app.get("/api/public/blog/:slug", async (req, res) => {
+    const post = await storage.getBlogPostBySlug(req.params.slug);
+    if (!post || post.status !== "published") return res.status(404).json({ error: "ไม่พบบทความ" });
+    res.json(post);
+  });
+
+  // =================== POS (#6) ===================
+
+  app.post("/api/pos/order", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { items, customerName, paymentMethod, employeeId } = req.body;
+    if (!items || items.length === 0) return res.status(400).json({ error: "กรุณาเพิ่มสินค้า" });
+
+    const subtotal = items.reduce((s: number, item: any) => s + (item.price * item.qty), 0);
+    const order = await storage.createOrder(session.storeId, {
+      customerName: customerName || "Walk-in Customer",
+      total: subtotal,
+      subtotal,
+      discount: 0,
+      status: "completed",
+      paymentMethod: paymentMethod || "cash",
+      paymentStatus: "paid",
+      items,
+      source: "pos",
+      employeeId: employeeId || null,
+    } as any);
+
+    // Update stock
+    for (const item of items) {
+      if (item.productId) {
+        const product = await storage.getProduct(item.productId);
+        if (product && product.stock > 0) {
+          await storage.updateProduct(item.productId, { stock: Math.max(0, product.stock - item.qty) });
+        }
+      }
+    }
+
+    res.json(order);
+  });
+
+  // =================== LINE API ===================
+
+  app.post("/api/line/setup", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { channelId, channelSecret, accessToken } = req.body;
+    if (!channelId || !channelSecret) return res.status(400).json({ error: "กรุณากรอก Channel ID และ Channel Secret" });
+    const store = await storage.updateStore(session.storeId, { lineChannelId: channelId, lineChannelSecret: channelSecret, lineAccessToken: accessToken || null } as any);
+    res.json({ ok: true, store });
+  });
+
+  app.get("/api/line/status", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    res.json({
+      connected: !!(store as any).lineChannelId,
+      channelId: (store as any).lineChannelId || null,
+      hasSecret: !!(store as any).lineChannelSecret,
+      hasAccessToken: !!(store as any).lineAccessToken,
+    });
+  });
+
+  app.post("/api/line/webhook/:storeSlug", async (req, res) => {
+    const store = await storage.getStoreBySlug(req.params.storeSlug);
+    if (!store) return res.status(404).json({ error: "Store not found" });
+    const signature = req.headers["x-line-signature"] as string;
+    const channelSecret = (store as any).lineChannelSecret;
+    if (channelSecret && signature) {
+      const body = JSON.stringify(req.body);
+      const expectedSig = crypto.createHmac("SHA256", channelSecret).update(body).digest("base64");
+      if (signature !== expectedSig) return res.status(403).json({ error: "Invalid signature" });
+    }
+    const events = req.body?.events || [];
+    for (const event of events) {
+      if (event.type === "message" && event.message.type === "text") {
+        await storage.createLineMessage(store.id, { lineUserId: event.source.userId, direction: "inbound", messageType: "text", content: event.message.text, timestamp: new Date(event.timestamp).toISOString() });
+        const accessToken = (store as any).lineAccessToken;
+        if (accessToken) {
+          try {
+            const aiResult = await chatWithAgent("customer_support", event.message.text, store.id, event.source.userId);
+            await fetch("https://api.line.me/v2/bot/message/reply", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+              body: JSON.stringify({ replyToken: event.replyToken, messages: [{ type: "text", text: aiResult.reply.replace(/\n\n_\(.*?\)_$/s, "") }] }),
+            });
+            await storage.createLineMessage(store.id, { lineUserId: event.source.userId, direction: "outbound", messageType: "text", content: aiResult.reply, timestamp: new Date().toISOString() });
+          } catch (err: any) { console.error("LINE reply error:", err.message); }
+        }
+      }
+    }
+    res.json({ ok: true });
+  });
+
+  app.post("/api/line/send", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    const accessToken = (store as any).lineAccessToken;
+    if (!accessToken) return res.status(400).json({ error: "ยังไม่ได้ตั้งค่า LINE Access Token" });
+    const { userId, message } = req.body;
+    if (!userId || !message) return res.status(400).json({ error: "กรุณาระบุ userId และ message" });
+    try {
+      await fetch("https://api.line.me/v2/bot/message/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` }, body: JSON.stringify({ to: userId, messages: [{ type: "text", text: message }] }) });
+      await storage.createLineMessage(store.id, { lineUserId: userId, direction: "outbound", messageType: "text", content: message, timestamp: new Date().toISOString() });
+      res.json({ ok: true });
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
+  });
+
+  app.get("/api/line/messages", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const messages = await storage.getLineMessagesByStore(session.storeId);
+    res.json(messages);
+  });
+
+  // =================== META/FACEBOOK INTEGRATION (#1) ===================
+
+  app.post("/api/meta/setup", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { pixelId, accessToken, catalogId } = req.body;
+    const store = await storage.updateStore(session.storeId, { metaPixelId: pixelId, metaAccessToken: accessToken, metaCatalogId: catalogId } as any);
+    res.json({ ok: true, store });
+  });
+
+  app.get("/api/meta/status", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    res.json({
+      connected: !!(store as any).metaPixelId,
+      pixelId: (store as any).metaPixelId || null,
+      hasCatalog: !!(store as any).metaCatalogId,
+      hasAccessToken: !!(store as any).metaAccessToken,
+    });
+  });
+
+  // =================== API CONNECTIONS STATUS (#1) ===================
+
+  app.get("/api/integrations/status", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const store = await storage.getStore(session.storeId);
+    if (!store) return res.json({ integrations: [] });
+    const gemini = getGeminiStatus();
+    res.json({
+      integrations: [
+        { name: "Gemini AI", type: "ai", connected: gemini.hasKey, icon: "Brain" },
+        { name: "LINE Official Account", type: "messaging", connected: !!(store as any).lineChannelId, icon: "MessageSquare" },
+        { name: "Meta / Facebook", type: "marketing", connected: !!(store as any).metaPixelId, icon: "Share2" },
+        { name: "Stripe", type: "payment", connected: !!(store as any).stripeKey, icon: "CreditCard" },
+        { name: "PromptPay", type: "payment", connected: !!(store as any).paymentMethods && (store.paymentMethods as any)?.promptpay, icon: "Smartphone" },
+        { name: "Supabase", type: "database", connected: true, icon: "Database" },
+      ],
+    });
+  });
+
+  // =================== PUBLIC STOREFRONT ===================
+
+  app.get("/api/public/store/:slug", async (req, res) => {
+    const store = await storage.getStoreBySlug(req.params.slug);
+    if (!store || store.status !== "active") return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    res.json({
+      store: {
+        id: store.id, name: store.name, slug: store.slug, description: store.description,
+        logo: store.logo, theme: store.theme, currency: store.currency,
+        seoTitle: (store as any).seoTitle, seoDescription: (store as any).seoDescription,
+        customBanner: (store as any).customBanner, storeThemeConfig: (store as any).storeThemeConfig,
+        loyaltyEnabled: (store as any).loyaltyEnabled,
+      },
+    });
+  });
+
+  app.get("/api/public/store/:slug/products", async (req, res) => {
+    const store = await storage.getStoreBySlug(req.params.slug);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    const products = await storage.getProductsByStore(store.id);
+    res.json(products.filter((p: any) => p.status === "active"));
+  });
+
+  app.get("/api/public/store/:slug/categories", async (req, res) => {
+    const store = await storage.getStoreBySlug(req.params.slug);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    const cats = await storage.getCategoriesByStore(store.id);
+    res.json(cats);
+  });
+
+  app.post("/api/public/store/:slug/orders", async (req, res) => {
+    const store = await storage.getStoreBySlug(req.params.slug);
+    if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
+    const { customerName, customerEmail, customerPhone, items, shippingAddress, paymentMethod, discountCode } = req.body;
+    if (!customerName || !items || items.length === 0) return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบ" });
+    let subtotal = items.reduce((s: number, item: any) => s + (item.price * item.qty), 0);
+    let discount = 0;
+    if (discountCode) {
+      const discounts = await storage.getDiscountsByStore(store.id);
+      const disc = discounts.find(d => d.code.toLowerCase() === discountCode.toLowerCase() && d.active);
+      if (disc) {
+        discount = disc.type === "percentage" ? (subtotal * disc.value / 100) : disc.value;
+        await storage.updateDiscount(disc.id, { usedCount: (disc.usedCount || 0) + 1 });
+      }
+    }
+    const total = subtotal - discount;
+    const order = await storage.createOrder(store.id, { customerName, customerEmail: customerEmail || "", customerPhone: customerPhone || "", subtotal, discount, total: Math.max(0, total), status: "pending", paymentMethod: paymentMethod || "bank_transfer", paymentStatus: "pending", items, shippingAddress: shippingAddress || "" } as any);
+    for (const item of items) {
+      if (item.productId) {
+        const product = await storage.getProduct(item.productId);
+        if (product && product.stock > 0) await storage.updateProduct(item.productId, { stock: Math.max(0, product.stock - item.qty) });
+      }
+    }
+    if (customerEmail || customerPhone) {
+      try { await storage.createCustomer(store.id, { name: customerName, email: customerEmail || "", phone: customerPhone || "" }); } catch (_) {}
+    }
+    res.json(order);
+  });
+
+  // =================== SHOPPING MALL ===================
+
+  app.get("/api/public/mall/products", async (req, res) => {
+    try {
+      const { category, search, limit, offset } = req.query;
+      const allProducts = await storage.getAllActiveProducts();
+      let filtered = allProducts;
+      if (category && category !== "all") filtered = filtered.filter((p: any) => p.category === category);
+      if (search) { const q = (search as string).toLowerCase(); filtered = filtered.filter((p: any) => p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)); }
+      const total = filtered.length;
+      const lim = Math.min(parseInt(limit as string) || 48, 100);
+      const off = parseInt(offset as string) || 0;
+      filtered = filtered.slice(off, off + lim);
+      res.json({ products: filtered, total, limit: lim, offset: off });
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  app.get("/api/public/mall/stores", async (req, res) => {
+    try {
+      const allStores = await storage.getAllActiveStores();
+      res.json(allStores);
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  app.get("/api/public/mall/categories", async (req, res) => {
+    try {
+      const allProducts = await storage.getAllActiveProducts();
+      const catMap = new Map<string, number>();
+      for (const p of allProducts) { if (p.category) catMap.set(p.category, (catMap.get(p.category) || 0) + 1); }
+      const cats = [...catMap.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+      res.json(cats);
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  // AI Content Generation
+  app.post("/api/ai-generate/text", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      if (!prompt) return res.status(400).json({ error: "Missing prompt" });
+      const result = await chatWithAgent("shopping_assistant", prompt, 1);
+      res.json({ text: result.reply });
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  app.post("/api/ai-generate/image", async (req, res) => {
+    try {
+      const { prompt, style } = req.body;
+      if (!prompt) return res.status(400).json({ error: "Missing prompt" });
+      const descPrompt = `Generate a detailed image description in English for: ${prompt}. Style: ${style || "product photo"}. Respond with only the image description, nothing else.`;
+      const result = await chatWithAgent("visual_search", descPrompt, 1);
+      res.json({ description: result.reply, imageUrl: null, note: "Image generation via Gemini Imagen coming soon. Description generated." });
+    } catch (error: any) { res.status(500).json({ error: error.message }); }
+  });
+
+  // =================== AUTOMATION ENGINE ===================
+
+  // Get all automation states for store
+  app.get("/api/automation/states", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const states = getAllAutomationStates(session.storeId);
+    res.json(states);
+  });
+
+  // Get single agent automation state
+  app.get("/api/automation/state/:agentType", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const state = getAutomationState(req.params.agentType, session.storeId);
+    res.json(state);
+  });
+
+  // Trigger a specific agent manually
+  app.post("/api/automation/trigger/:agentType", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    try {
+      const task = await triggerAgent(req.params.agentType, session.storeId);
+      // Update agent status in DB
+      const agents = await storage.getAiAgentsByStore(session.storeId);
+      const agent = agents.find(a => a.type === req.params.agentType);
+      if (agent) {
+        await storage.updateAiAgent(agent.id, { status: task.status === "completed" ? "active" : "error", lastActive: new Date().toISOString() });
+      }
+      res.json(task);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Trigger ALL enabled agents
+  app.post("/api/automation/trigger-all", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    try {
+      const agents = await storage.getAiAgentsByStore(session.storeId);
+      const results: any[] = [];
+      for (const agent of agents) {
+        if (agent.enabled) {
+          try {
+            const task = await triggerAgent(agent.type, session.storeId);
+            await storage.updateAiAgent(agent.id, { status: task.status === "completed" ? "active" : "error", lastActive: new Date().toISOString() });
+            results.push({ agentType: agent.type, status: task.status, taskId: task.id });
+          } catch (e: any) {
+            results.push({ agentType: agent.type, status: "failed", error: e.message });
+          }
+        }
+      }
+      res.json({ results, triggeredAt: new Date().toISOString() });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get automation stats summary
+  app.get("/api/automation/stats", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const stats = getAutomationStats(session.storeId);
+    res.json(stats);
+  });
+
+  // Get insights (all or by agent)
+  app.get("/api/automation/insights", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const agentType = req.query.agentType as string | undefined;
+    const unreadOnly = req.query.unreadOnly === "true";
+    const insights = getInsights(session.storeId, agentType, unreadOnly);
+    res.json(insights);
+  });
+
+  // Mark insight as read
+  app.post("/api/automation/insights/:id/read", async (req, res) => {
+    markInsightRead(req.params.id);
+    res.json({ ok: true });
+  });
+
+  // Start automation scheduler
+  app.post("/api/automation/start", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    startAutomation(session.storeId);
+    res.json({ ok: true, message: "Automation started" });
+  });
+
+  // Stop automation scheduler
+  app.post("/api/automation/stop", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    stopAutomation(session.storeId);
+    res.json({ ok: true, message: "Automation stopped" });
+  });
+}
