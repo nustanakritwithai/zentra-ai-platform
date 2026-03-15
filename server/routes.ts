@@ -277,28 +277,22 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Temporary debug endpoint — remove after Google OAuth works
   app.get("/api/auth/google/env-check", (req, res) => {
-    const allKeys = Object.keys(process.env);
+    const allKeys = Object.keys(process.env).sort();
     const googleEnvKeys = allKeys.filter(k => k.toUpperCase().includes("GOOGLE"));
-    const gKeys = allKeys.filter(k => k.startsWith("G")).sort();
+    // Show ALL user-set env keys (filter out common system ones)
+    const systemPrefixes = ["KUBERNETES", "PIPENV", "UV_", "NPM_", "YARN_", "NODE_", "RENDER_", "HOME", "PATH", "LANG", "TERM", "SHELL", "USER", "PWD", "HOSTNAME", "SHLVL", "OLDPWD", "_", "LS_COLORS", "BLACK", "RED", "GREEN", "YELLOW", "BLUE", "MAGENTA", "CYAN", "WHITE", "BOLD", "RESET", "ENTER_STANDOUT", "EXIT_STANDOUT", "DEFAULT_NODE_VERSION", "IS_PULL_REQUEST", "GATSBY_TELEMETRY_DISABLED"];
+    const userKeys = allKeys.filter(k => !systemPrefixes.some(p => k === p || k.startsWith(p + "_") || k.startsWith(p)));
     // Also check real-time read (not cached at startup)
     const liveClientId = process.env.GOOGLE_CLIENT_ID || "";
     const liveClientSecret = process.env.GOOGLE_CLIENT_SECRET || "";
     res.json({
       clientIdSet: !!GOOGLE_CLIENT_ID,
-      clientIdLength: GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.length : 0,
-      clientIdPrefix: GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.substring(0, 12) + "..." : "none",
-      clientSecretSet: !!GOOGLE_CLIENT_SECRET,
-      clientSecretLength: GOOGLE_CLIENT_SECRET ? GOOGLE_CLIENT_SECRET.length : 0,
       liveClientIdSet: !!liveClientId,
-      liveClientIdLength: liveClientId.length,
       liveClientSecretSet: !!liveClientSecret,
-      liveClientSecretLength: liveClientSecret.length,
       googleEnvKeys,
-      gKeys,
+      userKeys,
       totalEnvVarCount: allKeys.length,
-      nodeEnv: process.env.NODE_ENV || "not set",
-      renderServiceId: process.env.RENDER_SERVICE_ID || "not set",
-      renderInstance: process.env.RENDER_INSTANCE_ID || "not set",
+      renderInstance: process.env.RENDER_INSTANCE_ID || process.env.HOSTNAME || "not set",
     });
   });
 
