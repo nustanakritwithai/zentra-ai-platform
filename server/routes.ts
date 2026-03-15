@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { supabaseAdmin, SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase";
+import { getPlanLimits } from "@shared/schema";
 import {
   chatWithAgent,
   getChatHistory,
@@ -190,7 +191,15 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const userRole = (user as any).role || "seller";
     const token = generateToken(user.id, userRole);
     sessionCache.set(token, { userId: user.id, storeId, role: userRole, cachedAt: Date.now() });
-    res.json({ user: { ...user, password: undefined }, token, storeId, role: userRole });
+    const planLimits = getPlanLimits(user.plan || "free");
+    res.json({
+      user: { ...user, password: undefined },
+      token,
+      storeId,
+      stores: stores.map(s => ({ id: s.id, name: s.name, slug: s.slug, status: s.status, logo: s.logo })),
+      role: userRole,
+      plan: { name: user.plan || "free", maxStores: planLimits.maxStores, label: planLimits.label, labelTh: planLimits.labelTh },
+    });
   });
 
   app.get("/api/auth/me", async (req, res) => {
@@ -199,11 +208,25 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const user = await storage.getUser(session.userId);
     if (!user) return res.status(401).json({ error: "ไม่พบผู้ใช้" });
     const stores = await storage.getStoresByUser(user.id);
-    const storeId = stores.length > 0 ? stores[0].id : 0;
+    // Use session's storeId if valid, otherwise first store or 0
+    let activeStoreId = session.storeId;
+    if (activeStoreId && !stores.find(s => s.id === activeStoreId)) {
+      activeStoreId = stores.length > 0 ? stores[0].id : 0;
+    }
+    if (!activeStoreId && stores.length > 0) {
+      activeStoreId = stores[0].id;
+    }
     // Update cache with latest storeId
     const token = req.headers["x-session-token"] as string;
-    if (token) sessionCache.set(token, { userId: user.id, storeId, role: session.role, cachedAt: Date.now() });
-    res.json({ user: { ...user, password: undefined }, storeId, role: session.role });
+    if (token) sessionCache.set(token, { userId: user.id, storeId: activeStoreId, role: session.role, cachedAt: Date.now() });
+    const planLimits = getPlanLimits(user.plan || "free");
+    res.json({
+      user: { ...user, password: undefined },
+      storeId: activeStoreId,
+      stores: stores.map(s => ({ id: s.id, name: s.name, slug: s.slug, status: s.status, logo: s.logo })),
+      role: session.role,
+      plan: { name: user.plan || "free", maxStores: planLimits.maxStores, label: planLimits.label, labelTh: planLimits.labelTh },
+    });
   });
 
   app.post("/api/auth/logout", (req, res) => {
@@ -213,18 +236,38 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // =================== GOOGLE OAUTH ===================
-  // Read from env vars first, fallback to Render Secret Files (/etc/secrets/)
-  function readSecret(name: string): string {
+  // Read from env vars OR Render Secret Files (mounted at /etc/secrets/ or project root)
+  function readGoogleSecret(name: string): string {
+    // 1. Check environment variable
     if (process.env[name]) return process.env[name]!;
-    try {
-      const fs = require("fs");
-      const val = fs.readFileSync(`/etc/secrets/${name}`, "utf8").trim();
-      if (val) return val;
-    } catch {}
+    // 2. Check Render Secret Files at various paths
+    const fs = require("fs");
+    const paths = [
+      `/etc/secrets/${name}`,
+      `/opt/render/project/src/${name}`,
+      `./${name}`,
+      `${name}`,
+    ];
+    for (const p of paths) {
+      try {
+        const val = fs.readFileSync(p, "utf8").trim();
+        if (val) {
+          console.log(`[Google OAuth] Read ${name} from file: ${p}`);
+          return val;
+        }
+      } catch {}
+    }
+    console.error(`[Google OAuth] ${name} not found in env or secret files`);
     return "";
   }
-  const GOOGLE_CLIENT_ID = readSecret("GOOGLE_CLIENT_ID");
-  const GOOGLE_CLIENT_SECRET = readSecret("GOOGLE_CLIENT_SECRET");
+  const GOOGLE_CLIENT_ID = readGoogleSecret("GOOGLE_CLIENT_ID");
+  const GOOGLE_CLIENT_SECRET = readGoogleSecret("GOOGLE_CLIENT_SECRET");
+  console.log(`[Google OAuth] Client ID loaded: ${GOOGLE_CLIENT_ID ? "YES (" + GOOGLE_CLIENT_ID.length + " chars, starts with: " + GOOGLE_CLIENT_ID.substring(0, 8) + "...)" : "NO"}`);
+  console.log(`[Google OAuth] Client Secret loaded: ${GOOGLE_CLIENT_SECRET ? "YES (" + GOOGLE_CLIENT_SECRET.length + " chars)" : "NO"}`);
+  // Log ALL env var keys that contain GOOGLE (for debugging)
+  const allEnvKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes("GOOGLE"));
+  console.log(`[Google OAuth] Env vars containing GOOGLE: ${allEnvKeys.length > 0 ? allEnvKeys.join(", ") : "NONE"}`);  
+  console.log(`[Google OAuth] All env var count: ${Object.keys(process.env).length}`);
   // Determine the redirect URI based on the deploy URL or localhost
   function getGoogleRedirectUri(req: Request): string {
     const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
@@ -232,27 +275,29 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     return `${proto}://${host}/api/auth/google/callback`;
   }
 
-  // Debug endpoint (temporary) to check Google OAuth env vars
-  app.get("/api/auth/google/debug", (_req, res) => {
-    const envId = process.env.GOOGLE_CLIENT_ID || "";
-    const secretId = readSecret("GOOGLE_CLIENT_ID");
-    const allEnvKeys = Object.keys(process.env).filter(k => k.includes("GOOGLE")).join(", ");
+  // Temporary debug endpoint — remove after Google OAuth works
+  app.get("/api/auth/google/env-check", (req, res) => {
+    const googleEnvKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes("GOOGLE"));
+    const allKeysSample = Object.keys(process.env).slice(0, 30);
     res.json({
-      envVarSet: !!envId,
-      envVarLength: envId.length,
-      envVarPrefix: envId.slice(0, 10) + "...",
-      secretFileSet: !!secretId,
-      secretFileLength: secretId.length,
-      resolvedSet: !!GOOGLE_CLIENT_ID,
-      resolvedLength: GOOGLE_CLIENT_ID.length,
-      googleEnvKeys: allEnvKeys || "none",
+      clientIdSet: !!GOOGLE_CLIENT_ID,
+      clientIdLength: GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.length : 0,
+      clientIdPrefix: GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.substring(0, 12) + "..." : "none",
+      clientSecretSet: !!GOOGLE_CLIENT_SECRET,
+      clientSecretLength: GOOGLE_CLIENT_SECRET ? GOOGLE_CLIENT_SECRET.length : 0,
+      googleEnvKeys,
+      totalEnvVarCount: Object.keys(process.env).length,
+      envKeySample: allKeysSample,
+      nodeEnv: process.env.NODE_ENV || "not set",
+      renderServiceId: process.env.RENDER_SERVICE_ID || "not set",
+      renderInstance: process.env.RENDER_INSTANCE_ID || "not set",
     });
   });
 
   app.get("/api/auth/google/url", (req, res) => {
     // Require GOOGLE_CLIENT_ID — Direct Google OAuth (most reliable)
     if (!GOOGLE_CLIENT_ID) {
-      console.error("[Google OAuth] GOOGLE_CLIENT_ID not set. env:", !!process.env.GOOGLE_CLIENT_ID, "secret:", !!readSecret("GOOGLE_CLIENT_ID"));
+      console.error("[Google OAuth] GOOGLE_CLIENT_ID not set");
       return res.json({ error: "Google Login ยังไม่ได้ตั้งค่า กรุณาติดต่อผู้ดูแลระบบ" });
     }
     // Direct Google OAuth
@@ -355,6 +400,19 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const session = await getSession(req);
     if (!session) return res.status(401).json({ error: "กรุณาเข้าสู่ระบบ" });
 
+    // Check plan limits
+    const user = await storage.getUser(session.userId);
+    if (!user) return res.status(401).json({ error: "ไม่พบผู้ใช้" });
+    const planLimits = getPlanLimits(user.plan || "free");
+    const storeCount = await storage.getStoreCount(session.userId);
+    if (storeCount >= planLimits.maxStores) {
+      return res.status(403).json({
+        error: `แพ็กเกจ ${planLimits.label} สร้างร้านค้าได้สูงสุด ${planLimits.maxStores} ร้าน`,
+        currentCount: storeCount,
+        maxStores: planLimits.maxStores,
+      });
+    }
+
     const { name, slug, description, currency, category } = req.body;
     if (!name || !slug) return res.status(400).json({ error: "กรุณากรอกชื่อร้านและ URL" });
 
@@ -434,8 +492,41 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   app.post("/api/stores", async (req, res) => {
     const session = await requireAuth(req, res);
     if (!session) return;
+    // Check plan limits
+    const user = await storage.getUser(session.userId);
+    if (!user) return res.status(401).json({ error: "ไม่พบผู้ใช้" });
+    const planLimits = getPlanLimits(user.plan || "free");
+    const storeCount = await storage.getStoreCount(session.userId);
+    if (storeCount >= planLimits.maxStores) {
+      return res.status(403).json({
+        error: `แพ็กเกจ ${planLimits.label} สร้างร้านค้าได้สูงสุด ${planLimits.maxStores} ร้าน กรุณาอัปเกรดแพ็กเกจเพื่อเพิ่มจำนวนร้านค้า`,
+        currentCount: storeCount,
+        maxStores: planLimits.maxStores,
+        plan: user.plan,
+      });
+    }
     const store = await storage.createStore(session.userId, req.body);
+    // Auto-switch to the new store
+    const token = req.headers["x-session-token"] as string;
+    if (token) sessionCache.set(token, { userId: session.userId, storeId: store.id, role: session.role, cachedAt: Date.now() });
     res.json(store);
+  });
+
+  // Switch active store
+  app.post("/api/stores/switch", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { storeId } = req.body;
+    if (!storeId) return res.status(400).json({ error: "กรุณาระบุ storeId" });
+    // Verify user owns this store
+    const store = await storage.getStore(storeId);
+    if (!store || store.userId !== session.userId) {
+      return res.status(403).json({ error: "คุณไม่มีสิทธิ์เข้าถึงร้านค้านี้" });
+    }
+    // Update session cache
+    const token = req.headers["x-session-token"] as string;
+    if (token) sessionCache.set(token, { userId: session.userId, storeId: store.id, role: session.role, cachedAt: Date.now() });
+    res.json({ ok: true, storeId: store.id, storeName: store.name });
   });
 
   app.put("/api/stores/:id", async (req, res) => {
@@ -444,6 +535,28 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const store = await storage.updateStore(Number(req.params.id), req.body);
     if (!store) return res.status(404).json({ error: "ไม่พบร้านค้า" });
     res.json(store);
+  });
+
+  // Delete store
+  app.delete("/api/stores/:id", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const storeId = Number(req.params.id);
+    // Verify user owns this store
+    const store = await storage.getStore(storeId);
+    if (!store || store.userId !== session.userId) {
+      return res.status(403).json({ error: "คุณไม่มีสิทธิ์ลบร้านค้านี้" });
+    }
+    const success = await storage.deleteStore(storeId);
+    if (!success) return res.status(500).json({ error: "ไม่สามารถลบร้านค้าได้" });
+    // If deleted store was active, switch to another store
+    if (session.storeId === storeId) {
+      const remaining = await storage.getStoresByUser(session.userId);
+      const newStoreId = remaining.length > 0 ? remaining[0].id : 0;
+      const token = req.headers["x-session-token"] as string;
+      if (token) sessionCache.set(token, { userId: session.userId, storeId: newStoreId, role: session.role, cachedAt: Date.now() });
+    }
+    res.json({ ok: true });
   });
 
   // =================== CATEGORIES ===================
