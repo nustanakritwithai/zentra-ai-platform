@@ -36,6 +36,7 @@ export default function AuthPage() {
       window.history.replaceState(null, "", cleanHash || "#/");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       toast({ title: "เข้าสู่ระบบสำเร็จ", description: "ยินดีต้อนรับ!" });
+      // AuthGuard will redirect to /stores if no stores exist
       navigate("/dashboard");
     }
   }, []);
