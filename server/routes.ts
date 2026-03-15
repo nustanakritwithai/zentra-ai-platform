@@ -277,17 +277,25 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // Temporary debug endpoint — remove after Google OAuth works
   app.get("/api/auth/google/env-check", (req, res) => {
-    const googleEnvKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes("GOOGLE"));
-    const allKeysSample = Object.keys(process.env).slice(0, 30);
+    const allKeys = Object.keys(process.env);
+    const googleEnvKeys = allKeys.filter(k => k.toUpperCase().includes("GOOGLE"));
+    const gKeys = allKeys.filter(k => k.startsWith("G")).sort();
+    // Also check real-time read (not cached at startup)
+    const liveClientId = process.env.GOOGLE_CLIENT_ID || "";
+    const liveClientSecret = process.env.GOOGLE_CLIENT_SECRET || "";
     res.json({
       clientIdSet: !!GOOGLE_CLIENT_ID,
       clientIdLength: GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.length : 0,
       clientIdPrefix: GOOGLE_CLIENT_ID ? GOOGLE_CLIENT_ID.substring(0, 12) + "..." : "none",
       clientSecretSet: !!GOOGLE_CLIENT_SECRET,
       clientSecretLength: GOOGLE_CLIENT_SECRET ? GOOGLE_CLIENT_SECRET.length : 0,
+      liveClientIdSet: !!liveClientId,
+      liveClientIdLength: liveClientId.length,
+      liveClientSecretSet: !!liveClientSecret,
+      liveClientSecretLength: liveClientSecret.length,
       googleEnvKeys,
-      totalEnvVarCount: Object.keys(process.env).length,
-      envKeySample: allKeysSample,
+      gKeys,
+      totalEnvVarCount: allKeys.length,
       nodeEnv: process.env.NODE_ENV || "not set",
       renderServiceId: process.env.RENDER_SERVICE_ID || "not set",
       renderInstance: process.env.RENDER_INSTANCE_ID || "not set",
