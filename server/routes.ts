@@ -271,11 +271,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   }
   const GOOGLE_CLIENT_ID = readGoogleSecret("GOOGLE_CLIENT_ID");
   const GOOGLE_CLIENT_SECRET = readGoogleSecret("GOOGLE_CLIENT_SECRET");
-  console.log(`[Google OAuth] Client ID loaded: ${GOOGLE_CLIENT_ID ? "YES (" + GOOGLE_CLIENT_ID.length + " chars)" : "NO"}`);
-  console.log(`[Google OAuth] Client Secret loaded: ${GOOGLE_CLIENT_SECRET ? "YES (" + GOOGLE_CLIENT_SECRET.length + " chars)" : "NO"}`);
-  const allEnvKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes("GOOGLE"));
-  console.log(`[Google OAuth] Env vars containing GOOGLE: ${allEnvKeys.length > 0 ? allEnvKeys.join(", ") : "NONE"}`);  
-  console.log(`[Google OAuth] All env var count: ${Object.keys(process.env).length}`);
+  console.log(`[Google OAuth] Client ID: ${GOOGLE_CLIENT_ID ? "OK" : "MISSING"}, Secret: ${GOOGLE_CLIENT_SECRET ? "OK" : "MISSING"}`);
   // Determine the redirect URI based on the deploy URL or localhost
   function getGoogleRedirectUri(req: Request): string {
     const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
@@ -283,26 +279,6 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     return `${proto}://${host}/api/auth/google/callback`;
   }
 
-  // Temporary debug endpoint — remove after Google OAuth works
-  app.get("/api/auth/google/env-check", (req, res) => {
-    const allKeys = Object.keys(process.env).sort();
-    const googleEnvKeys = allKeys.filter(k => k.toUpperCase().includes("GOOGLE"));
-    // Show ALL user-set env keys (filter out common system ones)
-    const systemPrefixes = ["KUBERNETES", "PIPENV", "UV_", "NPM_", "YARN_", "NODE_", "RENDER_", "HOME", "PATH", "LANG", "TERM", "SHELL", "USER", "PWD", "HOSTNAME", "SHLVL", "OLDPWD", "_", "LS_COLORS", "BLACK", "RED", "GREEN", "YELLOW", "BLUE", "MAGENTA", "CYAN", "WHITE", "BOLD", "RESET", "ENTER_STANDOUT", "EXIT_STANDOUT", "DEFAULT_NODE_VERSION", "IS_PULL_REQUEST", "GATSBY_TELEMETRY_DISABLED"];
-    const userKeys = allKeys.filter(k => !systemPrefixes.some(p => k === p || k.startsWith(p + "_") || k.startsWith(p)));
-    // Also check real-time read (not cached at startup)
-    const liveClientId = process.env.GOOGLE_CLIENT_ID || "";
-    const liveClientSecret = process.env.GOOGLE_CLIENT_SECRET || "";
-    res.json({
-      clientIdSet: !!GOOGLE_CLIENT_ID,
-      liveClientIdSet: !!liveClientId,
-      liveClientSecretSet: !!liveClientSecret,
-      googleEnvKeys,
-      userKeys,
-      totalEnvVarCount: allKeys.length,
-      renderInstance: process.env.RENDER_INSTANCE_ID || process.env.HOSTNAME || "not set",
-    });
-  });
 
   app.get("/api/auth/google/url", (req, res) => {
     // Require GOOGLE_CLIENT_ID — Direct Google OAuth (most reliable)
