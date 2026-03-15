@@ -48,11 +48,11 @@ export default function AuthPage() {
         if (result.storeId && result.storeId > 0) {
           navigate("/dashboard");
         } else {
-          navigate(role === "buyer" ? "/mall" : "/onboarding");
+          navigate(role === "buyer" ? "/mall" : "/stores");
         }
       } else {
         await register({ name, email, password, role });
-        navigate(role === "buyer" ? "/mall" : "/onboarding");
+        navigate(role === "buyer" ? "/mall" : "/stores");
       }
     } catch (err: any) {
       toast({ title: "เกิดข้อผิดพลาด", description: err?.message || "กรุณาลองใหม่", variant: "destructive" });

@@ -11,9 +11,11 @@ export interface IStorage {
   getStore(id: number): Promise<Store | undefined>;
   getStoreBySlug(slug: string): Promise<Store | undefined>;
   getStoresByUser(userId: number): Promise<Store[]>;
+  getStoreCount(userId: number): Promise<number>;
   getAllActiveStores(): Promise<Store[]>;
   createStore(userId: number, store: InsertStore): Promise<Store>;
   updateStore(id: number, data: Partial<Store>): Promise<Store | undefined>;
+  deleteStore(id: number): Promise<boolean>;
   // Products
   getProduct(id: number): Promise<Product | undefined>;
   getProductsByStore(storeId: number): Promise<Product[]>;
@@ -197,6 +199,12 @@ class HybridStorage implements IStorage {
     return (data || []).map(r => mergeExtra("stores", toCamel(r)) as Store);
   }
 
+  async getStoreCount(userId: number): Promise<number> {
+    const { count, error } = await supabaseAdmin.from("stores").select("id", { count: "exact", head: true }).eq("user_id", userId);
+    if (error) return 0;
+    return count || 0;
+  }
+
   async getAllActiveStores(): Promise<Store[]> {
     const { data } = await supabaseAdmin.from("stores").select("*").eq("status", "active");
     return (data || []).map(r => mergeExtra("stores", toCamel(r)) as Store);
@@ -235,6 +243,19 @@ class HybridStorage implements IStorage {
     }
     if (Object.keys(extraData).length > 0) setExtra("stores", id, extraData);
     return this.getStore(id);
+  }
+
+  async deleteStore(id: number): Promise<boolean> {
+    // Delete related data first
+    await supabaseAdmin.from("products").delete().eq("store_id", id);
+    await supabaseAdmin.from("orders").delete().eq("store_id", id);
+    await supabaseAdmin.from("customers").delete().eq("store_id", id);
+    await supabaseAdmin.from("categories").delete().eq("store_id", id);
+    await supabaseAdmin.from("discounts").delete().eq("store_id", id);
+    try { await supabaseAdmin.from("ai_agents").delete().eq("store_id", id); } catch {}
+    const { error } = await supabaseAdmin.from("stores").delete().eq("id", id);
+    extraFields.get("stores")?.delete(id);
+    return !error;
   }
 
   // =================== PRODUCTS (Supabase + extras) ===================

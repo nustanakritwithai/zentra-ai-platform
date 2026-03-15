@@ -101,7 +101,7 @@ export default function OnboardingPage() {
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/stores"] });
       setStep(4); // Success step
-      setTimeout(() => navigate("/dashboard"), 1500);
+      setTimeout(() => navigate("/dashboard"), 1500); // Go to dashboard for the new store
     } catch (err: any) {
       toast({ title: "เกิดข้อผิดพลาด", description: err?.message || "กรุณาลองใหม่", variant: "destructive" });
     }

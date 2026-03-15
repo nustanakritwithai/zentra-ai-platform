@@ -3,16 +3,33 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest, setSessionToken, getSessionToken } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 
-interface AuthState {
-  user: User | null;
+interface StoreInfo {
+  id: number;
+  name: string;
+  slug: string;
+  status: string;
+  logo: string | null;
+}
+
+interface PlanInfo {
+  name: string;
+  maxStores: number;
+  label: string;
+  labelTh: string;
+}
+
+interface AuthData {
+  user: User;
   storeId: number;
-  isAuthenticated: boolean;
+  stores: StoreInfo[];
+  role: string;
+  plan: PlanInfo;
 }
 
 export function useAuth() {
-  const [storeId, setStoreId] = useState<number>(0);
+  const [activeStoreId, setActiveStoreId] = useState<number>(0);
 
-  const { data, isLoading, refetch } = useQuery<{ user: User; storeId: number } | null>({
+  const { data, isLoading, refetch } = useQuery<AuthData | null>({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
       const token = getSessionToken();
@@ -24,14 +41,13 @@ export function useAuth() {
           { headers: { "x-session-token": token } }
         );
         if (!res.ok) {
-          // Token is invalid — clear it
           if (res.status === 401) {
             setSessionToken(null);
           }
           return null;
         }
         const data = await res.json();
-        if (data.storeId) setStoreId(data.storeId);
+        if (data.storeId) setActiveStoreId(data.storeId);
         return data;
       } catch {
         return null;
@@ -42,7 +58,7 @@ export function useAuth() {
     refetchOnWindowFocus: true,
   });
 
-  // Re-check auth when window regains focus (helps with session persistence)
+  // Re-check auth when window regains focus
   useEffect(() => {
     const handleFocus = () => {
       const token = getSessionToken();
@@ -59,7 +75,7 @@ export function useAuth() {
       const res = await apiRequest("POST", "/api/auth/login", creds);
       const json = await res.json();
       if (json.token) setSessionToken(json.token);
-      if (json.storeId) setStoreId(json.storeId);
+      if (json.storeId) setActiveStoreId(json.storeId);
       return json;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] }),
@@ -81,7 +97,7 @@ export function useAuth() {
         await apiRequest("POST", "/api/auth/logout");
       } catch {}
       setSessionToken(null);
-      setStoreId(0);
+      setActiveStoreId(0);
       return { ok: true };
     },
     onSuccess: () => {
@@ -89,18 +105,44 @@ export function useAuth() {
     },
   });
 
+  // Switch active store
+  const switchStore = useCallback(async (storeId: number) => {
+    try {
+      const res = await apiRequest("POST", "/api/stores/switch", { storeId });
+      const json = await res.json();
+      if (json.ok) {
+        setActiveStoreId(storeId);
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        // Invalidate all store-scoped queries
+        await queryClient.invalidateQueries({ queryKey: ["/api/stores"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      }
+      return json;
+    } catch (err) {
+      console.error("Failed to switch store:", err);
+      return { ok: false };
+    }
+  }, []);
+
   const isAuthenticated = !!getSessionToken() && !!data?.user;
 
   return {
     user: data?.user || null,
-    storeId: data?.storeId || storeId,
+    storeId: data?.storeId || activeStoreId,
+    stores: data?.stores || [],
+    plan: data?.plan || { name: "free", maxStores: 1, label: "Free", labelTh: "ฟรี" },
     isLoading,
     isAuthenticated,
     login: loginMutation.mutateAsync,
     register: registerMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
+    switchStore,
     isLoginPending: loginMutation.isPending,
     isRegisterPending: registerMutation.isPending,
-    setStoreId,
+    setStoreId: setActiveStoreId,
   };
 }

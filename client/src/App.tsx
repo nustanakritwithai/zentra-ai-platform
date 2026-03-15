@@ -31,6 +31,7 @@ import IntegrationsPage from "@/pages/integrations";
 import BuyerProfilePage from "@/pages/buyer-profile";
 import StoreEditorPage from "@/pages/store-editor";
 import AiGeneratePage from "@/pages/ai-generate";
+import StoresPage from "@/pages/stores";
 import NotFound from "@/pages/not-found";
 
 function AppRouter() {
@@ -38,6 +39,7 @@ function AppRouter() {
     <Switch>
       <Route path="/" component={LandingPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/stores" component={StoresPage} />
       <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/store" component={StoreSettingsPage} />

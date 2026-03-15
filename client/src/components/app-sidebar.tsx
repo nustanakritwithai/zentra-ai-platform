@@ -4,9 +4,9 @@ import { useTheme } from "@/components/theme-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap, FolderOpen, TicketPercent, ShoppingBag, Link2, Globe, Plug, Warehouse, UserCheck, FileText, Monitor, PenTool, Wand2 } from "lucide-react";
+import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap, FolderOpen, TicketPercent, ShoppingBag, Link2, Globe, Plug, Warehouse, UserCheck, FileText, Monitor, PenTool, Wand2, ChevronDown, Plus, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Store as StoreType } from "@shared/schema";
 
@@ -58,20 +58,33 @@ function AnimatedIcon({ icon: Icon, active, className }: { icon: any; active: bo
 }
 
 export function AppSidebar() {
-  const [location] = useLocation();
-  const { user, logout } = useAuth();
+  const [location, navigate] = useLocation();
+  const { user, logout, stores, storeId, switchStore, plan } = useAuth();
   const { theme, toggle } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [storeDropdownOpen, setStoreDropdownOpen] = useState(false);
+  const storeDropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => { setMounted(true); }, []);
 
-  const { data: stores = [] } = useQuery<StoreType[]>({ queryKey: ["/api/stores"] });
-  const store = stores.length > 0 ? stores[0] : null;
-  const storeUrl = store ? `${window.location.origin}/#/shop/${store.slug}` : null;
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (storeDropdownRef.current && !storeDropdownRef.current.contains(e.target as Node)) {
+        setStoreDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const { data: fullStores = [] } = useQuery<StoreType[]>({ queryKey: ["/api/stores"] });
+  const activeStore = fullStores.find(s => s.id === storeId) || (fullStores.length > 0 ? fullStores[0] : null);
+  const storeUrl = activeStore ? `${window.location.origin}/#/shop/${activeStore.slug}` : null;
 
   const copyStoreLink = () => {
     if (storeUrl) {
@@ -80,6 +93,13 @@ export function AppSidebar() {
       toast({ title: "คัดลอกลิงก์แล้ว" });
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleSwitchStore = async (sid: number) => {
+    setStoreDropdownOpen(false);
+    if (sid === storeId) return;
+    await switchStore(sid);
+    toast({ title: "เปลี่ยนร้านค้าสำเร็จ" });
   };
 
   const groups = ["main", "ai", "store", "marketplace", "other"];
@@ -109,35 +129,114 @@ export function AppSidebar() {
       >
         <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-teal-500/0 via-teal-500/20 to-teal-500/0" />
 
-        {/* Logo + Store Name */}
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-white/[0.06] shrink-0 relative overflow-hidden">
+        {/* Store Switcher */}
+        <div className="relative px-3 pt-3 pb-2 border-b border-white/[0.06] shrink-0" ref={storeDropdownRef}>
           <div className="absolute inset-0 bg-gradient-to-r from-teal-500/[0.03] to-transparent" />
-          <div className="relative group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300 group-hover:scale-105">
-              {store ? store.name.charAt(0).toUpperCase() : "Z"}
+          <button
+            data-testid="store-switcher"
+            className={cn(
+              "relative w-full flex items-center gap-3 px-2.5 py-2 rounded-xl transition-all duration-200",
+              "hover:bg-white/[0.04] group"
+            )}
+            onClick={() => !collapsed && setStoreDropdownOpen(!storeDropdownOpen)}
+          >
+            <div className="relative">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300 group-hover:scale-105">
+                {activeStore ? activeStore.name.charAt(0).toUpperCase() : "Z"}
+              </div>
+              <div className="absolute -inset-1 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300" />
             </div>
-            <div className="absolute -inset-1 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300" />
-          </div>
-          {!collapsed && (
-            <div className={cn("flex-1 min-w-0 transition-opacity duration-300", mounted ? "opacity-100" : "opacity-0")}>
-              <span className="font-bold text-sm tracking-tight truncate block bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">
-                {store ? store.name : "ZENTRA AI"}
-              </span>
-              {store && (
-                <span className="text-[10px] text-teal-400/50 truncate block">/{store.slug}</span>
-              )}
+            {!collapsed && (
+              <>
+                <div className={cn("flex-1 min-w-0 text-left transition-opacity duration-300", mounted ? "opacity-100" : "opacity-0")}>
+                  <span className="font-bold text-sm tracking-tight truncate block bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">
+                    {activeStore ? activeStore.name : "ZENTRA AI"}
+                  </span>
+                  {activeStore && (
+                    <span className="text-[10px] text-teal-400/50 truncate block">/{activeStore.slug}</span>
+                  )}
+                </div>
+                {stores.length > 0 && (
+                  <ChevronDown className={cn("w-4 h-4 text-white/30 shrink-0 transition-transform", storeDropdownOpen && "rotate-180")} />
+                )}
+              </>
+            )}
+          </button>
+
+          {/* Store Dropdown */}
+          {storeDropdownOpen && !collapsed && (
+            <div className="absolute left-3 right-3 top-full mt-1 z-50 bg-[hsl(240,20%,8%)] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="py-1.5 max-h-[240px] overflow-y-auto">
+                {stores.map((s) => (
+                  <button
+                    key={s.id}
+                    data-testid={`switch-store-${s.id}`}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all text-sm",
+                      s.id === storeId
+                        ? "bg-teal-500/10 text-teal-400"
+                        : "text-white/60 hover:bg-white/[0.04] hover:text-white/80"
+                    )}
+                    onClick={() => handleSwitchStore(s.id)}
+                  >
+                    <div className={cn(
+                      "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0",
+                      s.id === storeId
+                        ? "bg-teal-500/20 text-teal-400"
+                        : "bg-white/[0.06] text-white/40"
+                    )}>
+                      {s.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-[13px] font-medium">{s.name}</p>
+                      <p className="text-[10px] opacity-50 truncate">/{s.slug}</p>
+                    </div>
+                    {s.id === storeId && <Check className="w-3.5 h-3.5 text-teal-400 shrink-0" />}
+                  </button>
+                ))}
+              </div>
+              <div className="border-t border-white/[0.06] p-1.5">
+                <button
+                  data-testid="manage-stores-btn"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white/40 hover:text-teal-400 hover:bg-teal-500/5 transition-all"
+                  onClick={() => {
+                    setStoreDropdownOpen(false);
+                    setMobileOpen(false);
+                    navigate("/stores");
+                  }}
+                >
+                  <Building2 className="w-4 h-4" /> จัดการร้านค้า
+                </button>
+                {stores.length < plan.maxStores && (
+                  <button
+                    data-testid="new-store-btn"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white/40 hover:text-teal-400 hover:bg-teal-500/5 transition-all"
+                    onClick={() => {
+                      setStoreDropdownOpen(false);
+                      setMobileOpen(false);
+                      navigate("/onboarding");
+                    }}
+                  >
+                    <Plus className="w-4 h-4" /> สร้างร้านค้าใหม่
+                  </button>
+                )}
+              </div>
             </div>
           )}
-          <button data-testid="sidebar-collapse" className="ml-auto p-1.5 rounded-lg hover:bg-white/[0.06] hidden md:flex items-center justify-center shrink-0 transition-colors" onClick={() => setCollapsed(!collapsed)}>
+        </div>
+
+        {/* Collapse button */}
+        <div className="flex items-center justify-end px-3 py-1">
+          <button data-testid="sidebar-collapse" className="p-1.5 rounded-lg hover:bg-white/[0.06] hidden md:flex items-center justify-center shrink-0 transition-colors" onClick={() => setCollapsed(!collapsed)}>
             <ChevronLeft className={cn("w-4 h-4 text-white/40 transition-transform duration-300", collapsed && "rotate-180")} />
           </button>
         </div>
 
         {/* Store Link */}
-        {store && !collapsed && (
-          <div className="px-3 py-2.5 border-b border-white/[0.06]">
+        {activeStore && !collapsed && (
+          <div className="px-3 py-2 border-b border-white/[0.06]">
             <div className="flex items-center gap-1.5">
-              <Link href={`/shop/${store.slug}`}>
+              <Link href={`/shop/${activeStore.slug}`}>
                 <button data-testid="view-storefront" className="flex items-center gap-1.5 text-xs text-teal-400 hover:text-teal-300 transition-colors">
                   <ExternalLink className="w-3 h-3" /> ดูหน้าร้าน
                 </button>
@@ -222,7 +321,7 @@ export function AppSidebar() {
               {!collapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate text-white/80">{user.name}</p>
-                  <p className="text-[10px] text-teal-400/50 truncate font-medium tracking-wider">{user.plan.toUpperCase()}</p>
+                  <p className="text-[10px] text-teal-400/50 truncate font-medium tracking-wider">{(user.plan || "free").toUpperCase()}</p>
                 </div>
               )}
               <button data-testid="logout-btn" onClick={() => { logout(); window.location.hash = "/"; }} className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors group">

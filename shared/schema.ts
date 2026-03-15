@@ -247,3 +247,14 @@ export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type StockLog = typeof stockLogs.$inferSelect;
 export type InsertStockLog = z.infer<typeof insertStockLogSchema>;
+
+// Plan limits configuration
+export const PLAN_LIMITS: Record<string, { maxStores: number; label: string; labelTh: string }> = {
+  free: { maxStores: 1, label: "Free", labelTh: "ฟรี" },
+  pro: { maxStores: 5, label: "Pro", labelTh: "โปร" },
+  enterprise: { maxStores: 999, label: "Enterprise", labelTh: "องค์กร" },
+};
+
+export function getPlanLimits(plan: string) {
+  return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+}
