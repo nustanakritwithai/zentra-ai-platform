@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentra — Commerce Operating System for Modern Merchants</title>
+<meta name="description" content="Agentra คือระบบปฏิบัติการสำหรับการขายออนไลน์ ที่รวม storefront, dashboard, AI automation และ payment infrastructure ไว้ในแพลตฟอร์มเดียว">
+<meta property="og:title" content="Agentra — Commerce Operating System">
+<meta property="og:description" content="เปิดร้าน ขายของ รับเงิน และเติบโตในระบบเดียว">
+<meta property="og:type" content="website">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 4L5 34h6l9-20 9 20h6L20 4z" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="14" cy="24" r="2.5" fill="#18E3C8"/>
+        <circle cx="20" cy="16" r="2.5" fill="#22D4B8"/>
+        <circle cx="26" cy="24" r="2.5" fill="#29B6FF"/>
+        <circle cx="32" cy="20" r="2" fill="#29B6FF" opacity="0.7"/>
+        <line x1="14" y1="24" x2="20" y2="16" stroke="#18E3C8" stroke-width="1.5" opacity="0.6"/>
+        <line x1="20" y1="16" x2="26" y2="24" stroke="#22D4B8" stroke-width="1.5" opacity="0.6"/>
+        <line x1="26" y1="24" x2="32" y2="20" stroke="#29B6FF" stroke-width="1.5" opacity="0.5"/>
+        <line x1="14" y1="24" x2="26" y2="24" stroke="#18E3C8" stroke-width="1" opacity="0.3"/>
+        <defs>
+          <linearGradient id="logoGrad" x1="5" y1="4" x2="35" y2="34">
+            <stop offset="0%" stop-color="#18E3C8"/>
+            <stop offset="100%" stop-color="#29B6FF"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="logo-text">Agentra</span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#features" class="nav-link">ฟีเจอร์</a>
+      <a href="#ai-agents" class="nav-link">AI Agents</a>
+      <a href="#how-it-works" class="nav-link">วิธีเริ่มต้น</a>
+      <a href="#pricing" class="nav-link">แพ็กเกจ</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+    </div>
+    <div class="nav-actions">
+      <a href="#" class="btn-ghost">เข้าสู่ระบบ</a>
+      <a href="#" class="btn-primary-sm">เริ่มสร้างร้านฟรี</a>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="เปิดเมนู">
+      <i data-lucide="menu" class="icon-sm"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu overlay -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-inner">
+    <a href="#features" class="mobile-link">ฟีเจอร์</a>
+    <a href="#ai-agents" class="mobile-link">AI Agents</a>
+    <a href="#how-it-works" class="mobile-link">วิธีเริ่มต้น</a>
+    <a href="#pricing" class="mobile-link">แพ็กเกจ</a>
+    <a href="#faq" class="mobile-link">FAQ</a>
+    <div class="mobile-menu-actions">
+      <a href="#" class="btn-ghost" style="width:100%;text-align:center;">เข้าสู่ระบบ</a>
+      <a href="#" class="btn-primary" style="width:100%;text-align:center;">เริ่มสร้างร้านฟรี</a>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+  
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-dot"></span>
+        Commerce Operating System
+      </div>
+      <h1 class="hero-h1">เปิดร้าน ขายของ รับเงิน<br>และเติบโตในระบบเดียว</h1>
+      <p class="hero-sub">Agentra รวมหน้าร้านสวย ระบบหลังบ้านอัจฉริยะ AI workflows และ payment infrastructure ไว้ครบ เพื่อให้เจ้าของร้านเปิดขายได้เร็วและขยายธุรกิจได้จริง</p>
+      <div class="hero-ctas">
+        <a href="#" class="btn-primary">
+          <i data-lucide="rocket" class="icon-sm"></i>
+          เริ่มสร้างร้านฟรี
+        </a>
+        <a href="#" class="btn-secondary">
+          <i data-lucide="play" class="icon-sm"></i>
+          ดูเดโมระบบ
+        </a>
+      </div>
+      <div class="trust-row">
+        <span class="trust-badge"><i data-lucide="sparkles" class="icon-xs"></i> AI-Powered</span>
+        <span class="trust-badge"><i data-lucide="qr-code" class="icon-xs"></i> PromptPay Ready</span>
+        <span class="trust-badge"><i data-lucide="store" class="icon-xs"></i> Multi-Store</span>
+        <span class="trust-badge"><i data-lucide="activity" class="icon-xs"></i> Real-Time</span>
+      </div>
+    </div>
+    
+    <div class="hero-visual">
+      <div class="hero-mockup">
+        <!-- Dashboard Layer -->
+        <div class="mockup-layer layer-dashboard">
+          <div class="mockup-header">
+            <div class="mockup-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span class="mockup-title">Agentra Dashboard</span>
+          </div>
+          <div class="mockup-body">
+            <div class="metric-cards">
+              <div class="metric-card">
+                <span class="metric-label">ยอดขายวันนี้</span>
+                <span class="metric-value">฿138,336</span>
+                <span class="metric-change positive">+12.5%</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">ออเดอร์</span>
+                <span class="metric-value">327</span>
+                <span class="metric-change positive">+8.2%</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">ลูกค้าใหม่</span>
+                <span class="metric-value">583</span>
+                <span class="metric-change positive">+15.1%</span>
+              </div>
+            </div>
+            <div class="chart-placeholder">
+              <div class="chart-bars">
+                <div class="bar" style="height:40%"></div>
+                <div class="bar" style="height:65%"></div>
+                <div class="bar" style="height:50%"></div>
+                <div class="bar" style="height:80%"></div>
+                <div class="bar" style="height:70%"></div>
+                <div class="bar" style="height:90%"></div>
+                <div class="bar active" style="height:85%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- AI Workflow Layer -->
+        <div class="mockup-layer layer-ai">
+          <div class="ai-panel">
+            <div class="ai-panel-header">
+              <i data-lucide="bot" class="icon-xs"></i>
+              <span>AI Agent</span>
+              <span class="ai-status">Active</span>
+            </div>
+            <div class="ai-panel-body">
+              <div class="ai-message">กำลังวิเคราะห์พฤติกรรมลูกค้า...</div>
+              <div class="ai-action">แนะนำ: เพิ่มส่วนลด 10% สินค้ายอดนิยม</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Payment Widget Layer -->
+        <div class="mockup-layer layer-payment">
+          <div class="payment-widget">
+            <div class="payment-icon">
+              <i data-lucide="credit-card" class="icon-xs"></i>
+            </div>
+            <div class="payment-info">
+              <span class="payment-label">รับเงินสำเร็จ</span>
+              <span class="payment-amount">฿2,450</span>
+            </div>
+            <span class="payment-badge">PromptPay</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TRUST STRIP ==================== -->
+<section class="trust-strip">
+  <div class="trust-strip-inner">
+    <p class="trust-strip-label">ร้านค้ากว่า 500+ ร้านเลือกใช้ Agentra</p>
+    <div class="trust-logos">
+      <span class="trust-logo-item">🏪 ร้าน A</span>
+      <span class="trust-logo-item">🛍️ ร้าน B</span>
+      <span class="trust-logo-item">📦 ร้าน C</span>
+      <span class="trust-logo-item">🎯 ร้าน D</span>
+      <span class="trust-logo-item">⭐ ร้าน E</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FEATURES ==================== -->
+<section class="section" id="features">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-eyebrow">ฟีเจอร์หลัก</span>
+      <h2 class="section-title">ทุกเครื่องมือที่ร้านค้าต้องการ<br>รวมไว้ในที่เดียว</h2>
+      <p class="section-desc">ไม่ต้องต่อ 10 แอปเข้าด้วยกัน Agentra ออกแบบให้ทุกฟีเจอร์ทำงานร่วมกันตั้งแต่แรก</p>
+    </div>
+    
+    <div class="features-grid">
+      <div class="feature-card feature-card-large">
+        <div class="feature-icon-wrap">
+          <i data-lucide="layout-dashboard" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-title">Dashboard อัจฉริยะ</h3>
+        <p class="feature-desc">เห็นยอดขาย ออเดอร์ และพฤติกรรมลูกค้าแบบ Real-Time ทุกตัวเลขอัปเดตอัตโนมัติ ไม่ต้องกด refresh</p>
+        <div class="feature-tags">
+          <span class="tag tag-ai">AI-Powered</span>
+          <span class="tag tag-live">Live Analytics</span>
+        </div>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i data-lucide="store" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-title">สร้างหน้าร้านสวย</h3>
+        <p class="feature-desc">เลือกธีม ลากวาง ปรับแต่ง เปิดร้านได้ภายใน 5 นาที รองรับ SEO และ Mobile-First</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i data-lucide="wallet" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-title">รับเงินทุกช่องทาง</h3>
+        <p class="feature-desc">PromptPay, QR Payment, บัตรเครดิต ทุกธุรกรรมเข้าระบบอัตโนมัติ ตรวจสอบได้ทันที</p>
+        <div class="feature-tags">
+          <span class="tag tag-promptpay">PromptPay Ready</span>
+        </div>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i data-lucide="box" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-title">จัดการสินค้า</h3>
+        <p class="feature-desc">เพิ่มสินค้า จัดหมวดหมู่ ตั้งราคา จัดสต็อก ทุกอย่างจากหน้าจอเดียว</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i data-lucide="truck" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-title">ออเดอร์และจัดส่ง</h3>
+        <p class="feature-desc">ระบบจัดการออเดอร์อัตโนมัติ ติดตามสถานะ แจ้งเตือนลูกค้าทุกขั้นตอน</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i data-lucide="users" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-title">ระบบสมาชิก</h3>
+        <p class="feature-desc">สร้างฐานลูกค้า จัดกลุ่ม วิเคราะห์พฤติกรรม เพื่อการตลาดแม่นยำ</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== AI AGENTS ==================== -->
+<section class="section section-alt" id="ai-agents">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-eyebrow">AI Agents</span>
+      <h2 class="section-title">AI ที่ทำงานให้คุณ<br>ไม่ใช่แค่แนะนำ</h2>
+      <p class="section-desc">Agentra มี AI Agent หลายตัวที่ทำงานอัตโนมัติ ตั้งแต่วิเคราะห์ข้อมูลไปจนถึงช่วยขาย</p>
+    </div>
+    
+    <div class="agents-grid">
+      <div class="agent-card">
+        <div class="agent-icon">
+          <i data-lucide="bar-chart-3"></i>
+        </div>
+        <div class="agent-status-dot"></div>
+        <h3 class="agent-name">Analytics Agent</h3>
+        <p class="agent-desc">วิเคราะห์ยอดขาย พฤติกรรมลูกค้า และแนวโน้มตลาดแบบ Real-Time พร้อมสรุปรายงานให้ทุกเช้า</p>
+        <div class="agent-capabilities">
+          <span>วิเคราะห์ข้อมูล</span>
+          <span>พยากรณ์ยอดขาย</span>
+          <span>แนะนำกลยุทธ์</span>
+        </div>
+      </div>
+      
+      <div class="agent-card">
+        <div class="agent-icon">
+          <i data-lucide="message-square"></i>
+        </div>
+        <div class="agent-status-dot"></div>
+        <h3 class="agent-name">Customer Agent</h3>
+        <p class="agent-desc">ตอบคำถามลูกค้าอัตโนมัติ 24/7 เข้าใจภาษาไทย ช่วยปิดการขาย และส่งต่อให้คนเมื่อจำเป็น</p>
+        <div class="agent-capabilities">
+          <span>ตอบแชท 24/7</span>
+          <span>แนะนำสินค้า</span>
+          <span>ปิดการขาย</span>
+        </div>
+      </div>
+      
+      <div class="agent-card">
+        <div class="agent-icon">
+          <i data-lucide="palette"></i>
+        </div>
+        <div class="agent-status-dot"></div>
+        <h3 class="agent-name">Design Agent</h3>
+        <p class="agent-desc">ช่วยจัดหน้าร้าน ออกแบบแบนเนอร์ และปรับแต่ง visual ให้ดึงดูดลูกค้ามากขึ้น</p>
+        <div class="agent-capabilities">
+          <span>จัดหน้าร้าน</span>
+          <span>สร้างแบนเนอร์</span>
+          <span>A/B Testing</span>
+        </div>
+      </div>
+      
+      <div class="agent-card">
+        <div class="agent-icon">
+          <i data-lucide="megaphone"></i>
+        </div>
+        <div class="agent-status-dot"></div>
+        <h3 class="agent-name">Marketing Agent</h3>
+        <p class="agent-desc">วางแผนโปรโมชัน สร้างคอนเทนต์ จัดแคมเปญอัตโนมัติ และวัดผลให้ครบลูป</p>
+        <div class="agent-capabilities">
+          <span>วางแผนแคมเปญ</span>
+          <span>สร้างคอนเทนต์</span>
+          <span>วัดผล ROI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section class="section" id="how-it-works">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-eyebrow">เริ่มต้นง่ายมาก</span>
+      <h2 class="section-title">เปิดร้านใน 3 ขั้นตอน</h2>
+      <p class="section-desc">จากศูนย์สู่ร้านค้าที่พร้อมรับเงินจริง ใช้เวลาไม่ถึง 10 นาที</p>
+    </div>
+    
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-visual">
+          <div class="step-icon-wrap">
+            <i data-lucide="user-plus"></i>
+          </div>
+        </div>
+        <h3 class="step-title">สมัครและสร้างร้าน</h3>
+        <p class="step-desc">กรอกข้อมูลร้าน เลือกหมวดหมู่ ตั้งชื่อร้าน เลือกธีม — เสร็จภายใน 2 นาที</p>
+      </div>
+      
+      <div class="step-connector">
+        <i data-lucide="arrow-right"></i>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-visual">
+          <div class="step-icon-wrap">
+            <i data-lucide="package-plus"></i>
+          </div>
+        </div>
+        <h3 class="step-title">เพิ่มสินค้าและตั้งค่า</h3>
+        <p class="step-desc">เพิ่มสินค้า ตั้งราคา เชื่อมต่อ PromptPay — AI ช่วยจัดหน้าร้านให้อัตโนมัติ</p>
+      </div>
+      
+      <div class="step-connector">
+        <i data-lucide="arrow-right"></i>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-visual">
+          <div class="step-icon-wrap">
+            <i data-lucide="rocket"></i>
+          </div>
+        </div>
+        <h3 class="step-title">เปิดร้านและเริ่มขาย</h3>
+        <p class="step-desc">เผยแพร่หน้าร้าน แชร์ลิงก์ รับออเดอร์และเงินเข้าระบบทันที</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== STOREFRONT PREVIEW ==================== -->
+<section class="section section-alt" id="storefront">
+  <div class="section-inner">
+    <div class="storefront-flex">
+      <div class="storefront-content">
+        <span class="section-eyebrow">หน้าร้านตัวอย่าง</span>
+        <h2 class="section-title" style="text-align:left;">หน้าร้านที่สวย<br>และขายได้จริง</h2>
+        <p class="section-desc" style="text-align:left;">ทุกหน้าร้านบน Agentra ถูกออกแบบมาให้แสดงผลสวยบนทุกอุปกรณ์ โหลดเร็ว และรองรับ SEO ตั้งแต่วันแรก</p>
+        <ul class="check-list">
+          <li><i data-lucide="check-circle-2" class="icon-check"></i> รองรับ Mobile-First</li>
+          <li><i data-lucide="check-circle-2" class="icon-check"></i> SEO Optimized</li>
+          <li><i data-lucide="check-circle-2" class="icon-check"></i> โหลดเร็วไม่เกิน 2 วินาที</li>
+          <li><i data-lucide="check-circle-2" class="icon-check"></i> เชื่อมต่อ Social Media อัตโนมัติ</li>
+        </ul>
+      </div>
+      <div class="storefront-preview">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="sf-header">
+              <span class="sf-logo">My Store</span>
+              <i data-lucide="shopping-bag" class="icon-xs"></i>
+            </div>
+            <div class="sf-hero-img"></div>
+            <div class="sf-products">
+              <div class="sf-product">
+                <div class="sf-product-img" style="background: linear-gradient(135deg, #18E3C8 0%, #29B6FF 100%);"></div>
+                <span class="sf-product-name">เสื้อยืด Premium</span>
+                <span class="sf-product-price">฿590</span>
+              </div>
+              <div class="sf-product">
+                <div class="sf-product-img" style="background: linear-gradient(135deg, #29B6FF 0%, #8B5CFF 100%);"></div>
+                <span class="sf-product-name">กระเป๋า Canvas</span>
+                <span class="sf-product-price">฿890</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PRICING ==================== -->
+<section class="section" id="pricing">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-eyebrow">แพ็กเกจ</span>
+      <h2 class="section-title">เลือกแพ็กเกจที่ใช่<br>สำหรับธุรกิจของคุณ</h2>
+      <p class="section-desc">เริ่มต้นฟรี อัปเกรดเมื่อพร้อม ไม่มีค่าธรรมเนียมแอบแฝง</p>
+    </div>
+    
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3 class="pricing-name">Starter</h3>
+          <p class="pricing-desc">เริ่มต้นสำหรับร้านค้าใหม่</p>
+        </div>
+        <div class="pricing-price">
+          <span class="pricing-amount">฿0</span>
+          <span class="pricing-period">/เดือน</span>
+        </div>
+        <ul class="pricing-features">
+          <li><i data-lucide="check" class="icon-check-sm"></i> 1 ร้านค้า</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> 50 สินค้า</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> Dashboard พื้นฐาน</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> PromptPay รับเงิน</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> หน้าร้านสำเร็จรูป</li>
+        </ul>
+        <a href="#" class="btn-secondary" style="width:100%;text-align:center;">เริ่มต้นฟรี</a>
+      </div>
+      
+      <div class="pricing-card pricing-card-popular">
+        <div class="pricing-badge">แนะนำ</div>
+        <div class="pricing-header">
+          <h3 class="pricing-name">Professional</h3>
+          <p class="pricing-desc">สำหรับร้านค้าที่ต้องการเติบโต</p>
+        </div>
+        <div class="pricing-price">
+          <span class="pricing-amount">฿990</span>
+          <span class="pricing-period">/เดือน</span>
+        </div>
+        <ul class="pricing-features">
+          <li><i data-lucide="check" class="icon-check-sm"></i> 3 ร้านค้า</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> สินค้าไม่จำกัด</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> AI Analytics Agent</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> ทุกช่องทางรับเงิน</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> หน้าร้าน Custom</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> ระบบสมาชิก CRM</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> รายงานขั้นสูง</li>
+        </ul>
+        <a href="#" class="btn-primary" style="width:100%;text-align:center;">เลือกแพ็กเกจนี้</a>
+      </div>
+      
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3 class="pricing-name">Enterprise</h3>
+          <p class="pricing-desc">สำหรับธุรกิจขนาดใหญ่</p>
+        </div>
+        <div class="pricing-price">
+          <span class="pricing-amount">฿2,990</span>
+          <span class="pricing-period">/เดือน</span>
+        </div>
+        <ul class="pricing-features">
+          <li><i data-lucide="check" class="icon-check-sm"></i> ร้านค้าไม่จำกัด</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> สินค้าไม่จำกัด</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> AI Agent ครบทุกตัว</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> API Access</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> White-Label หน้าร้าน</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> Priority Support</li>
+          <li><i data-lucide="check" class="icon-check-sm"></i> ที่ปรึกษาส่วนตัว</li>
+        </ul>
+        <a href="#" class="btn-secondary" style="width:100%;text-align:center;">ติดต่อฝ่ายขาย</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TESTIMONIALS ==================== -->
+<section class="section section-alt" id="testimonials">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-eyebrow">เสียงจากผู้ใช้จริง</span>
+      <h2 class="section-title">ร้านค้าที่เติบโตด้วย Agentra</h2>
+    </div>
+    
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"เปิดร้านได้จริงภายใน 10 นาที ระบบรับเงินผ่าน PromptPay ทำงานลื่นมาก ไม่ต้องไปต่อแอปอื่นเลย"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">ส</div>
+          <div>
+            <span class="testimonial-name">สมชาย ดีมาก</span>
+            <span class="testimonial-role">เจ้าของร้าน Street Food Online</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"AI Analytics ช่วยให้เราเห็นข้อมูลที่ไม่เคยเห็นมาก่อน ยอดขายเพิ่มขึ้น 40% ในเดือนแรกที่ใช้"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">น</div>
+          <div>
+            <span class="testimonial-name">นภาพร วิไลศักดิ์</span>
+            <span class="testimonial-role">CEO, Fashion Forward TH</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Dashboard แบบ Real-Time ทำให้จัดการ 5 ร้านพร้อมกันได้ง่าย ระบบมันคิดแทนเราหลายอย่าง"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">พ</div>
+          <div>
+            <span class="testimonial-name">พิชัย ศรีสวัสดิ์</span>
+            <span class="testimonial-role">ผู้จัดการ Multi-Brand Store</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FAQ ==================== -->
+<section class="section" id="faq">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-eyebrow">คำถามที่พบบ่อย</span>
+      <h2 class="section-title">FAQ</h2>
+    </div>
+    
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>Agentra คืออะไร?</span>
+          <i data-lucide="chevron-down" class="faq-chevron"></i>
+        </summary>
+        <div class="faq-answer">
+          <p>Agentra คือ Commerce Operating System สำหรับเจ้าของร้านยุคใหม่ ที่รวม storefront, dashboard, AI agents และระบบรับเงินไว้ในแพลตฟอร์มเดียว ให้คุณเปิดร้าน ขายของ รับเงิน และเติบโตได้โดยไม่ต้องใช้หลายแอป</p>
+        </div>
+      </details>
+      
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>เริ่มต้นใช้งานฟรีจริงหรือ?</span>
+          <i data-lucide="chevron-down" class="faq-chevron"></i>
+        </summary>
+        <div class="faq-answer">
+          <p>ฟรีจริง แพ็กเกจ Starter ไม่มีค่าใช้จ่ายรายเดือน คุณสามารถสร้างร้าน เพิ่มสินค้า และรับเงินผ่าน PromptPay ได้ทันที อัปเกรดเมื่อธุรกิจคุณพร้อมเติบโต</p>
+        </div>
+      </details>
+      
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>รองรับช่องทางรับเงินอะไรบ้าง?</span>
+          <i data-lucide="chevron-down" class="faq-chevron"></i>
+        </summary>
+        <div class="faq-answer">
+          <p>รองรับ PromptPay, Thai QR Payment, บัตรเครดิต/เดบิต, โอนผ่านธนาคาร และช่องทางอื่นๆ ทุกธุรกรรมเข้าระบบอัตโนมัติและตรวจสอบได้ทันที</p>
+        </div>
+      </details>
+      
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>AI Agent ทำงานอย่างไร?</span>
+          <i data-lucide="chevron-down" class="faq-chevron"></i>
+        </summary>
+        <div class="faq-answer">
+          <p>AI Agent ของ Agentra ทำงานอัตโนมัติตลอด 24 ชั่วโมง ตั้งแต่วิเคราะห์ข้อมูลขาย แนะนำโปรโมชัน ตอบแชทลูกค้า ไปจนถึงช่วยจัดหน้าร้าน ทุกตัวเรียนรู้จากข้อมูลร้านของคุณเพื่อให้ผลลัพธ์ที่แม่นยำ</p>
+        </div>
+      </details>
+      
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>สามารถเปิดหลายร้านได้ไหม?</span>
+          <i data-lucide="chevron-down" class="faq-chevron"></i>
+        </summary>
+        <div class="faq-answer">
+          <p>ได้ครับ แพ็กเกจ Professional รองรับ 3 ร้าน และ Enterprise รองรับไม่จำกัด ทุกร้านจัดการจาก Dashboard เดียว</p>
+        </div>
+      </details>
+      
+      <details class="faq-item">
+        <summary class="faq-question">
+          <span>ต้องมีความรู้เรื่องโค้ดไหม?</span>
+          <i data-lucide="chevron-down" class="faq-chevron"></i>
+        </summary>
+        <div class="faq-answer">
+          <p>ไม่ต้องเลย Agentra ออกแบบมาให้ใช้งานง่ายโดยไม่ต้องเขียนโค้ด ทุกอย่างจัดการผ่านหน้า Dashboard ที่ใช้งานง่าย สำหรับผู้ที่ต้องการความยืดหยุ่นเพิ่มเติม แพ็กเกจ Enterprise มี API Access</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FINAL CTA ==================== -->
+<section class="section-cta">
+  <div class="cta-glow cta-glow-1"></div>
+  <div class="cta-glow cta-glow-2"></div>
+  <div class="section-inner">
+    <div class="cta-content">
+      <h2 class="cta-title">พร้อมเริ่มขายแล้วหรือยัง?</h2>
+      <p class="cta-desc">เปิดร้านกับ Agentra วันนี้ ฟรี ไม่มีค่าธรรมเนียมแอบแฝง<br>เริ่มขายได้ภายใน 10 นาที</p>
+      <div class="cta-buttons">
+        <a href="#" class="btn-primary btn-lg">
+          <i data-lucide="rocket" class="icon-sm"></i>
+          เริ่มสร้างร้านฟรี
+        </a>
+        <a href="#" class="btn-ghost btn-lg">พูดคุยกับทีมงาน</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">
+          <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 4L5 34h6l9-20 9 20h6L20 4z" stroke="url(#logoGrad2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <circle cx="14" cy="24" r="2.5" fill="#18E3C8"/>
+            <circle cx="20" cy="16" r="2.5" fill="#22D4B8"/>
+            <circle cx="26" cy="24" r="2.5" fill="#29B6FF"/>
+            <line x1="14" y1="24" x2="20" y2="16" stroke="#18E3C8" stroke-width="1.5" opacity="0.6"/>
+            <line x1="20" y1="16" x2="26" y2="24" stroke="#22D4B8" stroke-width="1.5" opacity="0.6"/>
+            <defs>
+              <linearGradient id="logoGrad2" x1="5" y1="4" x2="35" y2="34">
+                <stop offset="0%" stop-color="#18E3C8"/>
+                <stop offset="100%" stop-color="#29B6FF"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo-text">Agentra</span>
+        </a>
+        <p class="footer-tagline">Your Commerce Operating System</p>
+      </div>
+      
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4 class="footer-col-title">ผลิตภัณฑ์</h4>
+          <a href="#" class="footer-link">หน้าร้าน</a>
+          <a href="#" class="footer-link">Dashboard</a>
+          <a href="#" class="footer-link">AI Agents</a>
+          <a href="#" class="footer-link">Payment</a>
+        </div>
+        <div class="footer-col">
+          <h4 class="footer-col-title">ทรัพยากร</h4>
+          <a href="#" class="footer-link">คู่มือเริ่มต้น</a>
+          <a href="#" class="footer-link">API Docs</a>
+          <a href="#" class="footer-link">บล็อก</a>
+          <a href="#" class="footer-link">Changelog</a>
+        </div>
+        <div class="footer-col">
+          <h4 class="footer-col-title">บริษัท</h4>
+          <a href="#" class="footer-link">เกี่ยวกับเรา</a>
+          <a href="#" class="footer-link">ติดต่อ</a>
+          <a href="#" class="footer-link">นโยบายความเป็นส่วนตัว</a>
+          <a href="#" class="footer-link">เงื่อนไขการใช้งาน</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <span class="footer-copyright">© 2026 Agentra. All rights reserved.</span>
+      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer" class="footer-pplx">Created with Perplexity Computer</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Initialize Lucide icons
+lucide.createIcons();
+
+// Navbar scroll behavior
+const navbar = document.getElementById('navbar');
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+  const curr = window.scrollY;
+  if (curr > 80) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+  if (curr > lastScroll && curr > 200) {
+    navbar.classList.add('hidden');
+  } else {
+    navbar.classList.remove('hidden');
+  }
+  lastScroll = curr;
+});
+
+// Mobile menu
+const hamburger = document.getElementById('navHamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', () => {
+  mobileMenu.classList.toggle('open');
+  hamburger.setAttribute('aria-label', mobileMenu.classList.contains('open') ? 'ปิดเมนู' : 'เปิดเมนู');
+});
+document.querySelectorAll('.mobile-link').forEach(l => {
+  l.addEventListener('click', () => mobileMenu.classList.remove('open'));
+});
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// Scroll reveal animation
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.feature-card, .agent-card, .step-card, .pricing-card, .testimonial-card, .faq-item').forEach(el => {
+  el.classList.add('reveal');
+  observer.observe(el);
+});
+
+// Animate metric numbers
+function animateNumber(el, target, duration) {
+  const start = 0;
+  const startTime = performance.now();
+  const isThb = target.toString().includes(',');
+  function update(time) {
+    const elapsed = time - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const numericTarget = parseInt(target.replace(/[^0-9]/g, ''));
+    const current = Math.floor(eased * numericTarget);
+    el.textContent = isThb ? '฿' + current.toLocaleString() : current.toLocaleString();
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+const metricObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.animated) {
+      entry.target.dataset.animated = 'true';
+      const text = entry.target.textContent;
+      animateNumber(entry.target, text, 1500);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.metric-value').forEach(el => metricObserver.observe(el));
+</script>
+
+</body>
+</html>
