@@ -252,7 +252,7 @@ export type InsertStockLog = z.infer<typeof insertStockLogSchema>;
 // Storefront Layout types
 export interface StorefrontSection {
   id: string;
-  type: "hero" | "categories" | "productGrid" | "benefitBar" | "footer" | "aiRecommendation";
+  type: "hero" | "categories" | "productGrid" | "benefitBar" | "footer" | "aiRecommendation" | "navbar" | "storeName" | "aiStatus" | "promoBanner" | "trustReviews" | "featuredCollection";
   visible: boolean;
   props: Record<string, any>;
 }

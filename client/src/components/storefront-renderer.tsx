@@ -1,20 +1,30 @@
 import type { StorefrontLayout } from "@shared/schema";
 import {
+  NavBlock,
   HeroBlock,
+  AiStatusBlock,
   CategoryStripBlock,
   ProductGridBlock,
+  PromoBannerBlock,
   BenefitBarBlock,
+  TrustReviewsBlock,
+  FeaturedCollectionBlock,
   FooterBlock,
-  AiRecommendationBlock,
 } from "./storefront-blocks";
 
 const BLOCK_MAP: Record<string, React.ComponentType<any>> = {
+  navbar: NavBlock,
+  storeName: NavBlock,
   hero: HeroBlock,
+  aiStatus: AiStatusBlock,
   categories: CategoryStripBlock,
   productGrid: ProductGridBlock,
+  promoBanner: PromoBannerBlock,
   benefitBar: BenefitBarBlock,
+  trustReviews: TrustReviewsBlock,
+  featuredCollection: FeaturedCollectionBlock,
+  aiRecommendation: FeaturedCollectionBlock,
   footer: FooterBlock,
-  aiRecommendation: AiRecommendationBlock,
 };
 
 interface StorefrontRendererProps {
