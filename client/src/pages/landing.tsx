@@ -117,6 +117,13 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Smooth scroll to section (works with hash router)
+  const scrollTo = (id: string) => {
+    setMobileOpen(false);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   // Metric counters
   const sales = useAnimatedCounter(138336);
   const orders = useAnimatedCounter(327);
@@ -150,11 +157,11 @@ export default function LandingPage() {
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">ฟีเจอร์</a>
-            <a href="#ai-agents" className="text-sm text-muted-foreground hover:text-foreground transition-colors">AI Agents</a>
-            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">วิธีเริ่มต้น</a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">แพ็กเกจ</a>
-            <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+            <button onClick={() => scrollTo("features")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">ฟีเจอร์</button>
+            <button onClick={() => scrollTo("ai-agents")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">AI Agents</button>
+            <button onClick={() => scrollTo("how-it-works")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">วิธีเริ่มต้น</button>
+            <button onClick={() => scrollTo("pricing")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">แพ็กเกจ</button>
+            <button onClick={() => scrollTo("faq")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</button>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -172,13 +179,13 @@ export default function LandingPage() {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 bg-background/98 backdrop-blur-xl flex flex-col items-center justify-center gap-8">
           {[
-            { label: "ฟีเจอร์", href: "#features" },
-            { label: "AI Agents", href: "#ai-agents" },
-            { label: "วิธีเริ่มต้น", href: "#how-it-works" },
-            { label: "แพ็กเกจ", href: "#pricing" },
-            { label: "FAQ", href: "#faq" },
+            { label: "ฟีเจอร์", id: "features" },
+            { label: "AI Agents", id: "ai-agents" },
+            { label: "วิธีเริ่มต้น", id: "how-it-works" },
+            { label: "แพ็กเกจ", id: "pricing" },
+            { label: "FAQ", id: "faq" },
           ].map(i => (
-            <a key={i.href} href={i.href} onClick={() => setMobileOpen(false)} className="text-xl text-muted-foreground hover:text-foreground transition-colors">{i.label}</a>
+            <button key={i.id} onClick={() => scrollTo(i.id)} className="text-xl text-muted-foreground hover:text-foreground transition-colors">{i.label}</button>
           ))}
           <div className="flex flex-col gap-3 w-full max-w-[280px] mt-4">
             <Link href="/auth" onClick={() => setMobileOpen(false)} className="text-center text-sm text-muted-foreground border border-border/50 rounded-lg py-3">เข้าสู่ระบบ</Link>
@@ -603,18 +610,27 @@ export default function LandingPage() {
               </Link>
               <p className="text-sm text-muted-foreground">Your Commerce Operating System</p>
             </div>
-            {[
-              { title: "ผลิตภัณฑ์", links: ["หน้าร้าน", "Dashboard", "AI Agents", "Payment"] },
-              { title: "ทรัพยากร", links: ["คู่มือเริ่มต้น", "API Docs", "บล็อก", "Changelog"] },
-              { title: "บริษัท", links: ["เกี่ยวกับเรา", "ติดต่อ", "นโยบายความเป็นส่วนตัว", "เงื่อนไขการใช้งาน"] },
-            ].map(col => (
-              <div key={col.title} className="space-y-3">
-                <h4 className="text-sm font-semibold">{col.title}</h4>
-                {col.links.map(l => (
-                  <a key={l} href="#" className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">{l}</a>
-                ))}
-              </div>
-            ))}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">ผลิตภัณฑ์</h4>
+              <button onClick={() => scrollTo("features")} className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">หน้าร้าน</button>
+              <button onClick={() => scrollTo("features")} className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">Dashboard</button>
+              <button onClick={() => scrollTo("ai-agents")} className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">AI Agents</button>
+              <button onClick={() => scrollTo("pricing")} className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">Payment</button>
+            </div>
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">ทรัพยากร</h4>
+              <button onClick={() => scrollTo("how-it-works")} className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">คู่มือเริ่มต้น</button>
+              <button onClick={() => scrollTo("faq")} className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">FAQ</button>
+              <Link href="/auth" className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">บล็อก</Link>
+              <Link href="/auth" className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">Changelog</Link>
+            </div>
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">บริษัท</h4>
+              <button onClick={() => scrollTo("faq")} className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">เกี่ยวกับเรา</button>
+              <a href="mailto:support@agentra.app" className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">ติดต่อ</a>
+              <Link href="/auth" className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">นโยบายความเป็นส่วนตัว</Link>
+              <Link href="/auth" className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">เงื่อนไขการใช้งาน</Link>
+            </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-border/40 gap-3">
             <span className="text-xs text-muted-foreground">© 2026 Agentra. All rights reserved.</span>
