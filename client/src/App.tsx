@@ -32,6 +32,8 @@ import BuyerProfilePage from "@/pages/buyer-profile";
 import StoreEditorPage from "@/pages/store-editor";
 import AiGeneratePage from "@/pages/ai-generate";
 import StoresPage from "@/pages/stores";
+import PaymentSettingsPage from "@/pages/payment-settings";
+import CheckoutPage from "@/pages/checkout-page";
 import NotFound from "@/pages/not-found";
 
 function AppRouter() {
@@ -63,7 +65,9 @@ function AppRouter() {
       <Route path="/buyer-profile" component={BuyerProfilePage} />
       <Route path="/store-editor" component={StoreEditorPage} />
       <Route path="/ai-generate" component={AiGeneratePage} />
+      <Route path="/payment-settings" component={PaymentSettingsPage} />
       <Route path="/shop/:slug" component={StorefrontPage} />
+      <Route path="/shop/:slug/checkout" component={CheckoutPage} />
       <Route component={NotFound} />
     </Switch>
   );

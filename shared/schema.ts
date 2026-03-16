@@ -213,6 +213,127 @@ export const stockLogs = pgTable("stock_logs", {
   createdAt: text("created_at"),
 });
 
+// ============= Payment Architecture v1 =============
+
+// Platform subscriptions (B2B - seller plans)
+export const subscriptions = pgTable("subscriptions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id").notNull(),
+  plan: text("plan").notNull().default("free"), // free, pro, enterprise
+  status: text("status").notNull().default("active"), // active, past_due, canceled, trialing
+  provider: text("provider").notNull().default("stripe"), // stripe, opn
+  providerSubscriptionId: text("provider_subscription_id"),
+  providerCustomerId: text("provider_customer_id"),
+  currentPeriodStart: text("current_period_start"),
+  currentPeriodEnd: text("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  trialEnd: text("trial_end"),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
+});
+
+// Platform billing invoices
+export const billingInvoices = pgTable("billing_invoices", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  subscriptionId: integer("subscription_id").notNull(),
+  userId: integer("user_id").notNull(),
+  amount: real("amount").notNull(), // THB
+  currency: text("currency").notNull().default("THB"),
+  status: text("status").notNull().default("pending"), // pending, paid, failed, refunded
+  providerInvoiceId: text("provider_invoice_id"),
+  paidAt: text("paid_at"),
+  periodStart: text("period_start"),
+  periodEnd: text("period_end"),
+  createdAt: text("created_at"),
+});
+
+// Merchant payment accounts (B2C - how merchants receive money)
+export const merchantPaymentAccounts = pgTable("merchant_payment_accounts", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  storeId: integer("store_id").notNull(),
+  provider: text("provider").notNull().default("opn"), // opn, manual
+  opnPublicKey: text("opn_public_key"),
+  opnSecretKeyHash: text("opn_secret_key_hash"), // hashed, never raw
+  promptpayEnabled: boolean("promptpay_enabled").default(false),
+  promptpayId: text("promptpay_id"), // phone or national ID
+  truemoneyEnabled: boolean("truemoney_enabled").default(false),
+  bankTransferEnabled: boolean("bank_transfer_enabled").default(false),
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankAccountName: text("bank_account_name"),
+  webhookEndpoint: text("webhook_endpoint"),
+  webhookSecret: text("webhook_secret"),
+  active: boolean("active").default(true),
+  createdAt: text("created_at"),
+  updatedAt: text("updated_at"),
+});
+
+// Payment transactions (every customer payment attempt)
+export const paymentTransactions = pgTable("payment_transactions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  storeId: integer("store_id").notNull(),
+  orderId: integer("order_id"),
+  amount: real("amount").notNull(), // THB
+  currency: text("currency").notNull().default("THB"),
+  method: text("method").notNull(), // promptpay, truemoney, bank_transfer, credit_card
+  status: text("status").notNull().default("pending"), // pending, processing, successful, failed, refunded, expired
+  providerChargeId: text("provider_charge_id"),
+  providerRef: text("provider_ref"),
+  qrCodeUrl: text("qr_code_url"),
+  expiresAt: text("expires_at"),
+  paidAt: text("paid_at"),
+  failureCode: text("failure_code"),
+  failureMessage: text("failure_message"),
+  metadata: jsonb("metadata"), // extra provider data
+  createdAt: text("created_at"),
+});
+
+// Payment webhooks log (audit trail)
+export const paymentWebhooks = pgTable("payment_webhooks", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  provider: text("provider").notNull(), // omise, stripe
+  eventType: text("event_type").notNull(),
+  eventId: text("event_id"),
+  payload: jsonb("payload").notNull(),
+  processed: boolean("processed").default(false),
+  processedAt: text("processed_at"),
+  error: text("error"),
+  createdAt: text("created_at"),
+});
+
+// Platform payouts to merchants
+export const platformPayouts = pgTable("platform_payouts", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  storeId: integer("store_id").notNull(),
+  amount: real("amount").notNull(),
+  currency: text("currency").notNull().default("THB"),
+  status: text("status").notNull().default("pending"), // pending, processing, completed, failed
+  method: text("method").notNull(), // bank_transfer
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankAccountName: text("bank_account_name"),
+  providerPayoutId: text("provider_payout_id"),
+  periodStart: text("period_start"),
+  periodEnd: text("period_end"),
+  transactionCount: integer("transaction_count"),
+  platformFee: real("platform_fee"),
+  netAmount: real("net_amount"),
+  completedAt: text("completed_at"),
+  createdAt: text("created_at"),
+});
+
+// Platform fee configuration
+export const platformFees = pgTable("platform_fees", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  plan: text("plan").notNull(), // free, pro, enterprise
+  feeType: text("fee_type").notNull(), // percentage, fixed
+  feeValue: real("fee_value").notNull(), // e.g. 3.5 for 3.5%, or 15 for ฿15
+  minFee: real("min_fee"), // minimum fee per transaction
+  maxFee: real("max_fee"), // maximum fee cap
+  active: boolean("active").default(true),
+  createdAt: text("created_at"),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, onboarded: true, plan: true, avatar: true, role: true });
 export const insertStoreSchema = createInsertSchema(stores).omit({ id: true, userId: true, status: true });
@@ -225,6 +346,13 @@ export const insertDiscountSchema = createInsertSchema(discounts).omit({ id: tru
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, publishedAt: true });
 export const insertEmployeeSchema = createInsertSchema(employees).omit({ id: true });
 export const insertStockLogSchema = createInsertSchema(stockLogs).omit({ id: true, createdAt: true });
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertBillingInvoiceSchema = createInsertSchema(billingInvoices).omit({ id: true, createdAt: true });
+export const insertMerchantPaymentAccountSchema = createInsertSchema(merchantPaymentAccounts).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertPaymentTransactionSchema = createInsertSchema(paymentTransactions).omit({ id: true, createdAt: true });
+export const insertPaymentWebhookSchema = createInsertSchema(paymentWebhooks).omit({ id: true, createdAt: true });
+export const insertPlatformPayoutSchema = createInsertSchema(platformPayouts).omit({ id: true, createdAt: true });
+export const insertPlatformFeeSchema = createInsertSchema(platformFees).omit({ id: true, createdAt: true });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -248,6 +376,20 @@ export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type StockLog = typeof stockLogs.$inferSelect;
 export type InsertStockLog = z.infer<typeof insertStockLogSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type BillingInvoice = typeof billingInvoices.$inferSelect;
+export type InsertBillingInvoice = z.infer<typeof insertBillingInvoiceSchema>;
+export type MerchantPaymentAccount = typeof merchantPaymentAccounts.$inferSelect;
+export type InsertMerchantPaymentAccount = z.infer<typeof insertMerchantPaymentAccountSchema>;
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type InsertPaymentTransaction = z.infer<typeof insertPaymentTransactionSchema>;
+export type PaymentWebhook = typeof paymentWebhooks.$inferSelect;
+export type InsertPaymentWebhook = z.infer<typeof insertPaymentWebhookSchema>;
+export type PlatformPayout = typeof platformPayouts.$inferSelect;
+export type InsertPlatformPayout = z.infer<typeof insertPlatformPayoutSchema>;
+export type PlatformFee = typeof platformFees.$inferSelect;
+export type InsertPlatformFee = z.infer<typeof insertPlatformFeeSchema>;
 
 // Storefront Layout types
 export interface StorefrontSection {
@@ -269,10 +411,34 @@ export interface StorefrontLayout {
 }
 
 // Plan limits configuration
-export const PLAN_LIMITS: Record<string, { maxStores: number; label: string; labelTh: string }> = {
-  free: { maxStores: 1, label: "Free", labelTh: "ฟรี" },
-  pro: { maxStores: 5, label: "Pro", labelTh: "โปร" },
-  enterprise: { maxStores: 999, label: "Enterprise", labelTh: "องค์กร" },
+export const PLAN_LIMITS: Record<string, {
+  maxStores: number;
+  label: string;
+  labelTh: string;
+  priceThb: number;
+  features: string[];
+}> = {
+  free: {
+    maxStores: 1,
+    label: "Free",
+    labelTh: "ฟรี",
+    priceThb: 0,
+    features: ["1 ร้านค้า", "สินค้าไม่จำกัด", "AI Agent พื้นฐาน", "PromptPay QR", "ค่าธรรมเนียม 3.5%"],
+  },
+  pro: {
+    maxStores: 5,
+    label: "Pro",
+    labelTh: "โปร",
+    priceThb: 990,
+    features: ["5 ร้านค้า", "สินค้าไม่จำกัด", "AI Agent ทั้งหมด", "PromptPay + TrueMoney", "ค่าธรรมเนียม 2.5%", "LINE OA Integration", "รายงานขั้นสูง"],
+  },
+  enterprise: {
+    maxStores: 999,
+    label: "Enterprise",
+    labelTh: "องค์กร",
+    priceThb: 2990,
+    features: ["ร้านค้าไม่จำกัด", "สินค้าไม่จำกัด", "AI Agent ทั้งหมด + Custom", "ทุกช่องทางชำระเงิน", "ค่าธรรมเนียม 1.5%", "LINE OA + Meta Integration", "รายงาน + API Access", "Priority Support"],
+  },
 };
 
 export function getPlanLimits(plan: string) {

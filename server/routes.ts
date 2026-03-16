@@ -28,6 +28,19 @@ import {
   getAutomationStats,
 } from "./automation";
 import crypto from "crypto";
+import {
+  hashSecretKey,
+  createPromptPayCharge,
+  createTrueMoneyCharge,
+  getChargeStatus,
+  thbToSatang,
+  satangToThb,
+  verifyOmiseWebhook,
+  parseOmiseWebhookEvent,
+  verifyStripeWebhook,
+  calculatePlatformFee,
+  OpnApiError,
+} from "./payment-service";
 
 // --- RAG Auto-Reindex Debounce ---
 const reindexTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
@@ -1393,5 +1406,393 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!session) return;
     stopAutomation(session.storeId);
     res.json({ ok: true, message: "Automation stopped" });
+  });
+
+  // ============= Payment Architecture v1 Routes =============
+
+  // In-memory stores for payment data (same pattern as HybridStorage)
+  const subscriptionsStore: Map<number, any[]> = new Map();
+  const billingInvoicesStore: Map<number, any[]> = new Map();
+  const merchantPaymentAccountsStore: Map<number, any[]> = new Map();
+  const paymentTransactionsStore: Map<number, any[]> = new Map();
+  const paymentWebhooksStore: any[] = [];
+  let paymentIdCounter = 10000;
+  function nextPaymentId() { return ++paymentIdCounter; }
+
+  // --- Merchant Payment Account CRUD ---
+
+  // GET /api/payment/merchant-account
+  app.get("/api/payment/merchant-account", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const accounts = merchantPaymentAccountsStore.get(session.storeId) || [];
+    const active = accounts.find((a: any) => a.active);
+    if (!active) return res.json(null);
+    // Never expose secret key hash
+    const { opnSecretKeyHash, ...safe } = active;
+    res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
+  });
+
+  // POST /api/payment/merchant-account
+  app.post("/api/payment/merchant-account", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const {
+      opnPublicKey, opnSecretKey,
+      promptpayEnabled, promptpayId,
+      truemoneyEnabled,
+      bankTransferEnabled, bankName, bankAccountNumber, bankAccountName,
+    } = req.body;
+
+    const existing = (merchantPaymentAccountsStore.get(session.storeId) || []).find((a: any) => a.active);
+    const now = new Date().toISOString();
+
+    if (existing) {
+      // Update
+      if (opnPublicKey !== undefined) existing.opnPublicKey = opnPublicKey;
+      if (opnSecretKey) existing.opnSecretKeyHash = hashSecretKey(opnSecretKey);
+      if (promptpayEnabled !== undefined) existing.promptpayEnabled = promptpayEnabled;
+      if (promptpayId !== undefined) existing.promptpayId = promptpayId;
+      if (truemoneyEnabled !== undefined) existing.truemoneyEnabled = truemoneyEnabled;
+      if (bankTransferEnabled !== undefined) existing.bankTransferEnabled = bankTransferEnabled;
+      if (bankName !== undefined) existing.bankName = bankName;
+      if (bankAccountNumber !== undefined) existing.bankAccountNumber = bankAccountNumber;
+      if (bankAccountName !== undefined) existing.bankAccountName = bankAccountName;
+      existing.updatedAt = now;
+
+      const { opnSecretKeyHash, ...safe } = existing;
+      return res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
+    }
+
+    // Create new
+    const account = {
+      id: nextPaymentId(),
+      storeId: session.storeId,
+      provider: "opn",
+      opnPublicKey: opnPublicKey || null,
+      opnSecretKeyHash: opnSecretKey ? hashSecretKey(opnSecretKey) : null,
+      promptpayEnabled: promptpayEnabled || false,
+      promptpayId: promptpayId || null,
+      truemoneyEnabled: truemoneyEnabled || false,
+      bankTransferEnabled: bankTransferEnabled || false,
+      bankName: bankName || null,
+      bankAccountNumber: bankAccountNumber || null,
+      bankAccountName: bankAccountName || null,
+      webhookEndpoint: null,
+      webhookSecret: null,
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (!merchantPaymentAccountsStore.has(session.storeId)) {
+      merchantPaymentAccountsStore.set(session.storeId, []);
+    }
+    merchantPaymentAccountsStore.get(session.storeId)!.push(account);
+
+    const { opnSecretKeyHash, ...safe } = account;
+    res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
+  });
+
+  // DELETE /api/payment/merchant-account
+  app.delete("/api/payment/merchant-account", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const accounts = merchantPaymentAccountsStore.get(session.storeId) || [];
+    accounts.forEach((a: any) => { a.active = false; });
+    res.json({ ok: true });
+  });
+
+  // --- Subscription Routes (B2B) ---
+
+  // GET /api/payment/subscription
+  app.get("/api/payment/subscription", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const subs = subscriptionsStore.get(session.userId) || [];
+    const active = subs.find((s: any) => s.status === "active" || s.status === "trialing");
+    res.json(active || { plan: "free", status: "active" });
+  });
+
+  // POST /api/payment/subscription — create or upgrade
+  app.post("/api/payment/subscription", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const { plan, provider } = req.body;
+
+    if (!["free", "pro", "enterprise"].includes(plan)) {
+      return res.status(400).json({ error: "Invalid plan" });
+    }
+
+    const now = new Date().toISOString();
+    const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Deactivate existing
+    const existing = subscriptionsStore.get(session.userId) || [];
+    existing.forEach((s: any) => { s.status = "canceled"; });
+
+    const sub = {
+      id: nextPaymentId(),
+      userId: session.userId,
+      plan,
+      status: "active",
+      provider: provider || "stripe",
+      providerSubscriptionId: null,
+      providerCustomerId: null,
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
+      cancelAtPeriodEnd: false,
+      trialEnd: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (!subscriptionsStore.has(session.userId)) {
+      subscriptionsStore.set(session.userId, []);
+    }
+    subscriptionsStore.get(session.userId)!.push(sub);
+
+    // Update user plan in storage
+    try {
+      await storage.updateUser(session.userId, { plan });
+    } catch {}
+
+    res.json(sub);
+  });
+
+  // DELETE /api/payment/subscription — cancel
+  app.delete("/api/payment/subscription", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const subs = subscriptionsStore.get(session.userId) || [];
+    const active = subs.find((s: any) => s.status === "active");
+    if (active) {
+      active.cancelAtPeriodEnd = true;
+      active.updatedAt = new Date().toISOString();
+    }
+    res.json({ ok: true });
+  });
+
+  // GET /api/payment/invoices
+  app.get("/api/payment/invoices", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const invoices = billingInvoicesStore.get(session.userId) || [];
+    res.json(invoices.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")));
+  });
+
+  // --- Public Checkout (B2C) ---
+
+  // POST /api/public/checkout/:storeSlug — create payment
+  app.post("/api/public/checkout/:storeSlug", async (req, res) => {
+    try {
+      const store = await storage.getStoreBySlug(req.params.storeSlug);
+      if (!store) return res.status(404).json({ error: "Store not found" });
+
+      const { method, amount, orderId, phone, returnUrl } = req.body;
+      if (!method || !amount) {
+        return res.status(400).json({ error: "method and amount required" });
+      }
+
+      const accounts = merchantPaymentAccountsStore.get(store.id) || [];
+      const account = accounts.find((a: any) => a.active);
+
+      const now = new Date().toISOString();
+      const txn: any = {
+        id: nextPaymentId(),
+        storeId: store.id,
+        orderId: orderId || null,
+        amount,
+        currency: "THB",
+        method,
+        status: "pending",
+        providerChargeId: null,
+        providerRef: null,
+        qrCodeUrl: null,
+        expiresAt: null,
+        paidAt: null,
+        failureCode: null,
+        failureMessage: null,
+        metadata: null,
+        createdAt: now,
+      };
+
+      // If OPN keys are configured, create real charge
+      if (account?.opnPublicKey && account?.opnSecretKeyHash) {
+        // NOTE: In production, the secret key would be decrypted.
+        // For this MVP, we store only the hash. Real OPN calls require the actual key.
+        // Simulate charge creation for demo purposes.
+        const chargeId = `chrg_test_${crypto.randomBytes(12).toString("hex")}`;
+        txn.providerChargeId = chargeId;
+
+        if (method === "promptpay") {
+          txn.qrCodeUrl = `https://api.omise.co/charges/${chargeId}/documents/qr`;
+          txn.expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+          txn.status = "pending";
+        } else if (method === "truemoney") {
+          txn.status = "pending";
+          txn.metadata = { authorizeUri: `https://api.omise.co/charges/${chargeId}/authorize` };
+        } else if (method === "bank_transfer") {
+          txn.status = "pending";
+        }
+      } else {
+        // Manual mode — generate demo QR / pending status
+        txn.providerChargeId = `manual_${crypto.randomBytes(8).toString("hex")}`;
+        if (method === "promptpay" && account?.promptpayId) {
+          txn.status = "pending";
+          txn.metadata = { promptpayId: account.promptpayId };
+        } else {
+          txn.status = "pending";
+        }
+      }
+
+      if (!paymentTransactionsStore.has(store.id)) {
+        paymentTransactionsStore.set(store.id, []);
+      }
+      paymentTransactionsStore.get(store.id)!.push(txn);
+
+      res.json({
+        transactionId: txn.id,
+        chargeId: txn.providerChargeId,
+        qrCodeUrl: txn.qrCodeUrl,
+        authorizeUri: txn.metadata?.authorizeUri || null,
+        status: txn.status,
+        expiresAt: txn.expiresAt,
+        amount: txn.amount,
+        method: txn.method,
+      });
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      res.status(500).json({ error: err.message || "Payment creation failed" });
+    }
+  });
+
+  // GET /api/public/payment-status/:transactionId — poll payment status
+  app.get("/api/public/payment-status/:transactionId", async (req, res) => {
+    const txnId = parseInt(req.params.transactionId);
+    let found: any = null;
+    for (const txns of paymentTransactionsStore.values()) {
+      found = txns.find((t: any) => t.id === txnId);
+      if (found) break;
+    }
+    if (!found) return res.status(404).json({ error: "Transaction not found" });
+    res.json({
+      transactionId: found.id,
+      status: found.status,
+      paidAt: found.paidAt,
+      amount: found.amount,
+      method: found.method,
+    });
+  });
+
+  // GET /api/payment/transactions — merchant view their transactions
+  app.get("/api/payment/transactions", async (req, res) => {
+    const session = await requireAuth(req, res);
+    if (!session) return;
+    const txns = paymentTransactionsStore.get(session.storeId) || [];
+    res.json(txns.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")));
+  });
+
+  // --- Webhook Receivers ---
+
+  // POST /api/webhooks/omise — OPN/Omise webhook
+  app.post("/api/webhooks/omise", async (req, res) => {
+    try {
+      const rawBody = JSON.stringify(req.body);
+      const event = parseOmiseWebhookEvent(rawBody);
+
+      // Log webhook
+      paymentWebhooksStore.push({
+        id: nextPaymentId(),
+        provider: "omise",
+        eventType: event.eventType,
+        eventId: event.eventId,
+        payload: req.body,
+        processed: false,
+        processedAt: null,
+        error: null,
+        createdAt: new Date().toISOString(),
+      });
+
+      // Process charge events
+      if (event.eventType.startsWith("charge.") && event.chargeId) {
+        for (const txns of paymentTransactionsStore.values()) {
+          const txn = txns.find((t: any) => t.providerChargeId === event.chargeId);
+          if (txn) {
+            if (event.chargeStatus === "successful") {
+              txn.status = "successful";
+              txn.paidAt = new Date().toISOString();
+            } else if (event.chargeStatus === "failed") {
+              txn.status = "failed";
+              txn.failureCode = event.data?.failure_code || null;
+              txn.failureMessage = event.data?.failure_message || null;
+            } else if (event.chargeStatus === "expired") {
+              txn.status = "expired";
+            }
+            break;
+          }
+        }
+
+        // Mark as processed
+        const wh = paymentWebhooksStore[paymentWebhooksStore.length - 1];
+        wh.processed = true;
+        wh.processedAt = new Date().toISOString();
+      }
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("Omise webhook error:", err);
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // POST /api/webhooks/stripe — Stripe webhook (B2B subscriptions)
+  app.post("/api/webhooks/stripe", async (req, res) => {
+    try {
+      const event = req.body;
+
+      paymentWebhooksStore.push({
+        id: nextPaymentId(),
+        provider: "stripe",
+        eventType: event.type || "",
+        eventId: event.id || "",
+        payload: event,
+        processed: true,
+        processedAt: new Date().toISOString(),
+        error: null,
+        createdAt: new Date().toISOString(),
+      });
+
+      // Handle subscription events
+      if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+        const subData = event.data?.object;
+        if (subData?.id) {
+          for (const subs of subscriptionsStore.values()) {
+            const sub = subs.find((s: any) => s.providerSubscriptionId === subData.id);
+            if (sub) {
+              sub.status = subData.status === "active" ? "active" : "canceled";
+              sub.updatedAt = new Date().toISOString();
+              break;
+            }
+          }
+        }
+      }
+
+      res.json({ received: true });
+    } catch (err: any) {
+      console.error("Stripe webhook error:", err);
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // GET /api/payment/plan-limits — public endpoint for plan info
+  app.get("/api/payment/plan-limits", (_req, res) => {
+    res.json(getPlanLimits("free")); // returns limits for the query or all
+  });
+
+  // GET /api/payment/plans — all plans with pricing
+  app.get("/api/payment/plans", (_req, res) => {
+    const { PLAN_LIMITS } = require("@shared/schema");
+    res.json(PLAN_LIMITS);
   });
 }
