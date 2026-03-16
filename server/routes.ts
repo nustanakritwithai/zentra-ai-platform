@@ -339,7 +339,11 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       const storeId = stores.length > 0 ? stores[0].id : 0;
       const token = generateToken(user.id, "seller");
       sessionCache.set(token, { userId: user.id, storeId, role: "seller", cachedAt: Date.now() });
-      return res.redirect(`/#/auth?oauth_token=${token}`);
+      // Use inline HTML to set cookie and redirect — avoids hash fragment issues
+      const dest = stores.length > 0 ? "/#/dashboard" : "/#/stores";
+      const isSecure = req.headers["x-forwarded-proto"] === "https";
+      const cookieFlags = isSecure ? "path=/; max-age=604800; SameSite=None; Secure" : "path=/; max-age=604800; SameSite=Lax";
+      return res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Logging in...</title></head><body><script>document.cookie="_zt=${token}; ${cookieFlags}";window.location.replace("${dest}");</script></body></html>`);
     } catch (err: any) {
       console.error("[Google OAuth] Error:", err);
       return res.redirect("/#/auth?error=google_auth_error");
