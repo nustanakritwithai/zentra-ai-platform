@@ -1,4 +1,4 @@
-import type { User, InsertUser, Store, InsertStore, Product, InsertProduct, Order, InsertOrder, AiAgent, InsertAiAgent, Customer, InsertCustomer, Category, InsertCategory, Discount, InsertDiscount, BlogPost, InsertBlogPost, Employee, InsertEmployee, StockLog, InsertStockLog } from "@shared/schema";
+import type { User, InsertUser, Store, InsertStore, Product, InsertProduct, Order, InsertOrder, AiAgent, InsertAiAgent, Customer, InsertCustomer, Category, InsertCategory, Discount, InsertDiscount, BlogPost, InsertBlogPost, Employee, InsertEmployee, StockLog, InsertStockLog, MerchantPaymentAccount, Subscription, BillingInvoice, PaymentTransaction, PaymentWebhook } from "@shared/schema";
 import { supabaseAdmin } from "./supabase";
 
 export interface IStorage {
@@ -69,6 +69,29 @@ export interface IStorage {
   // Dashboard
   getDashboardStats(storeId: number): Promise<any>;
   getChartData(storeId: number): Promise<any>;
+  // Payment - Merchant Accounts
+  getMerchantPaymentAccount(storeId: number): Promise<MerchantPaymentAccount | undefined>;
+  upsertMerchantPaymentAccount(storeId: number, data: any): Promise<MerchantPaymentAccount>;
+  deactivateMerchantPaymentAccount(storeId: number): Promise<boolean>;
+  // Payment - Subscriptions
+  getActiveSubscription(userId: number): Promise<Subscription | undefined>;
+  createSubscription(data: any): Promise<Subscription>;
+  updateSubscription(id: number, data: Partial<Subscription>): Promise<Subscription | undefined>;
+  cancelUserSubscriptions(userId: number): Promise<void>;
+  getSubscriptionByProviderId(providerId: string): Promise<Subscription | undefined>;
+  // Payment - Billing Invoices
+  getInvoicesByUser(userId: number): Promise<BillingInvoice[]>;
+  createInvoice(data: any): Promise<BillingInvoice>;
+  // Payment - Transactions
+  getTransactionsByStore(storeId: number): Promise<PaymentTransaction[]>;
+  getTransactionById(id: number): Promise<PaymentTransaction | undefined>;
+  getTransactionByChargeId(chargeId: string): Promise<PaymentTransaction | undefined>;
+  createTransaction(data: any): Promise<PaymentTransaction>;
+  updateTransaction(id: number, data: Partial<PaymentTransaction>): Promise<PaymentTransaction | undefined>;
+  // Payment - Webhooks
+  createWebhookLog(data: any): Promise<PaymentWebhook>;
+  getWebhookByEventId(eventId: string): Promise<PaymentWebhook | undefined>;
+  updateWebhookLog(id: number, data: Partial<PaymentWebhook>): Promise<void>;
 }
 
 function toCamel(row: any): any {
@@ -670,6 +693,299 @@ class HybridStorage implements IStorage {
       days.push({ date: key, revenue: dailyMap.get(key) || 0 });
     }
     return days;
+  }
+
+  // =================== PAYMENT - MERCHANT ACCOUNTS (Supabase) ===================
+
+  async getMerchantPaymentAccount(storeId: number): Promise<MerchantPaymentAccount | undefined> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("merchant_payment_accounts")
+        .select("*")
+        .eq("store_id", storeId)
+        .eq("active", true)
+        .limit(1)
+        .single();
+      if (!data) return undefined;
+      return toCamel(data) as MerchantPaymentAccount;
+    } catch { return undefined; }
+  }
+
+  async upsertMerchantPaymentAccount(storeId: number, updates: any): Promise<MerchantPaymentAccount> {
+    const existing = await this.getMerchantPaymentAccount(storeId);
+    const now = new Date().toISOString();
+    const snaked = toSnake(updates);
+
+    if (existing) {
+      // Update
+      const { data, error } = await supabaseAdmin
+        .from("merchant_payment_accounts")
+        .update({ ...snaked, updated_at: now })
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return toCamel(data) as MerchantPaymentAccount;
+    }
+
+    // Create
+    const { data, error } = await supabaseAdmin
+      .from("merchant_payment_accounts")
+      .insert({
+        store_id: storeId,
+        provider: "opn",
+        active: true,
+        created_at: now,
+        updated_at: now,
+        ...snaked,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toCamel(data) as MerchantPaymentAccount;
+  }
+
+  async deactivateMerchantPaymentAccount(storeId: number): Promise<boolean> {
+    const { error } = await supabaseAdmin
+      .from("merchant_payment_accounts")
+      .update({ active: false, updated_at: new Date().toISOString() })
+      .eq("store_id", storeId)
+      .eq("active", true);
+    return !error;
+  }
+
+  // =================== PAYMENT - SUBSCRIPTIONS (Supabase) ===================
+
+  async getActiveSubscription(userId: number): Promise<Subscription | undefined> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", userId)
+        .in("status", ["active", "trialing"])
+        .order("id", { ascending: false })
+        .limit(1)
+        .single();
+      if (!data) return undefined;
+      return toCamel(data) as Subscription;
+    } catch { return undefined; }
+  }
+
+  async createSubscription(sub: any): Promise<Subscription> {
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseAdmin
+      .from("subscriptions")
+      .insert({
+        user_id: sub.userId,
+        plan: sub.plan,
+        status: sub.status || "active",
+        provider: sub.provider || "stripe",
+        provider_subscription_id: sub.providerSubscriptionId || null,
+        provider_customer_id: sub.providerCustomerId || null,
+        current_period_start: sub.currentPeriodStart || now,
+        current_period_end: sub.currentPeriodEnd || null,
+        cancel_at_period_end: false,
+        trial_end: sub.trialEnd || null,
+        created_at: now,
+        updated_at: now,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toCamel(data) as Subscription;
+  }
+
+  async updateSubscription(id: number, updates: Partial<Subscription>): Promise<Subscription | undefined> {
+    try {
+      const snaked = toSnake(updates);
+      snaked.updated_at = new Date().toISOString();
+      const { data, error } = await supabaseAdmin
+        .from("subscriptions")
+        .update(snaked)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return toCamel(data) as Subscription;
+    } catch { return undefined; }
+  }
+
+  async cancelUserSubscriptions(userId: number): Promise<void> {
+    await supabaseAdmin
+      .from("subscriptions")
+      .update({ status: "canceled", updated_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .in("status", ["active", "trialing"]);
+  }
+
+  async getSubscriptionByProviderId(providerId: string): Promise<Subscription | undefined> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("subscriptions")
+        .select("*")
+        .eq("provider_subscription_id", providerId)
+        .limit(1)
+        .single();
+      if (!data) return undefined;
+      return toCamel(data) as Subscription;
+    } catch { return undefined; }
+  }
+
+  // =================== PAYMENT - BILLING INVOICES (Supabase) ===================
+
+  async getInvoicesByUser(userId: number): Promise<BillingInvoice[]> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("billing_invoices")
+        .select("*")
+        .eq("user_id", userId)
+        .order("id", { ascending: false });
+      return (data || []).map(r => toCamel(r) as BillingInvoice);
+    } catch { return []; }
+  }
+
+  async createInvoice(inv: any): Promise<BillingInvoice> {
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseAdmin
+      .from("billing_invoices")
+      .insert({
+        subscription_id: inv.subscriptionId,
+        user_id: inv.userId,
+        amount: inv.amount,
+        currency: inv.currency || "THB",
+        status: inv.status || "pending",
+        provider_invoice_id: inv.providerInvoiceId || null,
+        paid_at: inv.paidAt || null,
+        period_start: inv.periodStart || null,
+        period_end: inv.periodEnd || null,
+        created_at: now,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toCamel(data) as BillingInvoice;
+  }
+
+  // =================== PAYMENT - TRANSACTIONS (Supabase) ===================
+
+  async getTransactionsByStore(storeId: number): Promise<PaymentTransaction[]> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("payment_transactions")
+        .select("*")
+        .eq("store_id", storeId)
+        .order("id", { ascending: false });
+      return (data || []).map(r => toCamel(r) as PaymentTransaction);
+    } catch { return []; }
+  }
+
+  async getTransactionById(id: number): Promise<PaymentTransaction | undefined> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("payment_transactions")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (!data) return undefined;
+      return toCamel(data) as PaymentTransaction;
+    } catch { return undefined; }
+  }
+
+  async getTransactionByChargeId(chargeId: string): Promise<PaymentTransaction | undefined> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("payment_transactions")
+        .select("*")
+        .eq("provider_charge_id", chargeId)
+        .limit(1)
+        .single();
+      if (!data) return undefined;
+      return toCamel(data) as PaymentTransaction;
+    } catch { return undefined; }
+  }
+
+  async createTransaction(txn: any): Promise<PaymentTransaction> {
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseAdmin
+      .from("payment_transactions")
+      .insert({
+        store_id: txn.storeId,
+        order_id: txn.orderId || null,
+        amount: txn.amount,
+        currency: txn.currency || "THB",
+        method: txn.method,
+        status: txn.status || "pending",
+        provider_charge_id: txn.providerChargeId || null,
+        provider_ref: txn.providerRef || null,
+        qr_code_url: txn.qrCodeUrl || null,
+        expires_at: txn.expiresAt || null,
+        paid_at: txn.paidAt || null,
+        failure_code: txn.failureCode || null,
+        failure_message: txn.failureMessage || null,
+        metadata: txn.metadata || null,
+        created_at: now,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toCamel(data) as PaymentTransaction;
+  }
+
+  async updateTransaction(id: number, updates: Partial<PaymentTransaction>): Promise<PaymentTransaction | undefined> {
+    try {
+      const snaked = toSnake(updates);
+      const { data, error } = await supabaseAdmin
+        .from("payment_transactions")
+        .update(snaked)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return toCamel(data) as PaymentTransaction;
+    } catch { return undefined; }
+  }
+
+  // =================== PAYMENT - WEBHOOK LOGS (Supabase) ===================
+
+  async createWebhookLog(wh: any): Promise<PaymentWebhook> {
+    const now = new Date().toISOString();
+    const { data, error } = await supabaseAdmin
+      .from("payment_webhooks")
+      .insert({
+        provider: wh.provider,
+        event_type: wh.eventType,
+        event_id: wh.eventId || null,
+        payload: wh.payload,
+        processed: wh.processed || false,
+        processed_at: wh.processedAt || null,
+        error: wh.error || null,
+        created_at: now,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toCamel(data) as PaymentWebhook;
+  }
+
+  async getWebhookByEventId(eventId: string): Promise<PaymentWebhook | undefined> {
+    try {
+      const { data } = await supabaseAdmin
+        .from("payment_webhooks")
+        .select("*")
+        .eq("event_id", eventId)
+        .limit(1)
+        .single();
+      if (!data) return undefined;
+      return toCamel(data) as PaymentWebhook;
+    } catch { return undefined; }
+  }
+
+  async updateWebhookLog(id: number, updates: Partial<PaymentWebhook>): Promise<void> {
+    const snaked = toSnake(updates);
+    await supabaseAdmin
+      .from("payment_webhooks")
+      .update(snaked)
+      .eq("id", id);
   }
 }
 

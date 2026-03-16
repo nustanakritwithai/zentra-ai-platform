@@ -462,6 +462,63 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       await storage.createCategory(store.id, cat as any);
     }
 
+    // Create 5 sample products (tutorial-style to teach the system)
+    const sampleProducts = [
+      {
+        name: "[ตัวอย่าง] เสื้อยืด Premium — ลองแก้ไขสินค้านี้",
+        description: "นี่คือสินค้าตัวอย่างที่ช่วยให้คุณเรียนรู้ระบบ\n\n✅ ลองกดแก้ไขชื่อ ราคา รูปภาพ และรายละเอียด\n✅ ลองเปลี่ยนหมวดหมู่ จัดสต็อก\n✅ เมื่อพร้อมแล้ว ลบสินค้าตัวอย่างแล้วเพิ่มสินค้าจริงของคุณ",
+        price: 590,
+        comparePrice: 790,
+        category: "เสื้อผ้า",
+        stock: 50,
+        image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop",
+      },
+      {
+        name: "[ตัวอย่าง] หูฟังไร้สาย — ลองดูหน้าร้านของคุณ",
+        description: "เมื่อเพิ่มสินค้าแล้ว ลองเปิดดูหน้าร้านของคุณผ่านลิงก์ใน Sidebar\n\n🔗 คัดลอกลิงก์ร้านแล้วเปิดในแท็บใหม่\n🛒 ลองกดสั่งซื้อเพื่อดูระบบ Checkout\n📊 กลับมาดูคำสั่งซื้อในหน้าจัดการ",
+        price: 1290,
+        comparePrice: 1990,
+        category: "อุปกรณ์อิเล็กทรอนิกส์",
+        stock: 30,
+        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
+      },
+      {
+        name: "[ตัวอย่าง] กระเป๋าสะพาย — ลองใช้ AI Chat",
+        description: "ระบบ AI Agent ช่วยตอบคำถามลูกค้าเกี่ยวกับสินค้าอัตโนมัติ\n\n🤖 ไปที่เมนู AI Chat แล้วลองถามเกี่ยวกับสินค้า\n📚 เพิ่มข้อมูลใน Knowledge Base เพื่อให้ AI ตอบได้แม่นยำขึ้น\n⚡ ลองเปิด-ปิด AI Agent แต่ละตัวในหน้า AI Agent",
+        price: 890,
+        comparePrice: 1190,
+        category: "กระเป๋า",
+        stock: 20,
+        image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop",
+      },
+      {
+        name: "[ตัวอย่าง] รองเท้าวิ่ง — ลองสร้างส่วนลด",
+        description: "ระบบส่วนลดช่วยเพิ่มยอดขาย\n\n🏷️ ไปที่เมนูส่วนลด แล้วสร้างโค้ดส่วนลดใหม่\n💰 กำหนดเปอร์เซ็นต์ หรือลดราคาคงที่\n📋 ตั้งจำนวนสูงสุดที่ใช้ได้ และวันหมดอายุ\n🛍️ ลองใช้โค้ดส่วนลดในหน้า Checkout",
+        price: 2490,
+        comparePrice: 3290,
+        category: "รองเท้า",
+        stock: 15,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
+      },
+      {
+        name: "[ตัวอย่าง] สมาร์ทวอทช์ — ลองตั้งค่าการเงิน",
+        description: "ตั้งค่าระบบรับเงินเพื่อเริ่มขายจริง\n\n💳 ไปที่เมนูการเงิน เพื่อตั้งค่าบัญชีรับเงิน\n🏦 เพิ่มข้อมูลธนาคาร หรือเชื่อมต่อ PromptPay\n✅ เมื่อตั้งค่าเสร็จ ลูกค้าจะชำระเงินผ่านหน้าร้านได้\n📈 ติดตามธุรกรรมทั้งหมดในหน้าการเงิน",
+        price: 3990,
+        comparePrice: 4990,
+        category: "อุปกรณ์อิเล็กทรอนิกส์",
+        stock: 10,
+        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
+      },
+    ];
+
+    for (const product of sampleProducts) {
+      try {
+        await storage.createProduct(store.id, product as any);
+      } catch (e) {
+        console.error("[Onboarding] Failed to create sample product:", e);
+      }
+    }
+
     await storage.updateUser(session.userId, { onboarded: true });
 
     const token = req.headers["x-session-token"] as string;
@@ -1408,177 +1465,145 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json({ ok: true, message: "Automation stopped" });
   });
 
-  // ============= Payment Architecture v1 Routes =============
-
-  // In-memory stores for payment data (same pattern as HybridStorage)
-  const subscriptionsStore: Map<number, any[]> = new Map();
-  const billingInvoicesStore: Map<number, any[]> = new Map();
-  const merchantPaymentAccountsStore: Map<number, any[]> = new Map();
-  const paymentTransactionsStore: Map<number, any[]> = new Map();
-  const paymentWebhooksStore: any[] = [];
-  let paymentIdCounter = 10000;
-  function nextPaymentId() { return ++paymentIdCounter; }
+  // ============= Payment Architecture v1 Routes (Supabase-backed) =============
 
   // --- Merchant Payment Account CRUD ---
 
   // GET /api/payment/merchant-account
   app.get("/api/payment/merchant-account", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const accounts = merchantPaymentAccountsStore.get(session.storeId) || [];
-    const active = accounts.find((a: any) => a.active);
-    if (!active) return res.json(null);
-    // Never expose secret key hash
-    const { opnSecretKeyHash, ...safe } = active;
-    res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const account = await storage.getMerchantPaymentAccount(session.storeId);
+      if (!account) return res.json(null);
+      // Never expose secret key hash
+      const { opnSecretKeyHash, ...safe } = account as any;
+      res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
+    } catch (err: any) {
+      console.error("Get merchant account error:", err);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // POST /api/payment/merchant-account
   app.post("/api/payment/merchant-account", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const {
-      opnPublicKey, opnSecretKey,
-      promptpayEnabled, promptpayId,
-      truemoneyEnabled,
-      bankTransferEnabled, bankName, bankAccountNumber, bankAccountName,
-    } = req.body;
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const {
+        opnPublicKey, opnSecretKey,
+        promptpayEnabled, promptpayId,
+        truemoneyEnabled,
+        bankTransferEnabled, bankName, bankAccountNumber, bankAccountName,
+      } = req.body;
 
-    const existing = (merchantPaymentAccountsStore.get(session.storeId) || []).find((a: any) => a.active);
-    const now = new Date().toISOString();
+      const updates: any = {};
+      if (opnPublicKey !== undefined) updates.opnPublicKey = opnPublicKey;
+      if (opnSecretKey) updates.opnSecretKeyHash = hashSecretKey(opnSecretKey);
+      if (promptpayEnabled !== undefined) updates.promptpayEnabled = promptpayEnabled;
+      if (promptpayId !== undefined) updates.promptpayId = promptpayId;
+      if (truemoneyEnabled !== undefined) updates.truemoneyEnabled = truemoneyEnabled;
+      if (bankTransferEnabled !== undefined) updates.bankTransferEnabled = bankTransferEnabled;
+      if (bankName !== undefined) updates.bankName = bankName;
+      if (bankAccountNumber !== undefined) updates.bankAccountNumber = bankAccountNumber;
+      if (bankAccountName !== undefined) updates.bankAccountName = bankAccountName;
 
-    if (existing) {
-      // Update
-      if (opnPublicKey !== undefined) existing.opnPublicKey = opnPublicKey;
-      if (opnSecretKey) existing.opnSecretKeyHash = hashSecretKey(opnSecretKey);
-      if (promptpayEnabled !== undefined) existing.promptpayEnabled = promptpayEnabled;
-      if (promptpayId !== undefined) existing.promptpayId = promptpayId;
-      if (truemoneyEnabled !== undefined) existing.truemoneyEnabled = truemoneyEnabled;
-      if (bankTransferEnabled !== undefined) existing.bankTransferEnabled = bankTransferEnabled;
-      if (bankName !== undefined) existing.bankName = bankName;
-      if (bankAccountNumber !== undefined) existing.bankAccountNumber = bankAccountNumber;
-      if (bankAccountName !== undefined) existing.bankAccountName = bankAccountName;
-      existing.updatedAt = now;
-
-      const { opnSecretKeyHash, ...safe } = existing;
-      return res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
+      const account = await storage.upsertMerchantPaymentAccount(session.storeId, updates);
+      const { opnSecretKeyHash, ...safe } = account as any;
+      res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
+    } catch (err: any) {
+      console.error("Upsert merchant account error:", err);
+      res.status(500).json({ error: err.message });
     }
-
-    // Create new
-    const account = {
-      id: nextPaymentId(),
-      storeId: session.storeId,
-      provider: "opn",
-      opnPublicKey: opnPublicKey || null,
-      opnSecretKeyHash: opnSecretKey ? hashSecretKey(opnSecretKey) : null,
-      promptpayEnabled: promptpayEnabled || false,
-      promptpayId: promptpayId || null,
-      truemoneyEnabled: truemoneyEnabled || false,
-      bankTransferEnabled: bankTransferEnabled || false,
-      bankName: bankName || null,
-      bankAccountNumber: bankAccountNumber || null,
-      bankAccountName: bankAccountName || null,
-      webhookEndpoint: null,
-      webhookSecret: null,
-      active: true,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    if (!merchantPaymentAccountsStore.has(session.storeId)) {
-      merchantPaymentAccountsStore.set(session.storeId, []);
-    }
-    merchantPaymentAccountsStore.get(session.storeId)!.push(account);
-
-    const { opnSecretKeyHash, ...safe } = account;
-    res.json({ ...safe, hasSecretKey: !!opnSecretKeyHash });
   });
 
   // DELETE /api/payment/merchant-account
   app.delete("/api/payment/merchant-account", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const accounts = merchantPaymentAccountsStore.get(session.storeId) || [];
-    accounts.forEach((a: any) => { a.active = false; });
-    res.json({ ok: true });
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      await storage.deactivateMerchantPaymentAccount(session.storeId);
+      res.json({ ok: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // --- Subscription Routes (B2B) ---
 
   // GET /api/payment/subscription
   app.get("/api/payment/subscription", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const subs = subscriptionsStore.get(session.userId) || [];
-    const active = subs.find((s: any) => s.status === "active" || s.status === "trialing");
-    res.json(active || { plan: "free", status: "active" });
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const active = await storage.getActiveSubscription(session.userId);
+      res.json(active || { plan: "free", status: "active" });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // POST /api/payment/subscription — create or upgrade
   app.post("/api/payment/subscription", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const { plan, provider } = req.body;
-
-    if (!["free", "pro", "enterprise"].includes(plan)) {
-      return res.status(400).json({ error: "Invalid plan" });
-    }
-
-    const now = new Date().toISOString();
-    const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-    // Deactivate existing
-    const existing = subscriptionsStore.get(session.userId) || [];
-    existing.forEach((s: any) => { s.status = "canceled"; });
-
-    const sub = {
-      id: nextPaymentId(),
-      userId: session.userId,
-      plan,
-      status: "active",
-      provider: provider || "stripe",
-      providerSubscriptionId: null,
-      providerCustomerId: null,
-      currentPeriodStart: now,
-      currentPeriodEnd: periodEnd,
-      cancelAtPeriodEnd: false,
-      trialEnd: null,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    if (!subscriptionsStore.has(session.userId)) {
-      subscriptionsStore.set(session.userId, []);
-    }
-    subscriptionsStore.get(session.userId)!.push(sub);
-
-    // Update user plan in storage
     try {
-      await storage.updateUser(session.userId, { plan });
-    } catch {}
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const { plan, provider } = req.body;
 
-    res.json(sub);
+      if (!["free", "pro", "enterprise"].includes(plan)) {
+        return res.status(400).json({ error: "Invalid plan" });
+      }
+
+      const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+      // Cancel existing subscriptions
+      await storage.cancelUserSubscriptions(session.userId);
+
+      const sub = await storage.createSubscription({
+        userId: session.userId,
+        plan,
+        status: "active",
+        provider: provider || "stripe",
+        currentPeriodEnd: periodEnd,
+      });
+
+      // Update user plan in storage
+      try {
+        await storage.updateUser(session.userId, { plan });
+      } catch {}
+
+      res.json(sub);
+    } catch (err: any) {
+      console.error("Create subscription error:", err);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // DELETE /api/payment/subscription — cancel
   app.delete("/api/payment/subscription", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const subs = subscriptionsStore.get(session.userId) || [];
-    const active = subs.find((s: any) => s.status === "active");
-    if (active) {
-      active.cancelAtPeriodEnd = true;
-      active.updatedAt = new Date().toISOString();
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const active = await storage.getActiveSubscription(session.userId);
+      if (active && active.id) {
+        await storage.updateSubscription(active.id, { cancelAtPeriodEnd: true });
+      }
+      res.json({ ok: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
-    res.json({ ok: true });
   });
 
   // GET /api/payment/invoices
   app.get("/api/payment/invoices", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const invoices = billingInvoicesStore.get(session.userId) || [];
-    res.json(invoices.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")));
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const invoices = await storage.getInvoicesByUser(session.userId);
+      res.json(invoices);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // --- Public Checkout (B2C) ---
@@ -1594,64 +1619,40 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
         return res.status(400).json({ error: "method and amount required" });
       }
 
-      const accounts = merchantPaymentAccountsStore.get(store.id) || [];
-      const account = accounts.find((a: any) => a.active);
+      const account = await storage.getMerchantPaymentAccount(store.id);
 
-      const now = new Date().toISOString();
-      const txn: any = {
-        id: nextPaymentId(),
+      const txnData: any = {
         storeId: store.id,
         orderId: orderId || null,
         amount,
         currency: "THB",
         method,
         status: "pending",
-        providerChargeId: null,
-        providerRef: null,
-        qrCodeUrl: null,
-        expiresAt: null,
-        paidAt: null,
-        failureCode: null,
-        failureMessage: null,
-        metadata: null,
-        createdAt: now,
       };
 
-      // If OPN keys are configured, create real charge
+      // If OPN keys are configured, create simulated charge
       if (account?.opnPublicKey && account?.opnSecretKeyHash) {
-        // NOTE: In production, the secret key would be decrypted.
-        // For this MVP, we store only the hash. Real OPN calls require the actual key.
-        // Simulate charge creation for demo purposes.
         const chargeId = `chrg_test_${crypto.randomBytes(12).toString("hex")}`;
-        txn.providerChargeId = chargeId;
+        txnData.providerChargeId = chargeId;
 
         if (method === "promptpay") {
-          txn.qrCodeUrl = `https://api.omise.co/charges/${chargeId}/documents/qr`;
-          txn.expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-          txn.status = "pending";
+          txnData.qrCodeUrl = `https://api.omise.co/charges/${chargeId}/documents/qr`;
+          txnData.expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
         } else if (method === "truemoney") {
-          txn.status = "pending";
-          txn.metadata = { authorizeUri: `https://api.omise.co/charges/${chargeId}/authorize` };
-        } else if (method === "bank_transfer") {
-          txn.status = "pending";
+          txnData.metadata = { authorizeUri: `https://api.omise.co/charges/${chargeId}/authorize` };
         }
       } else {
-        // Manual mode — generate demo QR / pending status
-        txn.providerChargeId = `manual_${crypto.randomBytes(8).toString("hex")}`;
+        // Manual mode
+        txnData.providerChargeId = `manual_${crypto.randomBytes(8).toString("hex")}`;
         if (method === "promptpay" && account?.promptpayId) {
-          txn.status = "pending";
-          txn.metadata = { promptpayId: account.promptpayId };
-        } else {
-          txn.status = "pending";
+          txnData.metadata = { promptpayId: account.promptpayId };
         }
       }
 
-      if (!paymentTransactionsStore.has(store.id)) {
-        paymentTransactionsStore.set(store.id, []);
-      }
-      paymentTransactionsStore.get(store.id)!.push(txn);
+      // Persist to Supabase
+      const txn = await storage.createTransaction(txnData);
 
-      // Return bank info if bank_transfer method and merchant has bank details
+      // Return bank info if bank_transfer method
       let bankInfo = null;
       if (method === "bank_transfer" && account) {
         bankInfo = {
@@ -1665,7 +1666,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
         transactionId: txn.id,
         chargeId: txn.providerChargeId,
         qrCodeUrl: txn.qrCodeUrl,
-        authorizeUri: txn.metadata?.authorizeUri || null,
+        authorizeUri: (txn.metadata as any)?.authorizeUri || null,
         status: txn.status,
         expiresAt: txn.expiresAt,
         amount: txn.amount,
@@ -1680,28 +1681,32 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // GET /api/public/payment-status/:transactionId — poll payment status
   app.get("/api/public/payment-status/:transactionId", async (req, res) => {
-    const txnId = parseInt(req.params.transactionId);
-    let found: any = null;
-    for (const txns of paymentTransactionsStore.values()) {
-      found = txns.find((t: any) => t.id === txnId);
-      if (found) break;
+    try {
+      const txnId = parseInt(req.params.transactionId);
+      const txn = await storage.getTransactionById(txnId);
+      if (!txn) return res.status(404).json({ error: "Transaction not found" });
+      res.json({
+        transactionId: txn.id,
+        status: txn.status,
+        paidAt: txn.paidAt,
+        amount: txn.amount,
+        method: txn.method,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
     }
-    if (!found) return res.status(404).json({ error: "Transaction not found" });
-    res.json({
-      transactionId: found.id,
-      status: found.status,
-      paidAt: found.paidAt,
-      amount: found.amount,
-      method: found.method,
-    });
   });
 
   // GET /api/payment/transactions — merchant view their transactions
   app.get("/api/payment/transactions", async (req, res) => {
-    const session = await requireAuth(req, res);
-    if (!session) return;
-    const txns = paymentTransactionsStore.get(session.storeId) || [];
-    res.json(txns.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")));
+    try {
+      const session = await requireAuth(req, res);
+      if (!session) return;
+      const txns = await storage.getTransactionsByStore(session.storeId);
+      res.json(txns);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // --- Webhook Receivers ---
@@ -1712,42 +1717,66 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       const rawBody = JSON.stringify(req.body);
       const event = parseOmiseWebhookEvent(rawBody);
 
-      // Log webhook
-      paymentWebhooksStore.push({
-        id: nextPaymentId(),
+      // Idempotency: check if this event was already processed
+      if (event.eventId) {
+        const existing = await storage.getWebhookByEventId(event.eventId);
+        if (existing?.processed) {
+          return res.json({ ok: true, duplicate: true });
+        }
+      }
+
+      // Log webhook to Supabase
+      const whLog = await storage.createWebhookLog({
         provider: "omise",
         eventType: event.eventType,
         eventId: event.eventId,
         payload: req.body,
         processed: false,
-        processedAt: null,
-        error: null,
-        createdAt: new Date().toISOString(),
       });
 
       // Process charge events
       if (event.eventType.startsWith("charge.") && event.chargeId) {
-        for (const txns of paymentTransactionsStore.values()) {
-          const txn = txns.find((t: any) => t.providerChargeId === event.chargeId);
-          if (txn) {
-            if (event.chargeStatus === "successful") {
-              txn.status = "successful";
-              txn.paidAt = new Date().toISOString();
-            } else if (event.chargeStatus === "failed") {
-              txn.status = "failed";
-              txn.failureCode = event.data?.failure_code || null;
-              txn.failureMessage = event.data?.failure_message || null;
-            } else if (event.chargeStatus === "expired") {
-              txn.status = "expired";
+        const txn = await storage.getTransactionByChargeId(event.chargeId);
+        if (txn) {
+          const txnUpdate: any = {};
+          if (event.chargeStatus === "successful") {
+            txnUpdate.status = "successful";
+            txnUpdate.paidAt = new Date().toISOString();
+          } else if (event.chargeStatus === "failed") {
+            txnUpdate.status = "failed";
+            txnUpdate.failureCode = event.data?.failure_code || null;
+            txnUpdate.failureMessage = event.data?.failure_message || null;
+          } else if (event.chargeStatus === "expired") {
+            txnUpdate.status = "expired";
+          }
+
+          if (Object.keys(txnUpdate).length > 0) {
+            await storage.updateTransaction(txn.id, txnUpdate);
+
+            // Update order payment status in Supabase
+            if (txn.orderId) {
+              const orderUpdate: any = { paymentStatus: txnUpdate.status };
+              if (txnUpdate.status === "successful") {
+                orderUpdate.status = "confirmed";
+                orderUpdate.paymentMethod = txn.method;
+              } else if (txnUpdate.status === "failed" || txnUpdate.status === "expired") {
+                orderUpdate.paymentStatus = txnUpdate.status;
+              }
+              try {
+                await storage.updateOrder(txn.orderId, orderUpdate);
+                console.log(`[Webhook] Order ${txn.orderId} updated: ${JSON.stringify(orderUpdate)}`);
+              } catch (e) {
+                console.error(`[Webhook] Failed to update order ${txn.orderId}:`, e);
+              }
             }
-            break;
           }
         }
 
-        // Mark as processed
-        const wh = paymentWebhooksStore[paymentWebhooksStore.length - 1];
-        wh.processed = true;
-        wh.processedAt = new Date().toISOString();
+        // Mark webhook as processed
+        await storage.updateWebhookLog(whLog.id, {
+          processed: true,
+          processedAt: new Date().toISOString(),
+        } as any);
       }
 
       res.json({ ok: true });
@@ -1762,29 +1791,32 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     try {
       const event = req.body;
 
-      paymentWebhooksStore.push({
-        id: nextPaymentId(),
+      // Idempotency
+      if (event.id) {
+        const existing = await storage.getWebhookByEventId(event.id);
+        if (existing?.processed) {
+          return res.json({ received: true, duplicate: true });
+        }
+      }
+
+      await storage.createWebhookLog({
         provider: "stripe",
         eventType: event.type || "",
         eventId: event.id || "",
         payload: event,
         processed: true,
         processedAt: new Date().toISOString(),
-        error: null,
-        createdAt: new Date().toISOString(),
       });
 
       // Handle subscription events
       if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
         const subData = event.data?.object;
         if (subData?.id) {
-          for (const subs of subscriptionsStore.values()) {
-            const sub = subs.find((s: any) => s.providerSubscriptionId === subData.id);
-            if (sub) {
-              sub.status = subData.status === "active" ? "active" : "canceled";
-              sub.updatedAt = new Date().toISOString();
-              break;
-            }
+          const sub = await storage.getSubscriptionByProviderId(subData.id);
+          if (sub) {
+            await storage.updateSubscription(sub.id, {
+              status: subData.status === "active" ? "active" : "canceled",
+            });
           }
         }
       }
@@ -1798,7 +1830,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // GET /api/payment/plan-limits — public endpoint for plan info
   app.get("/api/payment/plan-limits", (_req, res) => {
-    res.json(getPlanLimits("free")); // returns limits for the query or all
+    res.json(getPlanLimits("free"));
   });
 
   // GET /api/payment/plans — all plans with pricing
