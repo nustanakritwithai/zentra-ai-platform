@@ -1,5 +1,5 @@
 /**
- * ZENTRA AI — Gemini Agent with Memory + RAG
+ * Agentra — Gemini Agent with Memory + RAG
  * 
  * API Key Priority:
  * 1. Supabase settings table (persisted via Settings page)
@@ -271,7 +271,7 @@ export async function chatWithAgent(
   if (!agent) throw new Error(`Agent type "${agentType}" not found`);
   if (!agent.enabled) throw new Error(`Agent "${agent.name}" is currently disabled`);
 
-  const storeName = store?.name || "ZentraMart";
+  const storeName = store?.name || "Agentra Store";
   const sessionId = customerId || `session-${storeId}`;
 
   // 1. Get base system prompt

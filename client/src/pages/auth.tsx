@@ -106,9 +106,7 @@ export default function AuthPage() {
 
       <Card className="w-full max-w-md relative z-10 bg-white/[0.02] border-white/[0.06] backdrop-blur-xl">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-lg mb-3">
-            Z
-          </div>
+          <img src="/icon-192.png" alt="Agentra" className="mx-auto w-12 h-12 rounded-xl mb-3" />
           <CardTitle className="text-xl text-white/90">{isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชีใหม่"}</CardTitle>
           <CardDescription className="text-white/40">{isLogin ? "เข้าสู่ระบบเพื่อจัดการร้านค้าของคุณ" : "เริ่มต้นสร้างร้านค้าออนไลน์ด้วย AI ฟรี"}</CardDescription>
         </CardHeader>

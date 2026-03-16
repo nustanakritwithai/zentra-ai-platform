@@ -26,8 +26,8 @@ interface SEOProps {
 }
 
 export function SEOHead({
-  title = "ZENTRA AI — แพลตฟอร์ม E-Commerce อัจฉริยะ",
-  description = "สร้างร้านค้าออนไลน์ที่ทันสมัยที่สุด ขับเคลื่อนด้วย AI 6 ตัว ครบทุกฟีเจอร์ พร้อมเปิดขายได้ทันที",
+  title = "Agentra — Commerce Operating System for Modern Merchants",
+  description = "Agentra คือระบบปฏิบัติการสำหรับการขายออนไลน์ ที่รวม storefront, dashboard, AI automation และ payment infrastructure ไว้ในแพลตฟอร์มเดียว",
   type = "website",
   image,
   url,
@@ -63,7 +63,7 @@ export function SEOHead({
     setMeta("og:type", type === "product" ? "product" : "website", true);
     if (image) setMeta("og:image", image, true);
     if (url) setMeta("og:url", url, true);
-    setMeta("og:site_name", "ZENTRA AI", true);
+    setMeta("og:site_name", "Agentra", true);
     setMeta("og:locale", "th_TH", true);
 
     // Twitter Card
@@ -82,7 +82,7 @@ export function SEOHead({
     }
 
     // Remove old JSON-LD
-    document.querySelectorAll('script[data-seo="zentra"]').forEach((el) => el.remove());
+    document.querySelectorAll('script[data-seo="agentra"]').forEach((el) => el.remove());
 
     // Build JSON-LD structured data
     const jsonLd: any[] = [];
@@ -91,7 +91,7 @@ export function SEOHead({
       jsonLd.push({
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: "ZENTRA AI",
+        name: "Agentra",
         url: window.location.origin,
         description,
         potentialAction: {
@@ -110,10 +110,10 @@ export function SEOHead({
       jsonLd.push({
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "ZENTRA AI",
+        name: "Agentra",
         url: window.location.origin,
-        logo: `${window.location.origin}/favicon.png`,
-        description: "แพลตฟอร์ม E-Commerce อัจฉริยะที่ขับเคลื่อนด้วย AI สำหรับผู้ประกอบการยุคใหม่",
+        logo: `${window.location.origin}/icon-192.png`,
+        description: "Commerce Operating System สำหรับเจ้าของร้านยุคใหม่ ที่รวม storefront, dashboard, AI agents และระบบรับเงินไว้ในแพลตฟอร์มเดียว",
         sameAs: [],
         contactPoint: {
           "@type": "ContactPoint",
@@ -169,7 +169,7 @@ export function SEOHead({
       jsonLd.push({
         "@context": "https://schema.org",
         "@type": "ItemList",
-        name: storeName ? `สินค้าจาก ${storeName}` : "สินค้าทั้งหมดใน ZENTRA Mall",
+        name: storeName ? `สินค้าจาก ${storeName}` : "สินค้าทั้งหมดใน Agentra Mall",
         numberOfItems: products.length,
         itemListElement: products.slice(0, 20).map((p, i) => ({
           "@type": "ListItem",
@@ -197,7 +197,7 @@ export function SEOHead({
         "@type": "CollectionPage",
         name: storeName
           ? `${storeName} — ร้านค้าออนไลน์`
-          : "ZENTRA Mall — ช้อปปิ้งออนไลน์",
+          : "Agentra Mall — ช้อปปิ้งออนไลน์",
         description,
         mainEntity: {
           "@type": "ItemList",
@@ -212,7 +212,7 @@ export function SEOHead({
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "ZENTRA Mall", item: `${window.location.origin}/#/mall` },
+          { "@type": "ListItem", position: 1, name: "Agentra Mall", item: `${window.location.origin}/#/mall` },
           { "@type": "ListItem", position: 2, name: storeName || storeSlug, item: `${window.location.origin}/#/store/${storeSlug}` },
         ],
       });
@@ -222,13 +222,13 @@ export function SEOHead({
     for (const ld of jsonLd) {
       const script = document.createElement("script");
       script.type = "application/ld+json";
-      script.setAttribute("data-seo", "zentra");
+      script.setAttribute("data-seo", "agentra");
       script.textContent = JSON.stringify(ld);
       document.head.appendChild(script);
     }
 
     return () => {
-      document.querySelectorAll('script[data-seo="zentra"]').forEach((el) => el.remove());
+      document.querySelectorAll('script[data-seo="agentra"]').forEach((el) => el.remove());
     };
   }, [title, description, type, image, url, price, currency, availability, brand, category, sku, storeName, storeSlug, products]);
 

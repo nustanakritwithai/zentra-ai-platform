@@ -81,27 +81,9 @@ function RevealDiv({ children, className = "", delay = 0 }: { children: React.Re
   );
 }
 
-// ─── SVG Logo ────────────────────────────────
+// ─── Logo Component (uses real brand image) ────────────────────────────────
 function AgentraLogo({ className = "w-9 h-9" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 4L5 34h6l9-20 9 20h6L20 4z" stroke="url(#aLogo)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      <circle cx="14" cy="24" r="2.5" fill="#18E3C8"/>
-      <circle cx="20" cy="16" r="2.5" fill="#22D4B8"/>
-      <circle cx="26" cy="24" r="2.5" fill="#29B6FF"/>
-      <circle cx="32" cy="20" r="2" fill="#29B6FF" opacity="0.7"/>
-      <line x1="14" y1="24" x2="20" y2="16" stroke="#18E3C8" strokeWidth="1.5" opacity="0.6"/>
-      <line x1="20" y1="16" x2="26" y2="24" stroke="#22D4B8" strokeWidth="1.5" opacity="0.6"/>
-      <line x1="26" y1="24" x2="32" y2="20" stroke="#29B6FF" strokeWidth="1.5" opacity="0.5"/>
-      <line x1="14" y1="24" x2="26" y2="24" stroke="#18E3C8" strokeWidth="1" opacity="0.3"/>
-      <defs>
-        <linearGradient id="aLogo" x1="5" y1="4" x2="35" y2="34">
-          <stop offset="0%" stopColor="#18E3C8"/>
-          <stop offset="100%" stopColor="#29B6FF"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  );
+  return <img src="/icon-192.png" alt="Agentra" className={className + " object-contain"} />;
 }
 
 // ─── FAQ Accordion item ────────────────────────────────

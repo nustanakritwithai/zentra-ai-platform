@@ -38,7 +38,7 @@ interface CartItem {
 // Cart data is passed via URL search params or global window object
 declare global {
   interface Window {
-    __zentra_cart?: CartItem[];
+    __agentra_cart?: CartItem[];
   }
 }
 
@@ -61,8 +61,8 @@ export default function CheckoutPage() {
 
   // Load cart from global window object (set by storefront page)
   useEffect(() => {
-    if (window.__zentra_cart && window.__zentra_cart.length > 0) {
-      setCartItems(window.__zentra_cart);
+    if (window.__agentra_cart && window.__agentra_cart.length > 0) {
+      setCartItems(window.__agentra_cart);
     }
   }, [slug]);
 
@@ -131,7 +131,7 @@ export default function CheckoutPage() {
       if (data.status === "successful") {
         setPaymentStatus("successful");
         // Clear cart
-        window.__zentra_cart = [];
+        window.__agentra_cart = [];
       } else if (data.status === "failed") {
         setPaymentStatus("failed");
       } else if (data.status === "expired") {

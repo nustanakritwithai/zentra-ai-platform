@@ -55,13 +55,11 @@ export function AppSidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 p-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(187,94%,43%)] to-[hsl(263,70%,58%)]">
-          <Zap className="w-4 h-4 text-white" />
-        </div>
+        <img src="/icon-192.png" alt="Agentra" className="w-8 h-8 rounded-lg" />
         {!collapsed && (
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-foreground">ZENTRA AI</span>
-            <span className="text-xs text-muted-foreground">ZentraMart</span>
+            <span className="text-sm font-bold text-foreground">Agentra</span>
+            <span className="text-xs text-muted-foreground">Commerce OS</span>
           </div>
         )}
         <Button

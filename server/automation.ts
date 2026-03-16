@@ -1,5 +1,5 @@
 /**
- * ZENTRA AI — Agent Automation Engine
+ * Agentra — Agent Automation Engine
  * 
  * Each AI agent runs background automation tasks:
  * 1. Shopping Assistant → Auto product recommendations, trending analysis  

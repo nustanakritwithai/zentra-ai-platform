@@ -142,16 +142,18 @@ export function AppSidebar() {
             onClick={() => !collapsed && setStoreDropdownOpen(!storeDropdownOpen)}
           >
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300 group-hover:scale-105">
-                {activeStore ? activeStore.name.charAt(0).toUpperCase() : "Z"}
-              </div>
+              {activeStore?.logo ? (
+                <img src={activeStore.logo} alt={activeStore.name} className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300 group-hover:scale-105" />
+              ) : (
+                <img src="/icon-192.png" alt="Agentra" className="w-9 h-9 rounded-xl object-contain shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300 group-hover:scale-105" />
+              )}
               <div className="absolute -inset-1 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300" />
             </div>
             {!collapsed && (
               <>
                 <div className={cn("flex-1 min-w-0 text-left transition-opacity duration-300", mounted ? "opacity-100" : "opacity-0")}>
                   <span className="font-bold text-sm tracking-tight truncate block bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">
-                    {activeStore ? activeStore.name : "ZENTRA AI"}
+                    {activeStore ? activeStore.name : "Agentra"}
                   </span>
                   {activeStore && (
                     <span className="text-[10px] text-teal-400/50 truncate block">/{activeStore.slug}</span>

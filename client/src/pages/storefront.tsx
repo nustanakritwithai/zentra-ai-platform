@@ -201,7 +201,7 @@ export default function StorefrontPage() {
             )}
             <span className="font-bold text-sm text-white/90">{store.name}</span>
             <Badge variant="outline" className="text-[10px] hidden sm:inline-flex bg-teal-500/10 text-teal-400 border-teal-500/20">
-              <Sparkles className="w-2.5 h-2.5 mr-1 text-teal-400" />ZENTRA AI
+              <Sparkles className="w-2.5 h-2.5 mr-1 text-teal-400" />Agentra
             </Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -313,7 +313,7 @@ export default function StorefrontPage() {
                       data-testid="btn-checkout-payment"
                       className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/20"
                       onClick={() => {
-                        (window as any).__zentra_cart = cart.map(item => ({
+                        (window as any).__agentra_cart = cart.map(item => ({
                           id: item.productId,
                           name: item.name,
                           price: item.price,

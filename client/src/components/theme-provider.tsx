@@ -6,7 +6,7 @@ const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({ theme
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
-    return "dark"; // default dark for ZENTRA
+    return "dark"; // default dark for Agentra
   });
 
   useEffect(() => {

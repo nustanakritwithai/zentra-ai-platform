@@ -603,7 +603,7 @@ export function FooterBlock({ store, sectionProps }: BlockCommonProps) {
         )}
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/30 pt-2 border-t border-white/[0.04]">
-          <span>&copy; 2026 {store?.name || "Store"} — Powered by ZENTRA AI</span>
+          <span>&copy; 2026 {store?.name || "Store"} — Powered by Agentra</span>
           <PerplexityAttribution />
         </div>
       </div>

@@ -141,7 +141,7 @@ export default function StoreSettingsPage() {
                 <div><label className="text-sm font-medium block mb-1 text-white/60">ชื่อร้านค้า</label><Input data-testid="input-store-name" value={name} onChange={e => setName(e.target.value)} className="bg-white/[0.04] border-white/[0.06] text-white" /></div>
                 <div><label className="text-sm font-medium block mb-1 text-white/60">Slug (URL)</label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-white/30">zentra.ai/store/</span>
+                    <span className="text-sm text-white/30">agentra.app/store/</span>
                     <Input data-testid="input-store-slug" value={slug} onChange={e => setSlug(e.target.value)} className="flex-1 bg-white/[0.04] border-white/[0.06] text-white" />
                   </div>
                 </div>

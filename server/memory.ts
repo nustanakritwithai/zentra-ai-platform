@@ -1,5 +1,5 @@
 /**
- * ZENTRA AI — Agent Memory System
+ * Agentra — Agent Memory System
  * 
  * Three layers of memory:
  * 1. Short-term: Recent conversation turns (sliding window)

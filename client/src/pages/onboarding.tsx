@@ -158,7 +158,7 @@ export default function OnboardingPage() {
                   <label className="text-sm font-medium mb-1.5 block text-white/60">URL ร้านค้า</label>
                   <div className="flex items-center gap-0">
                     <span className="text-sm bg-white/[0.04] border border-white/[0.06] text-white/40 px-3 py-2 rounded-l-md border-r-0">
-                      zentraai.onrender.com/#/shop/
+                      agentra.app/#/shop/
                     </span>
                     <Input
                       data-testid="input-store-slug"

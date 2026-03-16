@@ -1,5 +1,5 @@
 /**
- * ZENTRA AI — RAG (Retrieval-Augmented Generation) System
+ * Agentra — RAG (Retrieval-Augmented Generation) System
  * 
  * Uses Gemini Embedding API for vector similarity search.
  * In-memory vector store with cosine similarity.
@@ -129,7 +129,13 @@ export async function indexStoreData(storeId: number): Promise<{ indexed: number
   // Index products
   const products = await storage.getProductsByStore(storeId);
   for (const product of products) {
-    const text = `สินค้า: ${product.name}\nหมวดหมู่: ${product.category || "ไม่ระบุ"}\nรายละเอียด: ${product.description || ""}\nราคา: ฿${product.price.toLocaleString()}${product.comparePrice ? ` (จาก ฿${product.comparePrice.toLocaleString()})` : ""}\nสต็อก: ${product.stock} ชิ้น\nสถานะ: ${product.status}\nAI Score: ${product.aiScore}%`;
+    const text = `สินค้า: ${product.name}
+หมวดหมู่: ${product.category || "ไม่ระบุ"}
+รายละเอียด: ${product.description || ""}
+ราคา: ฿${product.price.toLocaleString()}${product.comparePrice ? ` (จาก ฿${product.comparePrice.toLocaleString()})` : ""}
+สต็อก: ${product.stock} ชิ้น
+สถานะ: ${product.status}
+AI Score: ${product.aiScore}%`;
 
     try {
       const embedding = await getEmbedding(text);
@@ -156,7 +162,13 @@ export async function indexStoreData(storeId: number): Promise<{ indexed: number
   const orders = await storage.getOrdersByStore(storeId);
   for (const order of orders) {
     const items = (order.items as any[]).map((i: any) => `${i.name} x${i.qty}`).join(", ");
-    const text = `คำสั่งซื้อ #${String(order.id).padStart(4, "0")}\nลูกค้า: ${order.customerName} (${order.customerEmail || ""})\nสินค้า: ${items}\nยอดรวม: ฿${order.total.toLocaleString()}\nสถานะ: ${order.status}\nที่อยู่จัดส่ง: ${order.shippingAddress || "ไม่ระบุ"}\nวันที่สั่ง: ${order.createdAt}`;
+    const text = `คำสั่งซื้อ #${String(order.id).padStart(4, "0")}
+ลูกค้า: ${order.customerName} (${order.customerEmail || ""})
+สินค้า: ${items}
+ยอดรวม: ฿${order.total.toLocaleString()}
+สถานะ: ${order.status}
+ที่อยู่จัดส่ง: ${order.shippingAddress || "ไม่ระบุ"}
+วันที่สั่ง: ${order.createdAt}`;
 
     try {
       const embedding = await getEmbedding(text);
@@ -182,7 +194,12 @@ export async function indexStoreData(storeId: number): Promise<{ indexed: number
   const customers = await storage.getCustomersByStore(storeId);
   for (const customer of customers) {
     const segmentLabels: Record<string, string> = { vip: "VIP", returning: "ขาประจำ", new: "ใหม่", at_risk: "เสี่ยงหาย" };
-    const text = `ลูกค้า: ${customer.name}\nอีเมล: ${customer.email || "ไม่ระบุ"}\nโทรศัพท์: ${customer.phone || "ไม่ระบุ"}\nกลุ่ม: ${segmentLabels[customer.segment || "new"] || customer.segment}\nจำนวนคำสั่งซื้อ: ${customer.totalOrders} ครั้ง\nยอดรวม: ฿${customer.totalSpent.toLocaleString()}`;
+    const text = `ลูกค้า: ${customer.name}
+อีเมล: ${customer.email || "ไม่ระบุ"}
+โทรศัพท์: ${customer.phone || "ไม่ระบุ"}
+กลุ่ม: ${segmentLabels[customer.segment || "new"] || customer.segment}
+จำนวนคำสั่งซื้อ: ${customer.totalOrders} ครั้ง
+ยอดรวม: ฿${customer.totalSpent.toLocaleString()}`;
 
     try {
       const embedding = await getEmbedding(text);
@@ -381,7 +398,7 @@ export function seedDefaultKnowledge(storeId: number): void {
     },
     {
       title: "วิธีติดต่อเรา",
-      content: "อีเมล: support@zentra.ai | LINE: @zentramart | โทร: 02-xxx-xxxx (จันทร์-ศุกร์ 9:00-18:00) | Live Chat: ผ่านเว็บไซต์ 24/7 (AI + พนักงาน) | เวลาตอบกลับ: อีเมลภายใน 24 ชม., LINE/Chat ภายใน 5 นาที",
+      content: "อีเมล: support@agentra.app | LINE: @agentra | โทร: 02-xxx-xxxx (จันทร์-ศุกร์ 9:00-18:00) | Live Chat: ผ่านเว็บไซต์ 24/7 (AI + พนักงาน) | เวลาตอบกลับ: อีเมลภายใน 24 ชม., LINE/Chat ภายใน 5 นาที",
       category: "faq" as const,
     },
   ];

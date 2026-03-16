@@ -74,7 +74,7 @@ export default function MallPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": "ZENTRA AI Shopping Mall",
+    "name": "Agentra Shopping Mall",
     "description": "ศูนย์รวมร้านค้าออนไลน์ AI ที่ทันสมัยที่สุด ค้นหาสินค้าจากหลายร้านในที่เดียว",
     "url": window.location.href,
     "creator": { "@type": "SoftwareApplication", "name": "Perplexity Computer", "url": "https://www.perplexity.ai/computer" },
@@ -100,8 +100,8 @@ export default function MallPage() {
   return (
     <div className="min-h-screen bg-[#08080f]">
       <SEOHead
-        title="ZENTRA Mall — ช้อปปิ้งออนไลน์ AI Shopping"
-        description="รวมร้านค้าออนไลน์ชั้นนำ สินค้าคุณภาพสูง แนะนำโดย AI ช้อปอย่างฉลาดกับ ZENTRA Mall"
+        title="Agentra Mall — ช้อปปิ้งออนไลน์ AI Shopping"
+        description="รวมร้านค้าออนไลน์ชั้นนำ สินค้าคุณภาพสูง แนะนำโดย AI ช้อปอย่างฉลาดกับ Agentra Mall"
         type="website"
         products={productsRes?.products?.map((p: any) => ({
           name: p.name, price: p.price, image: p.image, description: p.description, category: p.category, availability: p.stock > 0 ? "InStock" : "OutOfStock"
@@ -130,7 +130,7 @@ export default function MallPage() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent">
-                ZENTRA Shopping Mall
+                Agentra Shopping Mall
               </h1>
               <p className="text-xs text-white/40">ศูนย์รวมร้านค้า AI ทั้งหมด</p>
             </div>
@@ -194,7 +194,7 @@ export default function MallPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-white/80 truncate">{store.name}</p>
-                    <p className="text-[10px] text-white/30 truncate">{store.description || "ร้านค้า ZENTRA AI"}</p>
+                    <p className="text-[10px] text-white/30 truncate">{store.description || "ร้านค้า Agentra"}</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-white/20 shrink-0 group-hover:text-teal-400 transition-colors" />
                 </div>
@@ -274,7 +274,7 @@ export default function MallPage() {
 
       {/* Footer */}
       <footer className="border-t border-white/[0.06] py-8 text-center">
-        <p className="text-xs text-white/20 mb-2">ZENTRA AI Shopping Mall — ศูนย์รวมร้านค้า AI ที่ทันสมัยที่สุด</p>
+        <p className="text-xs text-white/20 mb-2">Agentra Shopping Mall — ศูนย์รวมร้านค้า AI ที่ทันสมัยที่สุด</p>
         <PerplexityAttribution />
       </footer>
     </div>

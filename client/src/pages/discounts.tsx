@@ -24,7 +24,7 @@ function DiscountForm({ discount, onClose }: { discount?: Discount; onClose: () 
 
   const generateCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let result = "ZENTRA";
+    let result = "AGENTRA";
     for (let i = 0; i < 4; i++) result += chars[Math.floor(Math.random() * chars.length)];
     setCode(result);
   };
