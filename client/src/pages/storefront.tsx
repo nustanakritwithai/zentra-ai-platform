@@ -307,7 +307,23 @@ export default function StorefrontPage() {
                       className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20"
                       onClick={() => setCheckoutMode(true)}
                     >
-                      ดำเนินการสั่งซื้อ <ArrowRight className="w-4 h-4 ml-1" />
+                      สั่งซื้อแบบธรรมดา <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                    <Button
+                      data-testid="btn-checkout-payment"
+                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/20"
+                      onClick={() => {
+                        (window as any).__zentra_cart = cart.map(item => ({
+                          id: item.productId,
+                          name: item.name,
+                          price: item.price,
+                          quantity: item.qty,
+                          image: item.image,
+                        }));
+                        window.location.hash = `/shop/${slug}/checkout`;
+                      }}
+                    >
+                      ชำระเงินออนไลน์ (PromptPay/TrueMoney)
                     </Button>
                   </div>
                 )}

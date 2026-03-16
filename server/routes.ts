@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { storage, enableStorefrontLayoutColumn } from "./storage";
 import { supabaseAdmin, SUPABASE_URL, SUPABASE_ANON_KEY, ensureStorefrontLayoutColumn } from "./supabase";
-import { getPlanLimits } from "@shared/schema";
+import { getPlanLimits, PLAN_LIMITS } from "@shared/schema";
 import {
   chatWithAgent,
   getChatHistory,
@@ -1589,7 +1589,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       const store = await storage.getStoreBySlug(req.params.storeSlug);
       if (!store) return res.status(404).json({ error: "Store not found" });
 
-      const { method, amount, orderId, phone, returnUrl } = req.body;
+      const { method, amount, orderId, phone, returnUrl, customerName, customerPhone } = req.body;
       if (!method || !amount) {
         return res.status(400).json({ error: "method and amount required" });
       }
@@ -1651,6 +1651,16 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       }
       paymentTransactionsStore.get(store.id)!.push(txn);
 
+      // Return bank info if bank_transfer method and merchant has bank details
+      let bankInfo = null;
+      if (method === "bank_transfer" && account) {
+        bankInfo = {
+          bankName: account.bankName || null,
+          bankAccountNumber: account.bankAccountNumber || null,
+          bankAccountName: account.bankAccountName || null,
+        };
+      }
+
       res.json({
         transactionId: txn.id,
         chargeId: txn.providerChargeId,
@@ -1660,6 +1670,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
         expiresAt: txn.expiresAt,
         amount: txn.amount,
         method: txn.method,
+        bankInfo,
       });
     } catch (err: any) {
       console.error("Checkout error:", err);
@@ -1792,7 +1803,6 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
 
   // GET /api/payment/plans — all plans with pricing
   app.get("/api/payment/plans", (_req, res) => {
-    const { PLAN_LIMITS } = require("@shared/schema");
     res.json(PLAN_LIMITS);
   });
 }

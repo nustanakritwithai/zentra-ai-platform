@@ -4,7 +4,7 @@ import { useTheme } from "@/components/theme-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap, FolderOpen, TicketPercent, ShoppingBag, Link2, Globe, Plug, Warehouse, UserCheck, FileText, Monitor, PenTool, Wand2, ChevronDown, Plus, Building2 } from "lucide-react";
+import { LayoutDashboard, Store, Package, ShoppingCart, Users, Bot, MessageSquare, BookOpen, CreditCard, LogOut, Sun, Moon, ChevronLeft, Menu, ExternalLink, Copy, Check, Zap, FolderOpen, TicketPercent, ShoppingBag, Link2, Globe, Plug, Warehouse, UserCheck, FileText, Monitor, PenTool, Wand2, ChevronDown, Plus, Building2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ const navItems = [
   { href: "/integrations", icon: Plug, label: "API เชื่อมต่อ", group: "marketplace" },
   { href: "/marketplace", icon: Globe, label: "Marketplace", group: "marketplace" },
   { href: "/mall", icon: ShoppingBag, label: "Shopping Mall", group: "marketplace" },
+  { href: "/payment-settings", icon: Wallet, label: "การเงิน", group: "store" },
   { href: "/pricing", icon: CreditCard, label: "แผนราคา", group: "other" },
 ];
 

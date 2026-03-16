@@ -17,6 +17,11 @@ import {
   ArrowLeft,
   ShoppingCart,
   Shield,
+  Phone,
+  MapPin,
+  User,
+  Copy,
+  Check,
 } from "lucide-react";
 
 type PaymentMethod = "promptpay" | "truemoney" | "bank_transfer";
@@ -29,11 +34,18 @@ interface CartItem {
   image?: string;
 }
 
+// Cart state management using React state (no localStorage/sessionStorage)
+// Cart data is passed via URL search params or global window object
+declare global {
+  interface Window {
+    __zentra_cart?: CartItem[];
+  }
+}
+
 export default function CheckoutPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug || "";
 
-  // Cart from sessionStorage
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("promptpay");
   const [phone, setPhone] = useState("");
@@ -41,56 +53,85 @@ export default function CheckoutPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [shippingAddress, setShippingAddress] = useState("");
   const [transactionId, setTransactionId] = useState<number | null>(null);
-  const [paymentStatus, setPaymentStatus] = useState<string>("idle"); // idle, pending, polling, successful, failed, expired
+  const [paymentStatus, setPaymentStatus] = useState<string>("idle");
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [authorizeUri, setAuthorizeUri] = useState<string | null>(null);
+  const [bankInfo, setBankInfo] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
-  // Load cart
+  // Load cart from global window object (set by storefront page)
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(`cart_${slug}`);
-      if (stored) setCartItems(JSON.parse(stored));
-    } catch {}
+    if (window.__zentra_cart && window.__zentra_cart.length > 0) {
+      setCartItems(window.__zentra_cart);
+    }
   }, [slug]);
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // Fetch merchant payment account to know which methods are available
-  const { data: merchantAccount } = useQuery<any>({
-    queryKey: [`/api/public/merchant-info/${slug}`],
-    enabled: false, // We don't have this public endpoint — rely on method selection
+  // Fetch store info for available payment methods
+  const { data: storeInfo } = useQuery<any>({
+    queryKey: ["/api/public/store-info", slug],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/storefront/${slug}`);
+      return res.json();
+    },
+    enabled: !!slug,
   });
 
-  // Create payment mutation
+  // Create order + payment mutation
   const createPayment = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/public/checkout/${slug}`, {
+      // First create the order via storefront API
+      const orderRes = await apiRequest("POST", `/api/public/store/${slug}/orders`, {
+        customerName,
+        customerEmail: "",
+        customerPhone,
+        items: cartItems.map((item) => ({
+          productId: item.id,
+          name: item.name,
+          price: item.price,
+          qty: item.quantity,
+          image: item.image,
+        })),
+        shippingAddress,
+        paymentMethod: selectedMethod,
+      });
+      const order = await orderRes.json();
+
+      // Then create the payment transaction
+      const payRes = await apiRequest("POST", `/api/public/checkout/${slug}`, {
         method: selectedMethod,
         amount: total,
+        orderId: order.id,
         phone: selectedMethod === "truemoney" ? phone : undefined,
         returnUrl: window.location.href,
+        customerName,
+        customerPhone,
       });
-      return res.json();
+      return payRes.json();
     },
     onSuccess: (data) => {
       setTransactionId(data.transactionId);
       setQrCodeUrl(data.qrCodeUrl);
       setAuthorizeUri(data.authorizeUri);
+      if (data.bankInfo) setBankInfo(data.bankInfo);
       setPaymentStatus("pending");
     },
-    onError: (err: any) => {
+    onError: () => {
       setPaymentStatus("failed");
     },
   });
 
-  // Poll payment status
+  // Poll payment status using apiRequest (not raw fetch)
   const pollStatus = useCallback(async () => {
     if (!transactionId) return;
     try {
-      const res = await fetch(`/api/public/payment-status/${transactionId}`);
+      const res = await apiRequest("GET", `/api/public/payment-status/${transactionId}`);
       const data = await res.json();
       if (data.status === "successful") {
         setPaymentStatus("successful");
+        // Clear cart
+        window.__zentra_cart = [];
       } else if (data.status === "failed") {
         setPaymentStatus("failed");
       } else if (data.status === "expired") {
@@ -108,8 +149,15 @@ export default function CheckoutPage() {
   function handlePay() {
     if (!customerName || !customerPhone) return;
     if (selectedMethod === "truemoney" && !phone) return;
-    setPaymentStatus("polling");
+    if (total === 0) return;
     createPayment.mutate();
+  }
+
+  function handleCopyAccount(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   // Success state
@@ -127,7 +175,7 @@ export default function CheckoutPage() {
             </p>
             <p className="text-2xl font-bold text-teal-400">฿{total.toLocaleString()}</p>
             <Button
-              onClick={() => window.location.hash = `/shop/${slug}`}
+              onClick={() => (window.location.hash = `/shop/${slug}`)}
               className="bg-teal-600 hover:bg-teal-500 text-white"
               data-testid="btn-back-to-shop"
             >
@@ -179,7 +227,7 @@ export default function CheckoutPage() {
       <div className="bg-white/5 border-b border-white/10 p-4">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
-            onClick={() => window.location.hash = `/shop/${slug}`}
+            onClick={() => (window.location.hash = `/shop/${slug}`)}
             className="text-white/60 hover:text-white"
             data-testid="btn-back"
           >
@@ -200,34 +248,52 @@ export default function CheckoutPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {cartItems.length === 0 ? (
-              <p className="text-white/40 text-sm">ไม่มีสินค้าในตะกร้า</p>
+              <div className="text-center py-6 space-y-2">
+                <ShoppingCart className="w-8 h-8 text-white/20 mx-auto" />
+                <p className="text-white/40 text-sm">ไม่มีสินค้าในตะกร้า</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => (window.location.hash = `/shop/${slug}`)}
+                  className="text-teal-400 border-teal-500/30 hover:bg-teal-500/10"
+                >
+                  กลับไปเลือกสินค้า
+                </Button>
+              </div>
             ) : (
-              cartItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between py-1">
-                  <div className="flex items-center gap-2">
-                    {item.image && (
-                      <img src={item.image} alt="" className="w-8 h-8 rounded object-cover" />
-                    )}
-                    <span className="text-sm text-white/80">{item.name} x{item.quantity}</span>
+              <>
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-2">
+                      {item.image && (
+                        <img src={item.image} alt="" className="w-8 h-8 rounded object-cover" />
+                      )}
+                      <span className="text-sm text-white/80">
+                        {item.name} x{item.quantity}
+                      </span>
+                    </div>
+                    <span className="text-sm text-white font-medium">
+                      ฿{(item.price * item.quantity).toLocaleString()}
+                    </span>
                   </div>
-                  <span className="text-sm text-white font-medium">
-                    ฿{(item.price * item.quantity).toLocaleString()}
-                  </span>
+                ))}
+                <div className="border-t border-white/10 pt-2 flex justify-between">
+                  <span className="font-semibold text-white">รวมทั้งหมด</span>
+                  <span className="font-bold text-teal-400 text-lg">฿{total.toLocaleString()}</span>
                 </div>
-              ))
+              </>
             )}
-            <div className="border-t border-white/10 pt-2 flex justify-between">
-              <span className="font-semibold text-white">รวมทั้งหมด</span>
-              <span className="font-bold text-teal-400 text-lg">฿{total.toLocaleString()}</span>
-            </div>
           </CardContent>
         </Card>
 
         {/* Customer Info */}
-        {paymentStatus === "idle" && (
+        {paymentStatus === "idle" && cartItems.length > 0 && (
           <Card className="bg-white/5 border-white/10">
             <CardHeader className="pb-2">
-              <CardTitle className="text-white text-sm">ข้อมูลลูกค้า</CardTitle>
+              <CardTitle className="text-white text-sm flex items-center gap-2">
+                <User className="w-4 h-4 text-teal-400" />
+                ข้อมูลลูกค้า
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
@@ -241,7 +307,9 @@ export default function CheckoutPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-white/50 mb-1 block">เบอร์โทรศัพท์ *</label>
+                <label className="text-xs text-white/50 mb-1 block flex items-center gap-1">
+                  <Phone className="w-3 h-3" /> เบอร์โทรศัพท์ *
+                </label>
                 <Input
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
@@ -251,7 +319,9 @@ export default function CheckoutPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-white/50 mb-1 block">ที่อยู่จัดส่ง</label>
+                <label className="text-xs text-white/50 mb-1 block flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> ที่อยู่จัดส่ง
+                </label>
                 <Input
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
@@ -265,7 +335,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Payment Method Selection */}
-        {paymentStatus === "idle" && (
+        {paymentStatus === "idle" && cartItems.length > 0 && (
           <Card className="bg-white/5 border-white/10">
             <CardHeader className="pb-2">
               <CardTitle className="text-white text-sm">เลือกช่องทางชำระเงิน</CardTitle>
@@ -337,7 +407,9 @@ export default function CheckoutPage() {
               {/* TrueMoney phone input */}
               {selectedMethod === "truemoney" && (
                 <div className="mt-2">
-                  <label className="text-xs text-white/50 mb-1 block">เบอร์ TrueMoney Wallet *</label>
+                  <label className="text-xs text-white/50 mb-1 block">
+                    เบอร์ TrueMoney Wallet *
+                  </label>
                   <Input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -355,17 +427,29 @@ export default function CheckoutPage() {
         {paymentStatus === "pending" && (
           <Card className="bg-white/5 border-white/10">
             <CardContent className="p-6 text-center space-y-4">
-              {selectedMethod === "promptpay" && qrCodeUrl ? (
+              {selectedMethod === "promptpay" ? (
                 <>
-                  <div className="bg-white rounded-2xl p-4 inline-block mx-auto">
-                    <img src={qrCodeUrl} alt="PromptPay QR" className="w-48 h-48" />
-                  </div>
-                  <p className="text-white/60 text-sm">สแกน QR Code ด้วยแอปธนาคารของคุณ</p>
+                  {qrCodeUrl ? (
+                    <div className="bg-white rounded-2xl p-4 inline-block mx-auto">
+                      <img src={qrCodeUrl} alt="PromptPay QR" className="w-48 h-48" />
+                    </div>
+                  ) : (
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-3">
+                      <QrCode className="w-12 h-12 text-blue-400 mx-auto" />
+                      <p className="text-white font-medium">PromptPay QR</p>
+                      <p className="text-white/50 text-sm">
+                        โอนเงินจำนวน <span className="text-teal-400 font-bold">฿{total.toLocaleString()}</span> ผ่าน PromptPay
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-white/60 text-sm">สแกน QR Code หรือโอนผ่านแอปธนาคาร</p>
                 </>
               ) : selectedMethod === "truemoney" && authorizeUri ? (
                 <>
                   <Wallet className="w-12 h-12 text-orange-400 mx-auto" />
-                  <p className="text-white/60 text-sm">กรุณายืนยันการชำระเงินในแอป TrueMoney</p>
+                  <p className="text-white/60 text-sm">
+                    กรุณายืนยันการชำระเงินในแอป TrueMoney
+                  </p>
                   <Button
                     onClick={() => window.open(authorizeUri!, "_blank")}
                     className="bg-orange-600 hover:bg-orange-500 text-white"
@@ -374,10 +458,49 @@ export default function CheckoutPage() {
                     เปิด TrueMoney Wallet
                   </Button>
                 </>
+              ) : selectedMethod === "bank_transfer" ? (
+                <>
+                  <Building2 className="w-12 h-12 text-green-400 mx-auto" />
+                  <p className="text-white font-medium">โอนเงินเข้าบัญชี</p>
+                  {bankInfo ? (
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-left space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-white/50 text-sm">ธนาคาร</span>
+                        <span className="text-white text-sm font-medium">{bankInfo.bankName}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-white/50 text-sm">เลขบัญชี</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-sm font-medium font-mono">
+                            {bankInfo.bankAccountNumber}
+                          </span>
+                          <button
+                            onClick={() => handleCopyAccount(bankInfo.bankAccountNumber)}
+                            className="text-teal-400 hover:text-teal-300"
+                          >
+                            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-white/50 text-sm">ชื่อบัญชี</span>
+                        <span className="text-white text-sm font-medium">{bankInfo.bankAccountName}</span>
+                      </div>
+                      <div className="flex justify-between border-t border-white/10 pt-2 mt-2">
+                        <span className="text-white/50 text-sm">จำนวนเงิน</span>
+                        <span className="text-teal-400 font-bold">฿{total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-white/50 text-sm">กรุณาโอนเงินตามข้อมูลด้านล่าง</p>
+                  )}
+                </>
               ) : (
                 <>
                   <Clock className="w-12 h-12 text-amber-400 mx-auto" />
-                  <p className="text-white/60 text-sm">กรุณาโอนเงินตามข้อมูลด้านล่าง แล้วรอระบบตรวจสอบ</p>
+                  <p className="text-white/60 text-sm">
+                    กรุณารอสักครู่... ระบบกำลังสร้างช่องทางชำระเงิน
+                  </p>
                 </>
               )}
 
@@ -395,7 +518,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Pay Button */}
-        {paymentStatus === "idle" && (
+        {paymentStatus === "idle" && cartItems.length > 0 && (
           <Button
             onClick={handlePay}
             disabled={createPayment.isPending || !customerName || !customerPhone || total === 0}
