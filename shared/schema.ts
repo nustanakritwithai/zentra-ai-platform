@@ -44,6 +44,7 @@ export const stores = pgTable("stores", {
   customCss: text("custom_css"),
   customBanner: text("custom_banner"),
   storeThemeConfig: jsonb("store_theme_config"), // { primaryColor, layout, font, heroStyle }
+  storefrontLayout: jsonb("storefront_layout"), // StorefrontLayout JSON
   // Loyalty
   loyaltyEnabled: boolean("loyalty_enabled").default(false),
   loyaltyPointsPerBaht: real("loyalty_points_per_baht").default(1),
@@ -247,6 +248,25 @@ export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type StockLog = typeof stockLogs.$inferSelect;
 export type InsertStockLog = z.infer<typeof insertStockLogSchema>;
+
+// Storefront Layout types
+export interface StorefrontSection {
+  id: string;
+  type: "hero" | "categories" | "productGrid" | "benefitBar" | "footer" | "aiRecommendation";
+  visible: boolean;
+  props: Record<string, any>;
+}
+
+export interface StorefrontLayout {
+  templateId: string;
+  theme: {
+    primaryColor: string;
+    accentColor: string;
+    fontFamily: string;
+    borderRadius: string;
+  };
+  sections: StorefrontSection[];
+}
 
 // Plan limits configuration
 export const PLAN_LIMITS: Record<string, { maxStores: number; label: string; labelTh: string }> = {

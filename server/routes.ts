@@ -1188,7 +1188,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
         logo: store.logo, theme: store.theme, currency: store.currency,
         seoTitle: (store as any).seoTitle, seoDescription: (store as any).seoDescription,
         customBanner: (store as any).customBanner, storeThemeConfig: (store as any).storeThemeConfig,
-        loyaltyEnabled: (store as any).loyaltyEnabled,
+        loyaltyEnabled: (store as any).loyaltyEnabled, storefrontLayout: (store as any).storefrontLayout,
       },
     });
   });

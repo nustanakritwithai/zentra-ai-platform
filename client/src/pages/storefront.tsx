@@ -16,8 +16,12 @@ import {
   ArrowRight,
   Package,
   Check,
+  Search,
+  Menu,
 } from "lucide-react";
-import { PerplexityAttribution } from "@/components/PerplexityAttribution";
+import { StorefrontRenderer } from "@/components/storefront-renderer";
+import { getDefaultTemplate } from "@/lib/storefront-templates";
+import type { StorefrontLayout } from "@shared/schema";
 
 const API_BASE = "__PORT_5000__".startsWith("__") ? "" : "__PORT_5000__";
 
@@ -62,6 +66,16 @@ export default function StorefrontPage() {
     queryKey: ["/api/public/store", slug, "products"],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}/api/public/store/${slug}/products`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!storeData,
+  });
+
+  const { data: categories = [] } = useQuery<any[]>({
+    queryKey: ["/api/public/store", slug, "categories"],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/api/public/store/${slug}/categories`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -120,6 +134,12 @@ export default function StorefrontPage() {
   const cartTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
+  // Determine storefront layout: use store's saved layout or default template
+  const storefrontLayout: StorefrontLayout =
+    store?.storefrontLayout && (store.storefrontLayout as StorefrontLayout).sections
+      ? (store.storefrontLayout as StorefrontLayout)
+      : getDefaultTemplate();
+
   if (storeLoading) {
     return (
       <div className="min-h-screen bg-[#08080f] flex items-center justify-center">
@@ -167,114 +187,62 @@ export default function StorefrontPage() {
     <div className="min-h-screen bg-[#08080f]">
       {/* Store Header */}
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[hsl(240,20%,4%)]/90 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <button data-testid="menu-toggle" className="w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] flex items-center justify-center text-white/50 hover:text-white/70 transition-colors">
+              <Menu className="w-4 h-4" />
+            </button>
             {store.logo ? (
-              <img src={store.logo} alt={store.name} className="w-8 h-8 rounded-lg object-cover" />
+              <img src={store.logo} alt={store.name} className="w-7 h-7 rounded-lg object-cover" />
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center text-white font-bold text-xs">
                 {store.name.charAt(0)}
               </div>
             )}
-            <span className="font-bold text-base text-white/90">{store.name}</span>
+            <span className="font-bold text-sm text-white/90">{store.name}</span>
             <Badge variant="outline" className="text-[10px] hidden sm:inline-flex bg-teal-500/10 text-teal-400 border-teal-500/20">
-              <Sparkles className="w-2.5 h-2.5 mr-1 text-teal-400" />Powered by ZENTRA AI
+              <Sparkles className="w-2.5 h-2.5 mr-1 text-teal-400" />ZENTRA AI
             </Badge>
           </div>
-          <Button
-            data-testid="cart-toggle"
-            variant="outline"
-            size="sm"
-            onClick={() => setCartOpen(!cartOpen)}
-            className="relative bg-white/[0.04] border-white/[0.06] text-white/70 hover:bg-white/[0.06] hover:text-white"
-          >
-            <ShoppingCart className="w-4 h-4 mr-1" />
-            ตะกร้า
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-[10px] flex items-center justify-center font-bold">
-                {cartCount}
-              </span>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <button data-testid="search-toggle" className="w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] flex items-center justify-center text-white/50 hover:text-white/70 transition-colors">
+              <Search className="w-4 h-4" />
+            </button>
+            <button
+              data-testid="cart-toggle"
+              onClick={() => setCartOpen(!cartOpen)}
+              className="relative w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.06] flex items-center justify-center text-white/50 hover:text-white/70 transition-colors"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-[9px] flex items-center justify-center font-bold">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 py-10 text-center relative">
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-64 h-64 bg-teal-500/5 rounded-full blur-3xl" />
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white/90 relative">{store.name}</h1>
-        {store.description && (
-          <p className="text-white/40 mt-2 max-w-md mx-auto text-sm relative">{store.description}</p>
-        )}
-      </section>
-
-      {/* Products Grid */}
-      <section className="max-w-6xl mx-auto px-4 pb-16">
-        {productsLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Storefront content rendered from JSON layout */}
+      {productsLoading ? (
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="animate-pulse rounded-2xl border border-white/[0.06] p-4 h-72 bg-white/[0.04]" />
+              <div key={i} className="animate-pulse rounded-2xl border border-white/[0.06] p-4 h-64 bg-white/[0.02]" />
             ))}
           </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-16">
-            <Package className="w-12 h-12 text-white/10 mx-auto mb-4" />
-            <p className="text-white/40">ร้านค้ายังไม่มีสินค้า</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {products.map((product: any) => (
-              <Card key={product.id} className="bg-white/[0.02] border-white/[0.06] rounded-2xl overflow-hidden group hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300">
-                <div className="aspect-square bg-white/[0.02] relative overflow-hidden">
-                  {product.image ? (
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20">
-                      <Package className="w-10 h-10" />
-                    </div>
-                  )}
-                  {product.comparePrice && product.comparePrice > product.price && (
-                    <Badge className="absolute top-2 left-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] border-0">
-                      -{Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}%
-                    </Badge>
-                  )}
-                </div>
-                <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-2 min-h-[2.5rem] text-white/80">{product.name}</h3>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <span className="font-bold text-teal-400">{formatPrice(product.price, currency)}</span>
-                    {product.comparePrice && product.comparePrice > product.price && (
-                      <span className="text-xs text-white/30 line-through">
-                        {formatPrice(product.comparePrice, currency)}
-                      </span>
-                    )}
-                  </div>
-                  <Button
-                    data-testid={`add-to-cart-${product.id}`}
-                    className={`w-full mt-3 text-sm h-9 ${product.stock > 0 ? "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg shadow-teal-500/20" : "bg-white/[0.06] text-white/30"}`}
-                    onClick={() => addToCart(product)}
-                    disabled={product.stock <= 0}
-                  >
-                    {product.stock > 0 ? (
-                      <>
-                        <ShoppingCart className="w-3 h-3 mr-1" /> เพิ่มในตะกร้า
-                      </>
-                    ) : (
-                      "สินค้าหมด"
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+        </div>
+      ) : (
+        <StorefrontRenderer
+          layout={storefrontLayout}
+          store={store}
+          products={products}
+          categories={categories}
+          currency={currency}
+          addToCart={addToCart}
+        />
+      )}
 
       {/* Cart Sidebar */}
       {cartOpen && (
@@ -402,14 +370,6 @@ export default function StorefrontPage() {
           </div>
         </>
       )}
-
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-6">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/30">
-          <span>© 2026 {store.name} — Powered by ZENTRA AI</span>
-          <PerplexityAttribution />
-        </div>
-      </footer>
 
       {/* Floating cart button (mobile) */}
       {cartCount > 0 && !cartOpen && (
