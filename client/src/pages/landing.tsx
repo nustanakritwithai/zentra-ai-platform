@@ -1,46 +1,36 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Check,
-  Bot,
-  Sparkles,
-  TrendingUp,
-  ShoppingBag,
-  Eye,
-  BarChart3,
-  Headphones,
-  ArrowRight,
-  Zap,
+  LayoutDashboard,
   Store,
-  Globe,
-  Shield,
-  Activity,
-  Flame,
-  Star,
-  Package,
-  CreditCard,
-  Truck,
-  Palette,
-  Lock,
+  Wallet,
   Box,
-  Send,
-  ScanLine,
-  Brain,
-  Database,
-  CircleCheckBig,
-  Facebook,
-  Youtube,
-  Instagram,
-  MessageCircle,
+  Truck,
+  Users,
+  BarChart3,
+  MessageSquare,
+  Palette,
+  Megaphone,
+  Sparkles,
+  QrCode,
+  Activity,
+  Bot,
+  CreditCard,
+  CheckCircle2,
+  Check,
+  ChevronDown,
+  Rocket,
+  Play,
+  UserPlus,
+  PackagePlus,
+  ArrowRight,
+  ShoppingBag,
+  Menu,
+  X,
 } from "lucide-react";
-import { PerplexityAttribution } from "@/components/PerplexityAttribution";
-import { SEOHead } from "@/components/seo-head";
 
-// Animated counter hook
-function useAnimatedCounter(target: number, duration = 2000) {
+// ─── Animated counter ────────────────────────────────
+function useAnimatedCounter(target: number, duration = 1500) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const started = useRef(false);
@@ -49,18 +39,16 @@ function useAnimatedCounter(target: number, duration = 2000) {
       ([entry]) => {
         if (entry.isIntersecting && !started.current) {
           started.current = true;
-          const startTime = performance.now();
-          const animate = (now: number) => {
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.floor(eased * target));
-            if (progress < 1) requestAnimationFrame(animate);
+          const t0 = performance.now();
+          const tick = (now: number) => {
+            const p = Math.min((now - t0) / duration, 1);
+            setCount(Math.floor((1 - Math.pow(1 - p, 3)) * target));
+            if (p < 1) requestAnimationFrame(tick);
           };
-          requestAnimationFrame(animate);
+          requestAnimationFrame(tick);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.5 }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
@@ -68,680 +56,589 @@ function useAnimatedCounter(target: number, duration = 2000) {
   return { count, ref };
 }
 
-function AnimatedStat({ value, label, suffix = "", color = "from-teal-400 to-cyan-400" }: { value: number; label: string; suffix?: string; color?: string }) {
-  const { count, ref } = useAnimatedCounter(value);
+// ─── Scroll reveal ────────────────────────────────
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) el.classList.add("reveal-visible"); },
+      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
+function RevealDiv({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useReveal();
   return (
-    <div ref={ref} className="relative p-5 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm group hover:border-primary/40 transition-all duration-300 card-glow overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className="relative">
-        <div className={`text-2xl font-black bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
-          {count.toLocaleString()}{suffix}
+    <div ref={ref} className={`reveal-item ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  );
+}
+
+// ─── SVG Logo ────────────────────────────────
+function AgentraLogo({ className = "w-9 h-9" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 4L5 34h6l9-20 9 20h6L20 4z" stroke="url(#aLogo)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <circle cx="14" cy="24" r="2.5" fill="#18E3C8"/>
+      <circle cx="20" cy="16" r="2.5" fill="#22D4B8"/>
+      <circle cx="26" cy="24" r="2.5" fill="#29B6FF"/>
+      <circle cx="32" cy="20" r="2" fill="#29B6FF" opacity="0.7"/>
+      <line x1="14" y1="24" x2="20" y2="16" stroke="#18E3C8" strokeWidth="1.5" opacity="0.6"/>
+      <line x1="20" y1="16" x2="26" y2="24" stroke="#22D4B8" strokeWidth="1.5" opacity="0.6"/>
+      <line x1="26" y1="24" x2="32" y2="20" stroke="#29B6FF" strokeWidth="1.5" opacity="0.5"/>
+      <line x1="14" y1="24" x2="26" y2="24" stroke="#18E3C8" strokeWidth="1" opacity="0.3"/>
+      <defs>
+        <linearGradient id="aLogo" x1="5" y1="4" x2="35" y2="34">
+          <stop offset="0%" stopColor="#18E3C8"/>
+          <stop offset="100%" stopColor="#29B6FF"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+// ─── FAQ Accordion item ────────────────────────────────
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`border rounded-xl transition-colors ${open ? "border-[#18E3C8]/30 bg-[#18E3C8]/[0.03]" : "border-border/50 bg-card/30"}`}>
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between p-5 text-left font-medium text-sm md:text-base">
+        <span>{q}</span>
+        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform shrink-0 ml-3 ${open ? "rotate-180 text-[#18E3C8]" : ""}`} />
+      </button>
+      {open && (
+        <div className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed">
+          {a}
         </div>
-        <div className="text-xs text-muted-foreground mt-1">{label}</div>
-      </div>
+      )}
     </div>
   );
 }
 
-// Live activity feed
-function LiveFeed() {
-  const activities = [
-    "🛍️ ร้าน TechMall เพิ่มสินค้าใหม่",
-    "📦 คำสั่งซื้อ #4521 จัดส่งแล้ว",
-    "🤖 AI Agent ตอบลูกค้า 3 คน",
-    "📈 ยอดขายวันนี้ +12%",
-    "⭐ ร้าน FashionHub ได้รีวิว 5 ดาว",
-    "🔥 โปรโมชั่นใหม่เปิดตัวแล้ว",
-  ];
-  const [idx, setIdx] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % activities.length), 3000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground overflow-hidden h-5">
-      <span className="relative flex h-2 w-2 shrink-0">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-      </span>
-      <span key={idx} className="animate-slide-up whitespace-nowrap">{activities[idx]}</span>
-    </div>
-  );
-}
-
-// Mock product cards for hero
-const mockProducts = [
-  { name: "หูฟังบลูทูธ Pro Max", price: "฿2,490", rating: 4.8, tag: "AI แนะนำ" },
-  { name: "สมาร์ทวอทช์ Ultra", price: "฿5,990", rating: 4.9, tag: "ขายดี" },
-  { name: "ลำโพง Portable 360°", price: "฿1,890", rating: 4.7, tag: "AI แนะนำ" },
-];
-
-// Typing animation for chat
-function TypingDots() {
-  return (
-    <span className="inline-flex gap-1 items-center ml-1">
-      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-    </span>
-  );
-}
-
-// AI Agents data
-const aiAgents = [
-  { icon: ShoppingBag, name: "Shopping Agent", desc: "เอเจนต์แนะนำสินค้าอัจฉริยะ ช่วยลูกค้าค้นหาสินค้าที่ต้องการอย่างแม่นยำ", gradient: "from-emerald-500 to-teal-500", glow: "shadow-emerald-500/20" },
-  { icon: Sparkles, name: "Recommendation Agent", desc: "การแนะนำเชิงลึก Cross-selling & Upselling เพิ่มมูลค่าตะกร้าสินค้า", gradient: "from-violet-500 to-purple-500", glow: "shadow-violet-500/20" },
-  { icon: TrendingUp, name: "Dynamic Pricing Agent", desc: "ปรับราคาแบบไดนามิกแบบเรียลไทม์ตามอุปสงค์และคู่แข่ง", gradient: "from-amber-500 to-orange-500", glow: "shadow-amber-500/20" },
-  { icon: Headphones, name: "Customer Service Agent", desc: "บริการลูกค้า AI 24/7 ตอบคำถามและแก้ปัญหาอัตโนมัติ", gradient: "from-sky-500 to-blue-500", glow: "shadow-sky-500/20" },
-  { icon: BarChart3, name: "Inventory Forecasting Agent", desc: "พยากรณ์สต็อกสินค้าล่วงหน้า ลดปัญหาสินค้าหมดหรือค้างสต็อก", gradient: "from-blue-500 to-indigo-500", glow: "shadow-blue-500/20" },
-  { icon: Eye, name: "Visual Search Agent", desc: "ค้นหาด้วยรูปภาพอัจฉริยะ ลูกค้าถ่ายรูปแล้วหาสินค้าที่คล้ายกันได้ทันที", gradient: "from-pink-500 to-rose-500", glow: "shadow-pink-500/20" },
-];
-
-// Platform features
-const platformFeatures = [
-  { icon: Store, name: "Custom Store Builder", desc: "สร้างหน้าร้านด้วย JSON Editor" },
-  { icon: Package, name: "Inventory Management", desc: "จัดการสต็อกสินค้าอัจฉริยะ" },
-  { icon: CreditCard, name: "Secure Payment Gateways", desc: "รองรับ PromptPay, Stripe, LINE Pay" },
-  { icon: Globe, name: "Global Shipping", desc: "เชื่อมต่อระบบขนส่งชั้นนำ" },
-  { icon: Palette, name: "Design Management", desc: "ออกแบบธีมร้านค้าตามแบรนด์" },
-  { icon: Lock, name: "Advanced Security", desc: "SSL, 2FA, Encryption ครบถ้วน" },
-  { icon: BarChart3, name: "Inventory Forecasting", desc: "พยากรณ์ยอดขายด้วย AI" },
-  { icon: Truck, name: "Shipping Integration", desc: "คำนวณค่าจัดส่งอัตโนมัติ" },
-];
-
-// Testimonials
-const testimonials = [
-  { name: "Craft & Co.", quote: "Zentra ช่วยเพิ่มยอดขายของเราได้ 30% ในเดือนแรก! AI Agent ทำงานได้เหมือนมีพนักงานอีกคน", rating: 5, role: "เจ้าของร้านงานฝีมือ" },
-  { name: "TechGear Solutions", quote: "ระบบ AI Agent ทำงานได้เยี่ยม ลูกค้าพอใจมากที่ได้รับคำแนะนำตรงจุด ยอดขายเพิ่ม 45%", rating: 5, role: "ร้านอุปกรณ์เทคโนโลยี" },
-  { name: "Fashion Hub", quote: "Dynamic Pricing ช่วยให้เราปรับราคาได้เหมาะสม ลูกค้ากลับมาซื้อซ้ำมากขึ้นเยอะเลย", rating: 5, role: "ร้านเสื้อผ้าออนไลน์" },
-];
-
-// Product Intelligence steps
-const processSteps = [
-  { icon: ScanLine, label: "สแกน", desc: "สแกนรายละเอียดสินค้า" },
-  { icon: Brain, label: "วิเคราะห์", desc: "AI วิเคราะห์ข้อมูลเชิงลึก" },
-  { icon: Database, label: "จดจำ", desc: "จัดเก็บในหน่วยความจำ AI" },
-  { icon: Zap, label: "ประยุกต์ใช้", desc: "ใช้ข้อมูลเพิ่มยอดขาย" },
-];
-
+// ═══════════════════════════════════════════════════════
+// LANDING PAGE
+// ═══════════════════════════════════════════════════════
 export default function LandingPage() {
-  const [chatStep, setChatStep] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setChatStep(1), 800),
-      setTimeout(() => setChatStep(2), 2200),
-      setTimeout(() => setChatStep(3), 3500),
-    ];
-    return () => timers.forEach(clearTimeout);
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  return (
-    <div className="min-h-screen bg-[#0a0f1a]">
-      <SEOHead
-        title="ZENTRA AI — แพลตฟอร์ม E-Commerce อัจฉริยะ ขับเคลื่อนด้วย AI"
-        description="สร้างร้านค้าออนไลน์ที่ทันสมัยที่สุด ขับเคลื่อนด้วย AI 6 ตัว รองรับ PromptPay, Stripe, LINE OA ครบทุกฟีเจอร์ พร้อมเปิดขายได้ทันที เริ่มต้นฟรี"
-        type="website"
-      />
+  // Metric counters
+  const sales = useAnimatedCounter(138336);
+  const orders = useAnimatedCounter(327);
+  const newCust = useAnimatedCounter(583);
 
-      {/* ===== 1. Navbar ===== */}
-      <nav className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0a0f1a]/80 backdrop-blur-xl" data-testid="navbar">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 via-cyan-400 to-sky-500 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-teal-500/20 animate-gradient-shift">Z</div>
-            <span className="font-black text-lg tracking-tight text-white">ZENTRA AI</span>
+  return (
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      {/* ═══ GLOBAL STYLES (inline for landing only) ═══ */}
+      <style>{`
+        .reveal-item { opacity: 0; transform: translateY(20px); transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1); }
+        .reveal-visible { opacity: 1; transform: translateY(0); }
+        .agentra-gradient { background: linear-gradient(135deg, #18E3C8, #29B6FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .ai-gradient { background: linear-gradient(135deg, #29B6FF, #8B5CFF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .btn-gradient { background: linear-gradient(135deg, #18E3C8, #29B6FF); }
+        .glow-teal { box-shadow: 0 0 30px rgba(24,227,200,.15); }
+        .glow-ai { box-shadow: 0 0 30px rgba(139,92,255,.15); }
+        .hero-grid { background-image: linear-gradient(rgba(29,48,74,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(29,48,74,.12) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 70% 50% at 50% 40%, black 30%, transparent 80%); -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 40%, black 30%, transparent 80%); }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .float { animation: float 4s ease-in-out infinite; }
+        .float-delay { animation: float 5s ease-in-out infinite; animation-delay: 1s; }
+        @keyframes pulse-dot { 0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(24,227,200,.4); } 50% { opacity:.7; box-shadow: 0 0 0 8px rgba(24,227,200,0); } }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+      `}</style>
+
+      {/* ═══ NAVBAR ═══ */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-background/95 backdrop-blur-xl border-b border-border/50" : "bg-transparent"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <AgentraLogo />
+            <span className="text-lg font-bold agentra-gradient" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>Agentra</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-6">
+            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">ฟีเจอร์</a>
+            <a href="#ai-agents" className="text-sm text-muted-foreground hover:text-foreground transition-colors">AI Agents</a>
+            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">วิธีเริ่มต้น</a>
+            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">แพ็กเกจ</a>
+            <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
           </div>
-          <div className="hidden sm:block"><LiveFeed /></div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/mall">
-              <Button variant="ghost" data-testid="nav-mall" className="text-sm text-white/70 hover:text-white hover:bg-white/5">Shopping Mall</Button>
-            </Link>
-            <Link href="/auth">
-              <Button variant="ghost" data-testid="nav-login" className="text-sm text-white/70 hover:text-white hover:bg-white/5">เข้าสู่ระบบ</Button>
-            </Link>
-            <Link href="/auth">
-              <Button data-testid="nav-signup" className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white text-sm hover:from-teal-600 hover:to-cyan-700 shadow-lg shadow-teal-500/20">เปิดร้านฟรี</Button>
-            </Link>
+
+          <div className="hidden md:flex items-center gap-3">
+            <Link href="/auth" className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5">เข้าสู่ระบบ</Link>
+            <Link href="/auth" className="btn-gradient text-[#050816] text-xs font-semibold px-4 py-2 rounded-lg hover:shadow-[0_0_20px_rgba(24,227,200,.3)] transition-shadow">เริ่มสร้างร้านฟรี</Link>
           </div>
+
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-foreground p-2">
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </nav>
 
-      {/* ===== 2. Hero Section — AI Agent ===== */}
-      <section className="relative overflow-hidden" data-testid="hero-section">
-        {/* Background effects */}
-        <div className="absolute inset-0 bg-gradient-to-b from-teal-500/[0.03] via-transparent to-violet-500/[0.03]" />
-        <div className="absolute top-20 -left-40 w-96 h-96 bg-teal-500/10 rounded-full blur-[100px] animate-glow-pulse" />
-        <div className="absolute bottom-20 -right-40 w-96 h-96 bg-violet-500/10 rounded-full blur-[100px] animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
-        <div className="absolute top-0 left-1/4 w-px h-40 bg-gradient-to-b from-transparent via-teal-500/20 to-transparent" />
-        <div className="absolute top-10 right-1/3 w-px h-60 bg-gradient-to-b from-transparent via-violet-500/15 to-transparent" />
-
-        <div className="max-w-6xl mx-auto px-4 py-16 sm:py-24 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-            {/* Left — AI Agent Chat */}
-            <div className="order-2 lg:order-1 animate-slide-up">
-              {/* AI Agent Avatar + Glow */}
-              <div className="flex items-start gap-4 mb-6">
-                <div className="relative shrink-0">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 via-cyan-500 to-sky-500 flex items-center justify-center shadow-xl shadow-teal-500/30 animate-glow-pulse">
-                    <Bot className="w-9 h-9 text-white" />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-[#0a0f1a] flex items-center justify-center">
-                    <span className="w-2 h-2 rounded-full bg-white" />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-white font-bold text-lg">Zentra AI Agent</h2>
-                  <p className="text-emerald-400 text-xs flex items-center gap-1">
-                    <Activity className="w-3 h-3" /> ออนไลน์ — พร้อมให้บริการ
-                  </p>
-                </div>
-              </div>
-
-              {/* Chat Bubbles */}
-              <div className="space-y-3 mb-6">
-                {chatStep >= 1 && (
-                  <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl rounded-tl-md px-5 py-4 max-w-md animate-slide-up" data-testid="hero-chat-bubble">
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      สวัสดีครับ! ผม <span className="text-teal-400 font-semibold">Zentra AI</span> ผู้ช่วยขายอัจฉริยะ วันนี้ช่วยอะไรได้บ้าง?
-                    </p>
-                  </div>
-                )}
-                {chatStep >= 2 && (
-                  <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl rounded-tl-md px-5 py-4 max-w-md animate-slide-up" data-testid="hero-chat-bubble-2">
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      ผมช่วยคุณ <span className="text-cyan-400 font-semibold">สร้างร้านค้าออนไลน์ใน 2 นาที</span> มี AI Agent 6 ตัว เพิ่มยอดขายถึง <span className="text-amber-400 font-bold">40%</span>
-                    </p>
-                  </div>
-                )}
-                {chatStep < 2 && chatStep >= 1 && (
-                  <div className="bg-white/[0.04] rounded-2xl rounded-tl-md px-5 py-3 max-w-[120px]">
-                    <TypingDots />
-                  </div>
-                )}
-                {chatStep >= 3 && (
-                  <div className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/20 rounded-2xl rounded-tl-md px-5 py-4 max-w-md animate-slide-up" data-testid="hero-chat-cta">
-                    <p className="text-white/80 text-xs mb-3">พร้อมเริ่มต้นแล้วหรือยัง?</p>
-                    <Link href="/auth">
-                      <Button data-testid="hero-cta" className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all duration-300">
-                        <MessageCircle className="w-4 h-4 mr-1.5" /> เริ่มพูดคุย <ArrowRight className="w-4 h-4 ml-1.5" />
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              {/* Stats row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 stagger-children">
-                <AnimatedStat value={50000} suffix="+" label="ร้านค้า" color="from-teal-400 to-cyan-400" />
-                <AnimatedStat value={2000000} suffix="+" label="คำสั่งซื้อ" color="from-violet-400 to-fuchsia-400" />
-                <AnimatedStat value={99} suffix=".9%" label="Uptime" color="from-emerald-400 to-green-400" />
-                <AnimatedStat value={4} suffix=".9/5" label="Rating" color="from-amber-400 to-yellow-400" />
-              </div>
-            </div>
-
-            {/* Right — Product Showcase */}
-            <div className="order-1 lg:order-2 animate-slide-up" style={{ animationDelay: "200ms" }}>
-              <div className="relative">
-                {/* Header */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-4 h-4 text-teal-400" />
-                  <span className="text-sm text-teal-400 font-medium">แนะนำเฉพาะสำหรับคุณโดย AI</span>
-                </div>
-
-                {/* Product cards */}
-                <div className="space-y-3">
-                  {mockProducts.map((p, i) => (
-                    <div
-                      key={p.name}
-                      className="group relative bg-white/[0.04] border border-white/[0.08] hover:border-teal-500/40 rounded-xl p-4 flex items-center gap-4 transition-all duration-300 animate-slide-up"
-                      style={{ animationDelay: `${300 + i * 150}ms` }}
-                      data-testid={`hero-product-${i}`}
-                    >
-                      {/* Product icon placeholder */}
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-teal-500/20 flex items-center justify-center shrink-0 group-hover:shadow-lg group-hover:shadow-teal-500/10 transition-all duration-300">
-                        <ShoppingBag className="w-7 h-7 text-teal-400/70" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-white text-sm font-medium truncate">{p.name}</h4>
-                          <Badge className="bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-400 text-[10px] border-teal-500/30 shrink-0">{p.tag}</Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-teal-400 font-bold text-sm">{p.price}</span>
-                          <div className="flex items-center gap-0.5">
-                            {Array.from({ length: 5 }).map((_, j) => (
-                              <Star key={j} className={`w-3 h-3 ${j < Math.floor(p.rating) ? "text-amber-400 fill-amber-400" : "text-white/20"}`} />
-                            ))}
-                            <span className="text-white/40 text-xs ml-1">{p.rating}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-white/20 group-hover:text-teal-400 transition-colors shrink-0" />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Decorative glow behind cards */}
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/10 rounded-full blur-[80px] pointer-events-none" />
-                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-violet-500/10 rounded-full blur-[60px] pointer-events-none" />
-              </div>
-            </div>
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-background/98 backdrop-blur-xl flex flex-col items-center justify-center gap-8">
+          {[
+            { label: "ฟีเจอร์", href: "#features" },
+            { label: "AI Agents", href: "#ai-agents" },
+            { label: "วิธีเริ่มต้น", href: "#how-it-works" },
+            { label: "แพ็กเกจ", href: "#pricing" },
+            { label: "FAQ", href: "#faq" },
+          ].map(i => (
+            <a key={i.href} href={i.href} onClick={() => setMobileOpen(false)} className="text-xl text-muted-foreground hover:text-foreground transition-colors">{i.label}</a>
+          ))}
+          <div className="flex flex-col gap-3 w-full max-w-[280px] mt-4">
+            <Link href="/auth" onClick={() => setMobileOpen(false)} className="text-center text-sm text-muted-foreground border border-border/50 rounded-lg py-3">เข้าสู่ระบบ</Link>
+            <Link href="/auth" onClick={() => setMobileOpen(false)} className="text-center btn-gradient text-[#050816] font-semibold rounded-lg py-3">เริ่มสร้างร้านฟรี</Link>
           </div>
         </div>
-      </section>
+      )}
 
-      {/* ===== 3. Supercharged AI Agents ===== */}
-      <section className="relative py-20" data-testid="agents-section">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-teal-500/[0.02] to-transparent" />
-        <div className="max-w-6xl mx-auto px-4 relative z-10">
-          <div className="text-center mb-14">
-            <Badge variant="outline" className="mb-4 text-xs px-4 py-1.5 border-teal-500/30 bg-teal-500/5">
-              <Bot className="w-3 h-3 mr-1.5 text-teal-400" />
-              <span className="text-teal-400">Supercharged AI Agents</span>
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
-              AI Agent <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">6 ตัว</span> ทำงานให้คุณ 24/7
-            </h2>
-            <p className="text-white/50 mt-3 max-w-lg mx-auto text-sm">
-              ทุก Agent เรียนรู้และปรับตัวตามพฤติกรรมลูกค้าของคุณ เพื่อเพิ่มยอดขายอย่างต่อเนื่อง
+      {/* ═══ HERO ═══ */}
+      <section className="relative min-h-screen flex items-center pt-20 pb-12 px-4 sm:px-6 overflow-hidden">
+        <div className="hero-grid absolute inset-0" />
+        <div className="absolute w-[500px] h-[500px] rounded-full bg-[#18E3C8]/10 blur-[120px] -top-24 -left-24 pointer-events-none" />
+        <div className="absolute w-[400px] h-[400px] rounded-full bg-[#8B5CFF]/[.06] blur-[120px] -bottom-12 -right-12 pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center">
+          <div className="flex flex-col gap-6 text-center lg:text-left items-center lg:items-start">
+            <div className="inline-flex items-center gap-2 text-xs font-medium text-[#18E3C8] uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-[#18E3C8] pulse-dot" />
+              Commerce Operating System
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.2rem] xl:text-[3.6rem] font-bold leading-[1.15] tracking-tight" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>
+              เปิดร้าน ขายของ รับเงิน<br className="hidden sm:block" />
+              และเติบโตในระบบเดียว
+            </h1>
+
+            <p className="text-base text-muted-foreground leading-relaxed max-w-xl">
+              Agentra รวมหน้าร้านสวย ระบบหลังบ้านอัจฉริยะ AI workflows และ payment infrastructure ไว้ครบ เพื่อให้เจ้าของร้านเปิดขายได้เร็วและขยายธุรกิจได้จริง
             </p>
+
+            <div className="flex gap-3 flex-wrap justify-center lg:justify-start">
+              <Link href="/auth" className="btn-gradient text-[#050816] font-semibold px-6 py-3 rounded-xl inline-flex items-center gap-2 hover:shadow-[0_0_30px_rgba(24,227,200,.3)] transition-all">
+                <Rocket className="w-4 h-4" /> เริ่มสร้างร้านฟรี
+              </Link>
+              <Link href="/auth" className="bg-card/50 border border-border/50 text-foreground font-medium px-6 py-3 rounded-xl inline-flex items-center gap-2 hover:border-[#18E3C8]/40 hover:bg-[#18E3C8]/[.06] transition-all">
+                <Play className="w-4 h-4" /> ดูเดโมระบบ
+              </Link>
+            </div>
+
+            <div className="flex gap-2 flex-wrap justify-center lg:justify-start">
+              {[
+                { icon: Sparkles, label: "AI-Powered" },
+                { icon: QrCode, label: "PromptPay Ready" },
+                { icon: Store, label: "Multi-Store" },
+                { icon: Activity, label: "Real-Time" },
+              ].map(b => (
+                <span key={b.label} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs text-[#18E3C8] bg-[#18E3C8]/[.06] border border-[#18E3C8]/15">
+                  <b.icon className="w-3.5 h-3.5" /> {b.label}
+                </span>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
-            {aiAgents.map((agent, i) => (
-              <Card
-                key={agent.name}
-                className="bg-white/[0.02] border-white/[0.06] group hover:border-teal-500/30 transition-all duration-300 overflow-hidden relative animate-slide-up"
-                data-testid={`agent-card-${i}`}
-              >
-                <div className={`absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r ${agent.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                <CardContent className="p-5">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${agent.gradient} flex items-center justify-center mb-4 group-hover:scale-110 group-hover:${agent.glow} group-hover:shadow-lg transition-all duration-300`}>
-                    <agent.icon className="w-6 h-6 text-white" />
+          {/* Hero mockup */}
+          <div className="relative flex justify-center lg:justify-end">
+            <div className="w-full max-w-[480px]">
+              {/* Dashboard card */}
+              <div className="bg-card/60 border border-border/50 rounded-2xl overflow-hidden glow-teal backdrop-blur-sm">
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-border/40">
+                  <div className="flex gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
                   </div>
-                  <h3 className="font-bold text-white text-sm mb-1">{agent.name}</h3>
-                  <p className="text-white/50 text-xs leading-relaxed">{agent.desc}</p>
-                </CardContent>
-              </Card>
+                  <span className="text-xs text-muted-foreground font-medium">Agentra Dashboard</span>
+                </div>
+                <div className="p-4 space-y-4">
+                  {/* Metrics */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "ยอดขายวันนี้", ref: sales.ref, val: `฿${sales.count.toLocaleString()}`, change: "+12.5%" },
+                      { label: "ออเดอร์", ref: orders.ref, val: orders.count.toLocaleString(), change: "+8.2%" },
+                      { label: "ลูกค้าใหม่", ref: newCust.ref, val: newCust.count.toLocaleString(), change: "+15.1%" },
+                    ].map(m => (
+                      <div key={m.label} ref={m.ref as any} className="bg-background/60 border border-border/40 rounded-lg p-2.5 sm:p-3">
+                        <div className="text-[10px] text-muted-foreground whitespace-nowrap">{m.label}</div>
+                        <div className="text-sm font-bold tabular-nums mt-0.5">{m.val}</div>
+                        <div className="text-[10px] font-semibold text-green-500">{m.change}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Chart bars */}
+                  <div className="h-20 flex items-end gap-1.5">
+                    {[40, 65, 50, 80, 70, 90, 85].map((h, i) => (
+                      <div key={i} className={`flex-1 rounded-t transition-opacity ${i === 6 ? "opacity-100" : "opacity-30"}`} style={{ height: `${h}%`, background: "linear-gradient(180deg, #18E3C8, #29B6FF)" }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* AI panel floating */}
+              <div className="absolute -bottom-4 -right-2 sm:bottom-8 sm:-right-4 w-52 float hidden sm:block">
+                <div className="bg-background/95 border border-[#8B5CFF]/30 rounded-xl overflow-hidden glow-ai backdrop-blur-sm">
+                  <div className="flex items-center gap-2 px-3 py-2 border-b border-[#8B5CFF]/15 text-[11px] text-muted-foreground">
+                    <Bot className="w-3.5 h-3.5 text-[#8B5CFF]" />
+                    <span>AI Agent</span>
+                    <span className="ml-auto text-[10px] text-green-500 font-semibold">Active</span>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    <div className="text-[11px] text-muted-foreground">กำลังวิเคราะห์พฤติกรรมลูกค้า...</div>
+                    <div className="text-[11px] text-[#8B5CFF] bg-[#8B5CFF]/[.06] p-2 rounded-lg border-l-2 border-[#8B5CFF]">
+                      แนะนำ: เพิ่มส่วนลด 10% สินค้ายอดนิยม
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment widget floating */}
+              <div className="absolute -top-2 -right-2 sm:top-4 sm:-right-2 float-delay hidden sm:block">
+                <div className="bg-background/95 border border-green-500/30 rounded-xl px-3 py-2.5 flex items-center gap-3 backdrop-blur-sm" style={{ boxShadow: "0 8px 24px rgba(34,197,94,.1)" }}>
+                  <div className="w-8 h-8 rounded-lg bg-green-500/15 flex items-center justify-center">
+                    <CreditCard className="w-4 h-4 text-green-500" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-green-500 font-medium">รับเงินสำเร็จ</div>
+                    <div className="text-sm font-bold tabular-nums">฿2,450</div>
+                  </div>
+                  <span className="text-[9px] text-[#18E3C8] bg-[#18E3C8]/10 px-2 py-0.5 rounded-full border border-[#18E3C8]/20">PromptPay</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ TRUST STRIP ═══ */}
+      <div className="border-y border-border/40 bg-card/30 py-5 px-6">
+        <div className="max-w-7xl mx-auto flex items-center gap-8 flex-wrap justify-center">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">ร้านค้ากว่า 500+ ร้านเลือกใช้ Agentra</span>
+          <div className="flex gap-8 opacity-40">
+            {["🏪 ร้าน A", "🛍️ ร้าน B", "📦 ร้าน C", "🎯 ร้าน D", "⭐ ร้าน E"].map(s => (
+              <span key={s} className="text-sm text-muted-foreground whitespace-nowrap">{s}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ FEATURES ═══ */}
+      <section id="features" className="py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <RevealDiv className="text-center max-w-2xl mx-auto mb-14 space-y-4">
+            <span className="text-xs font-semibold text-[#18E3C8] uppercase tracking-wider">ฟีเจอร์หลัก</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>
+              ทุกเครื่องมือที่ร้านค้าต้องการ<br />รวมไว้ในที่เดียว
+            </h2>
+            <p className="text-muted-foreground">ไม่ต้องต่อ 10 แอปเข้าด้วยกัน Agentra ออกแบบให้ทุกฟีเจอร์ทำงานร่วมกันตั้งแต่แรก</p>
+          </RevealDiv>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Featured card */}
+            <RevealDiv className="md:col-span-2 lg:col-span-3 bg-card/40 border border-border/50 rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-start gap-6 hover:border-[#18E3C8]/30 hover:shadow-[0_0_30px_rgba(24,227,200,.1)] transition-all">
+              <div className="w-12 h-12 rounded-xl bg-[#18E3C8]/10 border border-[#18E3C8]/20 flex items-center justify-center shrink-0">
+                <LayoutDashboard className="w-6 h-6 text-[#18E3C8]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>Dashboard อัจฉริยะ</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">เห็นยอดขาย ออเดอร์ และพฤติกรรมลูกค้าแบบ Real-Time ทุกตัวเลขอัปเดตอัตโนมัติ ไม่ต้องกด refresh</p>
+                <div className="flex gap-2 mt-3 flex-wrap">
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-[#8B5CFF] bg-[#8B5CFF]/10 border border-[#8B5CFF]/20 uppercase">AI-Powered</span>
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-[#29B6FF] bg-[#29B6FF]/10 border border-[#29B6FF]/20 uppercase">Live Analytics</span>
+                </div>
+              </div>
+            </RevealDiv>
+
+            {[
+              { icon: Store, title: "สร้างหน้าร้านสวย", desc: "เลือกธีม ลากวาง ปรับแต่ง เปิดร้านได้ภายใน 5 นาที รองรับ SEO และ Mobile-First" },
+              { icon: Wallet, title: "รับเงินทุกช่องทาง", desc: "PromptPay, QR Payment, บัตรเครดิต ทุกธุรกรรมเข้าระบบอัตโนมัติ ตรวจสอบได้ทันที", tag: "PromptPay Ready" },
+              { icon: Box, title: "จัดการสินค้า", desc: "เพิ่มสินค้า จัดหมวดหมู่ ตั้งราคา จัดสต็อก ทุกอย่างจากหน้าจอเดียว" },
+              { icon: Truck, title: "ออเดอร์และจัดส่ง", desc: "ระบบจัดการออเดอร์อัตโนมัติ ติดตามสถานะ แจ้งเตือนลูกค้าทุกขั้นตอน" },
+              { icon: Users, title: "ระบบสมาชิก", desc: "สร้างฐานลูกค้า จัดกลุ่ม วิเคราะห์พฤติกรรม เพื่อการตลาดแม่นยำ" },
+            ].map((f, i) => (
+              <RevealDiv key={f.title} delay={i * 80} className="bg-card/40 border border-border/50 rounded-2xl p-6 hover:border-[#18E3C8]/30 hover:shadow-[0_0_30px_rgba(24,227,200,.1)] transition-all flex flex-col gap-3">
+                <div className="w-12 h-12 rounded-xl bg-[#18E3C8]/10 border border-[#18E3C8]/20 flex items-center justify-center">
+                  <f.icon className="w-6 h-6 text-[#18E3C8]" />
+                </div>
+                <h3 className="text-base font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                {f.tag && (
+                  <span className="self-start text-[11px] font-semibold px-2.5 py-0.5 rounded-full text-[#18E3C8] bg-[#18E3C8]/10 border border-[#18E3C8]/20 uppercase">{f.tag}</span>
+                )}
+              </RevealDiv>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== 4. Product Intelligence ===== */}
-      <section className="relative py-20" data-testid="intelligence-section">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-500/[0.02] to-transparent" />
-        <div className="max-w-6xl mx-auto px-4 relative z-10">
-          <div className="text-center mb-14">
-            <Badge variant="outline" className="mb-4 text-xs px-4 py-1.5 border-violet-500/30 bg-violet-500/5">
-              <Brain className="w-3 h-3 mr-1.5 text-violet-400" />
-              <span className="text-violet-400">Product Intelligence</span>
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-black text-white max-w-2xl mx-auto leading-tight">
-              Zentra <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">จดจำทุกรายละเอียดสินค้า</span>ของคุณ เพื่อนำไปสู่การขายที่ดีขึ้น
+      {/* ═══ AI AGENTS ═══ */}
+      <section id="ai-agents" className="py-20 md:py-28 px-4 sm:px-6 bg-card/20">
+        <div className="max-w-7xl mx-auto">
+          <RevealDiv className="text-center max-w-2xl mx-auto mb-14 space-y-4">
+            <span className="text-xs font-semibold text-[#18E3C8] uppercase tracking-wider">AI Agents</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>
+              AI ที่ทำงานให้คุณ<br />ไม่ใช่แค่แนะนำ
             </h2>
+            <p className="text-muted-foreground">Agentra มี AI Agent หลายตัวที่ทำงานอัตโนมัติ ตั้งแต่วิเคราะห์ข้อมูลไปจนถึงช่วยขาย</p>
+          </RevealDiv>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {[
+              { icon: BarChart3, name: "Analytics Agent", desc: "วิเคราะห์ยอดขาย พฤติกรรมลูกค้า และแนวโน้มตลาดแบบ Real-Time พร้อมสรุปรายงานให้ทุกเช้า", tags: ["วิเคราะห์ข้อมูล", "พยากรณ์ยอดขาย", "แนะนำกลยุทธ์"] },
+              { icon: MessageSquare, name: "Customer Agent", desc: "ตอบคำถามลูกค้าอัตโนมัติ 24/7 เข้าใจภาษาไทย ช่วยปิดการขาย และส่งต่อให้คนเมื่อจำเป็น", tags: ["ตอบแชท 24/7", "แนะนำสินค้า", "ปิดการขาย"] },
+              { icon: Palette, name: "Design Agent", desc: "ช่วยจัดหน้าร้าน ออกแบบแบนเนอร์ และปรับแต่ง visual ให้ดึงดูดลูกค้ามากขึ้น", tags: ["จัดหน้าร้าน", "สร้างแบนเนอร์", "A/B Testing"] },
+              { icon: Megaphone, name: "Marketing Agent", desc: "วางแผนโปรโมชัน สร้างคอนเทนต์ จัดแคมเปญอัตโนมัติ และวัดผลให้ครบลูป", tags: ["วางแผนแคมเปญ", "สร้างคอนเทนต์", "วัดผล ROI"] },
+            ].map((a, i) => (
+              <RevealDiv key={a.name} delay={i * 100} className="relative bg-card/40 border border-border/50 rounded-2xl p-6 flex flex-col gap-3 overflow-hidden hover:border-[#8B5CFF]/30 hover:-translate-y-0.5 transition-all group">
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#29B6FF] to-[#8B5CFF] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,.5)] pulse-dot" />
+                <div className="w-11 h-11 rounded-xl bg-[#8B5CFF]/10 border border-[#8B5CFF]/20 flex items-center justify-center">
+                  <a.icon className="w-5 h-5 text-[#8B5CFF]" />
+                </div>
+                <h3 className="text-base font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>{a.name}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{a.desc}</p>
+                <div className="flex gap-2 flex-wrap">
+                  {a.tags.map(t => (
+                    <span key={t} className="text-[11px] px-2.5 py-0.5 rounded-full text-[#8B5CFF] bg-[#8B5CFF]/[.06] border border-[#8B5CFF]/15">{t}</span>
+                  ))}
+                </div>
+              </RevealDiv>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-            {/* Process Flow */}
-            <div className="lg:col-span-3">
-              {/* Steps */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-                {processSteps.map((step, i) => (
-                  <div key={step.label} className="text-center animate-slide-up" style={{ animationDelay: `${i * 100}ms` }} data-testid={`process-step-${i}`}>
-                    <div className="w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 flex items-center justify-center mb-2">
-                      <step.icon className="w-6 h-6 text-violet-400" />
-                    </div>
-                    <div className="text-white font-medium text-xs">{step.label}</div>
-                    <div className="text-white/40 text-[10px] mt-0.5">{step.desc}</div>
-                    {i < processSteps.length - 1 && (
-                      <div className="hidden sm:block absolute" />
-                    )}
-                  </div>
-                ))}
-              </div>
+      {/* ═══ HOW IT WORKS ═══ */}
+      <section id="how-it-works" className="py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <RevealDiv className="text-center max-w-xl mx-auto mb-14 space-y-4">
+            <span className="text-xs font-semibold text-[#18E3C8] uppercase tracking-wider">เริ่มต้นง่ายมาก</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>เปิดร้านใน 3 ขั้นตอน</h2>
+            <p className="text-muted-foreground">จากศูนย์สู่ร้านค้าที่พร้อมรับเงินจริง ใช้เวลาไม่ถึง 10 นาที</p>
+          </RevealDiv>
 
-              {/* Arrows between steps (desktop) */}
-              <div className="hidden sm:flex items-center justify-center gap-1 mb-8 -mt-4">
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="flex items-center">
-                    <div className="w-16 h-px bg-gradient-to-r from-violet-500/30 to-violet-500/10" />
-                    <ArrowRight className="w-3 h-3 text-violet-400/50 -ml-1" />
-                    <div className="w-16" />
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+            {[
+              { num: "01", icon: UserPlus, title: "สมัครและสร้างร้าน", desc: "กรอกข้อมูลร้าน เลือกหมวดหมู่ ตั้งชื่อร้าน เลือกธีม — เสร็จภายใน 2 นาที" },
+              { num: "02", icon: PackagePlus, title: "เพิ่มสินค้าและตั้งค่า", desc: "เพิ่มสินค้า ตั้งราคา เชื่อมต่อ PromptPay — AI ช่วยจัดหน้าร้านให้อัตโนมัติ" },
+              { num: "03", icon: Rocket, title: "เปิดร้านและเริ่มขาย", desc: "เผยแพร่หน้าร้าน แชร์ลิงก์ รับออเดอร์และเงินเข้าระบบทันที" },
+            ].map((s, i) => (
+              <RevealDiv key={s.num} delay={i * 120} className="flex flex-col items-center gap-3">
+                {i > 0 && <ArrowRight className="w-5 h-5 text-muted-foreground/30 hidden md:block rotate-0 md:absolute" style={{ display: 'none' }} />}
+                <div className="bg-card/40 border border-border/50 rounded-2xl p-6 text-center max-w-[300px] w-full hover:border-[#18E3C8]/20 hover:shadow-[0_0_30px_rgba(24,227,200,.08)] transition-all">
+                  <div className="text-3xl font-black agentra-gradient opacity-30 mb-3">{s.num}</div>
+                  <div className="w-14 h-14 rounded-full bg-[#18E3C8]/10 border border-[#18E3C8]/20 flex items-center justify-center mx-auto mb-4">
+                    <s.icon className="w-6 h-6 text-[#18E3C8]" />
                   </div>
-                ))}
-              </div>
-
-              {/* Mock memorized product cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 animate-slide-up" data-testid="memorized-card-0">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500/20 to-cyan-500/20 flex items-center justify-center">
-                      <Eye className="w-5 h-5 text-teal-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-white text-xs font-medium">กล้องมิร์เรอร์เลส Pro</h4>
-                      <p className="text-white/40 text-[10px]">สินค้า #1024</p>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-violet-500/10 text-violet-400 border-violet-500/20 text-[10px]">MEMORIZED</Badge>
-                      <span className="text-white/60 text-[10px]">F/2.8 lens speed</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-violet-500/10 text-violet-400 border-violet-500/20 text-[10px]">MEMORIZED</Badge>
-                      <span className="text-white/60 text-[10px]">24MP sensor</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-violet-500/10 text-violet-400 border-violet-500/20 text-[10px]">MEMORIZED</Badge>
-                      <span className="text-white/60 text-[10px]">4K video benefits</span>
-                    </div>
-                  </div>
+                  <h3 className="font-bold mb-2" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>{s.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
                 </div>
+                {i < 2 && <ChevronDown className="w-5 h-5 text-muted-foreground/30 md:hidden" />}
+              </RevealDiv>
+            ))}
+          </div>
+        </div>
+      </section>
 
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 animate-slide-up" style={{ animationDelay: "100ms" }} data-testid="memorized-card-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
-                      <Headphones className="w-5 h-5 text-amber-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-white text-xs font-medium">หูฟัง Studio Monitor</h4>
-                      <p className="text-white/40 text-[10px]">สินค้า #2048</p>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-[10px]">MEMORIZED</Badge>
-                      <span className="text-white/60 text-[10px]">40mm driver unit</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-[10px]">MEMORIZED</Badge>
-                      <span className="text-white/60 text-[10px]">Active Noise Cancelling</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-[10px]">MEMORIZED</Badge>
-                      <span className="text-white/60 text-[10px]">30hr battery life</span>
-                    </div>
-                  </div>
+      {/* ═══ STOREFRONT PREVIEW ═══ */}
+      <section className="py-20 md:py-28 px-4 sm:px-6 bg-card/20">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <RevealDiv className="space-y-5">
+            <span className="text-xs font-semibold text-[#18E3C8] uppercase tracking-wider">หน้าร้านตัวอย่าง</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>
+              หน้าร้านที่สวย<br />และขายได้จริง
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">ทุกหน้าร้านบน Agentra ถูกออกแบบมาให้แสดงผลสวยบนทุกอุปกรณ์ โหลดเร็ว และรองรับ SEO ตั้งแต่วันแรก</p>
+            <ul className="space-y-3 mt-2">
+              {["รองรับ Mobile-First", "SEO Optimized", "โหลดเร็วไม่เกิน 2 วินาที", "เชื่อมต่อ Social Media อัตโนมัติ"].map(t => (
+                <li key={t} className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <CheckCircle2 className="w-5 h-5 text-[#18E3C8] shrink-0" /> {t}
+                </li>
+              ))}
+            </ul>
+          </RevealDiv>
+
+          <RevealDiv delay={200} className="flex justify-center">
+            <div className="w-[260px] bg-card/60 border-2 border-border/50 rounded-[32px] p-3 shadow-2xl">
+              <div className="w-24 h-5 bg-card rounded-b-xl mx-auto -mt-3 mb-2" />
+              <div className="bg-background rounded-2xl overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2.5">
+                  <span className="text-xs font-semibold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>My Store</span>
+                  <ShoppingBag className="w-3.5 h-3.5 text-muted-foreground" />
                 </div>
-              </div>
-            </div>
-
-            {/* Active AI Agent Status Panel */}
-            <div className="lg:col-span-2">
-              <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 animate-slide-up" data-testid="ai-status-panel">
-                <h3 className="text-white font-bold text-sm mb-4 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-emerald-400" />
-                  Active AI Agent Status
-                </h3>
-                <div className="space-y-3">
+                <div className="h-24 bg-gradient-to-r from-[#18E3C8]/20 to-[#29B6FF]/20" />
+                <div className="grid grid-cols-2 gap-2 p-2.5">
                   {[
-                    { name: "Product Recognition", status: "active", color: "bg-emerald-500" },
-                    { name: "Recommendation Engine", status: "active", color: "bg-emerald-500" },
-                    { name: "Inventory Forecast", status: "active", color: "bg-emerald-500" },
-                    { name: "Dynamic Pricing", status: "standby", color: "bg-amber-500" },
-                    { name: "Visual Search", status: "standby", color: "bg-amber-500" },
-                  ].map((item) => (
-                    <div key={item.name} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
-                      <div className="flex items-center gap-2.5">
-                        <span className="relative flex h-2 w-2 shrink-0">
-                          {item.status === "active" && <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${item.color} opacity-75`} />}
-                          <span className={`relative inline-flex rounded-full h-2 w-2 ${item.color}`} />
-                        </span>
-                        <span className="text-white/70 text-xs">{item.name}</span>
-                      </div>
-                      <Badge className={`text-[10px] ${item.status === "active" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>
-                        {item.status}
-                      </Badge>
+                    { name: "เสื้อยืด Premium", price: "฿590", grad: "from-[#18E3C8] to-[#29B6FF]" },
+                    { name: "กระเป๋า Canvas", price: "฿890", grad: "from-[#29B6FF] to-[#8B5CFF]" },
+                  ].map(p => (
+                    <div key={p.name} className="space-y-1">
+                      <div className={`h-16 rounded-lg bg-gradient-to-br ${p.grad}`} />
+                      <div className="text-[10px] text-muted-foreground px-0.5">{p.name}</div>
+                      <div className="text-xs font-bold text-[#18E3C8] px-0.5">{p.price}</div>
                     </div>
                   ))}
                 </div>
-
-                {/* Usage metrics */}
-                <div className="mt-5 pt-4 border-t border-white/[0.06]">
-                  <div className="text-white/40 text-[10px] mb-2">AI Processing Power</div>
-                  <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div className="h-full w-[72%] bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full transition-all duration-1000" />
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-white/30 text-[10px]">72% utilized</span>
-                    <span className="text-teal-400 text-[10px]">5/6 agents active</span>
-                  </div>
-                </div>
               </div>
             </div>
-          </div>
+          </RevealDiv>
         </div>
       </section>
 
-      {/* ===== 5. Platform Features Grid ===== */}
-      <section className="relative py-20" data-testid="features-section">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-14">
-            <Badge variant="outline" className="mb-4 text-xs px-4 py-1.5 border-teal-500/30 bg-teal-500/5">
-              <Zap className="w-3 h-3 mr-1.5 text-teal-400" />
-              <span className="text-teal-400">Platform Features</span>
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
-              ทุกสิ่งที่คุณต้องการ<span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">ในแพลตฟอร์มเดียว</span>
+      {/* ═══ PRICING ═══ */}
+      <section id="pricing" className="py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <RevealDiv className="text-center max-w-2xl mx-auto mb-14 space-y-4">
+            <span className="text-xs font-semibold text-[#18E3C8] uppercase tracking-wider">แพ็กเกจ</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>
+              เลือกแพ็กเกจที่ใช่<br />สำหรับธุรกิจของคุณ
             </h2>
-          </div>
+            <p className="text-muted-foreground">เริ่มต้นฟรี อัปเกรดเมื่อพร้อม ไม่มีค่าธรรมเนียมแอบแฝง</p>
+          </RevealDiv>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 stagger-children">
-            {platformFeatures.map((feat, i) => (
-              <div
-                key={feat.name}
-                className="group bg-white/[0.02] border border-white/[0.06] hover:border-teal-500/20 rounded-xl p-4 text-center transition-all duration-300 animate-slide-up"
-                data-testid={`feature-${i}`}
-              >
-                <div className="w-11 h-11 mx-auto rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <feat.icon className="w-5 h-5 text-teal-400" />
-                </div>
-                <h3 className="text-white font-medium text-xs mb-1">{feat.name}</h3>
-                <p className="text-white/40 text-[10px] leading-relaxed">{feat.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== 6. Testimonials ===== */}
-      <section className="relative py-20" data-testid="testimonials-section">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-teal-500/[0.02] to-transparent" />
-        <div className="max-w-5xl mx-auto px-4 relative z-10">
-          <div className="text-center mb-14">
-            <Badge variant="outline" className="mb-4 text-xs px-4 py-1.5 border-amber-500/30 bg-amber-500/5">
-              <Star className="w-3 h-3 mr-1.5 text-amber-400 fill-amber-400" />
-              <span className="text-amber-400">รีวิวจากลูกค้า</span>
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
-              ผู้ประกอบการ<span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">ไว้วางใจ</span>เรา
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
-            {testimonials.map((t, i) => (
-              <Card
-                key={t.name}
-                className="bg-white/[0.02] border-white/[0.06] group hover:border-amber-500/20 transition-all duration-300 animate-slide-up overflow-hidden relative"
-                data-testid={`testimonial-${i}`}
-              >
-                <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-amber-400 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-0.5 mb-3">
-                    {Array.from({ length: t.rating }).map((_, j) => (
-                      <Star key={j} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-white/70 text-sm leading-relaxed mb-4">"{t.quote}"</p>
-                  <div className="flex items-center gap-3 pt-3 border-t border-white/[0.06]">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500/20 to-cyan-500/20 flex items-center justify-center">
-                      <Store className="w-4 h-4 text-teal-400" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium text-xs">{t.name}</div>
-                      <div className="text-white/40 text-[10px]">{t.role}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== 7. Pricing ===== */}
-      <section className="relative py-20" data-testid="pricing-section">
-        <div className="max-w-5xl mx-auto px-4">
-          <div className="text-center mb-14">
-            <h2 className="text-2xl sm:text-3xl font-black text-white">แผนราคาที่เหมาะกับทุกธุรกิจ</h2>
-            <p className="text-white/50 mt-2 text-sm">เริ่มฟรี อัปเกรดเมื่อพร้อม</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 stagger-children">
+          <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto items-start">
             {[
-              { name: "Free", price: "฿0", period: "ตลอดไป", features: ["1 ร้านค้า", "50 สินค้า", "100 AI Credits/เดือน", "SSL", "หน้าร้านออนไลน์"], highlight: false },
-              { name: "Pro", price: "฿990", period: "/เดือน", features: ["5 ร้านค้า", "ไม่จำกัดสินค้า", "5,000 AI Credits/เดือน", "AI Agent ครบ 6 ตัว", "Custom Domain", "Priority Support"], highlight: true },
-              { name: "Enterprise", price: "฿4,990", period: "/เดือน", features: ["ไม่จำกัดทุกอย่าง", "White-label", "Dedicated AI Server", "99.9% SLA", "Dedicated Account Manager"], highlight: false },
-            ].map(p => (
-              <Card key={p.name} className={`bg-white/[0.02] border-white/[0.06] animate-slide-up overflow-hidden relative transition-all duration-300 ${p.highlight ? "ring-2 ring-teal-500/60 shadow-xl shadow-teal-500/10" : "hover:border-white/[0.12]"}`} data-testid={`pricing-${p.name.toLowerCase()}`}>
-                {p.highlight && (
-                  <>
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal-400 via-cyan-400 to-sky-500" />
-                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-teal-500 to-cyan-600 text-xs border-0 shadow-lg">ยอดนิยม</Badge>
-                  </>
+              { name: "Starter", desc: "เริ่มต้นสำหรับร้านค้าใหม่", price: "฿0", features: ["1 ร้านค้า", "50 สินค้า", "Dashboard พื้นฐาน", "PromptPay รับเงิน", "หน้าร้านสำเร็จรูป"], cta: "เริ่มต้นฟรี", popular: false },
+              { name: "Professional", desc: "สำหรับร้านค้าที่ต้องการเติบโต", price: "฿990", features: ["3 ร้านค้า", "สินค้าไม่จำกัด", "AI Analytics Agent", "ทุกช่องทางรับเงิน", "หน้าร้าน Custom", "ระบบสมาชิก CRM", "รายงานขั้นสูง"], cta: "เลือกแพ็กเกจนี้", popular: true },
+              { name: "Enterprise", desc: "สำหรับธุรกิจขนาดใหญ่", price: "฿2,990", features: ["ร้านค้าไม่จำกัด", "สินค้าไม่จำกัด", "AI Agent ครบทุกตัว", "API Access", "White-Label หน้าร้าน", "Priority Support", "ที่ปรึกษาส่วนตัว"], cta: "ติดต่อฝ่ายขาย", popular: false },
+            ].map((p, i) => (
+              <RevealDiv key={p.name} delay={i * 100} className={`relative bg-card/40 border rounded-2xl p-6 md:p-8 flex flex-col gap-5 transition-all hover:-translate-y-1 ${p.popular ? "border-[#18E3C8]/40 bg-gradient-to-b from-[#18E3C8]/[.04] to-card/40 glow-teal md:scale-[1.02]" : "border-border/50"} ${p.popular ? "order-first md:order-none" : ""}`}>
+                {p.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 btn-gradient text-[#050816] text-xs font-bold px-4 py-1 rounded-full">แนะนำ</span>
                 )}
-                <CardContent className="p-6">
-                  <h3 className="font-bold text-lg text-white">{p.name}</h3>
-                  <div className="mt-2">
-                    <span className="text-3xl font-black bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">{p.price}</span>
-                    <span className="text-sm text-white/50">{p.period}</span>
-                  </div>
-                  <ul className="mt-4 space-y-2.5">
-                    {p.features.map(f => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-white/70">
-                        <div className="w-4 h-4 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center shrink-0">
-                          <Check className="w-2.5 h-2.5 text-white" />
-                        </div>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/auth">
-                    <Button
-                      data-testid={`pricing-cta-${p.name.toLowerCase()}`}
-                      className={`w-full mt-6 ${p.highlight ? "bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40" : "bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]"}`}
-                      variant={p.highlight ? "default" : "outline"}
-                    >
-                      {p.name === "Free" ? "เปิดร้านฟรี" : "เริ่มต้นเลย"}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+                <div>
+                  <h3 className="text-xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>{p.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{p.desc}</p>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-extrabold agentra-gradient tabular-nums">{p.price}</span>
+                  <span className="text-sm text-muted-foreground">/เดือน</span>
+                </div>
+                <ul className="space-y-2.5 flex-1">
+                  {p.features.map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="w-4 h-4 text-[#18E3C8] shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth" className={`text-center py-3 rounded-xl font-semibold text-sm transition-all ${p.popular ? "btn-gradient text-[#050816] hover:shadow-[0_0_20px_rgba(24,227,200,.3)]" : "bg-card/50 border border-border/50 text-foreground hover:border-[#18E3C8]/40 hover:bg-[#18E3C8]/[.06]"}`}>
+                  {p.cta}
+                </Link>
+              </RevealDiv>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== 8. CTA Section ===== */}
-      <section className="relative py-20" data-testid="cta-section">
-        <div className="max-w-3xl mx-auto px-4 text-center relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-violet-500/5 to-fuchsia-500/5 rounded-3xl" />
-          <div className="relative py-12 px-6">
-            <h2 className="text-2xl sm:text-3xl font-black text-white">พร้อมที่จะยกระดับธุรกิจของคุณแล้วหรือยัง?</h2>
-            <p className="text-white/50 mt-3 text-sm">ร่วมเป็นส่วนหนึ่งของอนาคตอีคอมเมิร์ซวันนี้</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-              <Link href="/auth">
-                <Button data-testid="cta-signup" size="lg" className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-8 shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 hover:scale-105 transition-all duration-300">
-                  <Flame className="w-4 h-4 mr-1.5" /> เริ่มต้นใช้งานฟรี <ArrowRight className="w-4 h-4 ml-1.5" />
-                </Button>
-              </Link>
-              <Button data-testid="cta-newsletter" variant="outline" size="lg" className="border-white/[0.1] text-white/70 hover:bg-white/[0.05] hover:text-white hover:border-white/[0.2]">
-                <Send className="w-4 h-4 mr-1.5" /> สมัครรับข่าวสาร
-              </Button>
-            </div>
+      {/* ═══ TESTIMONIALS ═══ */}
+      <section className="py-20 md:py-28 px-4 sm:px-6 bg-card/20">
+        <div className="max-w-7xl mx-auto">
+          <RevealDiv className="text-center max-w-xl mx-auto mb-14 space-y-4">
+            <span className="text-xs font-semibold text-[#18E3C8] uppercase tracking-wider">เสียงจากผู้ใช้จริง</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>ร้านค้าที่เติบโตด้วย Agentra</h2>
+          </RevealDiv>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { stars: "★★★★★", text: "เปิดร้านได้จริงภายใน 10 นาที ระบบรับเงินผ่าน PromptPay ทำงานลื่นมาก ไม่ต้องไปต่อแอปอื่นเลย", name: "สมชาย ดีมาก", role: "เจ้าของร้าน Street Food Online", initial: "ส" },
+              { stars: "★★★★★", text: "AI Analytics ช่วยให้เราเห็นข้อมูลที่ไม่เคยเห็นมาก่อน ยอดขายเพิ่มขึ้น 40% ในเดือนแรกที่ใช้", name: "นภาพร วิไลศักดิ์", role: "CEO, Fashion Forward TH", initial: "น" },
+              { stars: "★★★★★", text: "Dashboard แบบ Real-Time ทำให้จัดการ 5 ร้านพร้อมกันได้ง่าย ระบบมันคิดแทนเราหลายอย่าง", name: "พิชัย ศรีสวัสดิ์", role: "ผู้จัดการ Multi-Brand Store", initial: "พ" },
+            ].map((t, i) => (
+              <RevealDiv key={t.name} delay={i * 100} className="bg-card/40 border border-border/50 rounded-2xl p-6 flex flex-col gap-4 hover:border-[#18E3C8]/20 transition-colors">
+                <div className="text-amber-500 text-sm tracking-wider">{t.stars}</div>
+                <p className="text-sm text-muted-foreground leading-relaxed italic">"{t.text}"</p>
+                <div className="flex items-center gap-3 mt-auto pt-2">
+                  <div className="w-10 h-10 rounded-full btn-gradient flex items-center justify-center text-[#050816] font-bold text-sm shrink-0">{t.initial}</div>
+                  <div>
+                    <div className="text-sm font-semibold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              </RevealDiv>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ===== 9. Footer ===== */}
-      <footer className="border-t border-white/[0.06] py-14" data-testid="footer">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-10">
-            {/* Column 1: Brand */}
-            <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 via-cyan-400 to-sky-500 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-teal-500/20">Z</div>
-                <span className="font-black text-sm text-white">ZENTRA AI</span>
-              </div>
-              <p className="text-white/40 text-xs leading-relaxed">
-                แพลตฟอร์ม E-Commerce อัจฉริยะ ขับเคลื่อนด้วย AI 6 ตัว เพื่อยกระดับธุรกิจออนไลน์ของคุณ
-              </p>
-            </div>
+      {/* ═══ FAQ ═══ */}
+      <section id="faq" className="py-20 md:py-28 px-4 sm:px-6">
+        <div className="max-w-3xl mx-auto">
+          <RevealDiv className="text-center mb-14 space-y-4">
+            <span className="text-xs font-semibold text-[#18E3C8] uppercase tracking-wider">คำถามที่พบบ่อย</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>FAQ</h2>
+          </RevealDiv>
 
-            {/* Column 2: Navigation */}
-            <div>
-              <h4 className="text-white font-medium text-xs mb-3">Navigation</h4>
-              <ul className="space-y-2">
-                {["AI Agent", "Product Recognition", "Zentra & Data"].map(item => (
-                  <li key={item}>
-                    <span className="text-white/40 text-xs hover:text-teal-400 cursor-pointer transition-colors">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Column 3: Site Map */}
-            <div>
-              <h4 className="text-white font-medium text-xs mb-3">Site Map</h4>
-              <ul className="space-y-2">
-                {["Site Map", "Contact Us", "Cookies", "Privacy Policy"].map(item => (
-                  <li key={item}>
-                    <span className="text-white/40 text-xs hover:text-teal-400 cursor-pointer transition-colors">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Column 4: Social */}
-            <div>
-              <h4 className="text-white font-medium text-xs mb-3">Follow Us</h4>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { icon: Facebook, label: "Facebook" },
-                  { icon: Youtube, label: "YouTube" },
-                  { icon: Instagram, label: "Instagram" },
-                ].map(social => (
-                  <div
-                    key={social.label}
-                    className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center hover:bg-teal-500/10 hover:border-teal-500/30 transition-all cursor-pointer"
-                    data-testid={`footer-social-${social.label.toLowerCase()}`}
-                  >
-                    <social.icon className="w-3.5 h-3.5 text-white/50 hover:text-teal-400" />
-                  </div>
-                ))}
-                {/* X (Twitter) — no lucide icon, use text */}
-                <div
-                  className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center hover:bg-teal-500/10 hover:border-teal-500/30 transition-all cursor-pointer"
-                  data-testid="footer-social-x"
-                >
-                  <span className="text-white/50 text-xs font-bold">X</span>
-                </div>
-                {/* TikTok — use text */}
-                <div
-                  className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center hover:bg-teal-500/10 hover:border-teal-500/30 transition-all cursor-pointer"
-                  data-testid="footer-social-tiktok"
-                >
-                  <span className="text-white/50 text-[10px] font-bold">TT</span>
-                </div>
-              </div>
-            </div>
+          <div className="space-y-3">
+            <FaqItem q="Agentra คืออะไร?" a="Agentra คือ Commerce Operating System สำหรับเจ้าของร้านยุคใหม่ ที่รวม storefront, dashboard, AI agents และระบบรับเงินไว้ในแพลตฟอร์มเดียว ให้คุณเปิดร้าน ขายของ รับเงิน และเติบโตได้โดยไม่ต้องใช้หลายแอป" />
+            <FaqItem q="เริ่มต้นใช้งานฟรีจริงหรือ?" a="ฟรีจริง แพ็กเกจ Starter ไม่มีค่าใช้จ่ายรายเดือน คุณสามารถสร้างร้าน เพิ่มสินค้า และรับเงินผ่าน PromptPay ได้ทันที อัปเกรดเมื่อธุรกิจคุณพร้อมเติบโต" />
+            <FaqItem q="รองรับช่องทางรับเงินอะไรบ้าง?" a="รองรับ PromptPay, Thai QR Payment, บัตรเครดิต/เดบิต, โอนผ่านธนาคาร และช่องทางอื่นๆ ทุกธุรกรรมเข้าระบบอัตโนมัติและตรวจสอบได้ทันที" />
+            <FaqItem q="AI Agent ทำงานอย่างไร?" a="AI Agent ของ Agentra ทำงานอัตโนมัติตลอด 24 ชั่วโมง ตั้งแต่วิเคราะห์ข้อมูลขาย แนะนำโปรโมชัน ตอบแชทลูกค้า ไปจนถึงช่วยจัดหน้าร้าน ทุกตัวเรียนรู้จากข้อมูลร้านของคุณเพื่อให้ผลลัพธ์ที่แม่นยำ" />
+            <FaqItem q="สามารถเปิดหลายร้านได้ไหม?" a="ได้ครับ แพ็กเกจ Professional รองรับ 3 ร้าน และ Enterprise รองรับไม่จำกัด ทุกร้านจัดการจาก Dashboard เดียว" />
+            <FaqItem q="ต้องมีความรู้เรื่องโค้ดไหม?" a="ไม่ต้องเลย Agentra ออกแบบมาให้ใช้งานง่ายโดยไม่ต้องเขียนโค้ด ทุกอย่างจัดการผ่านหน้า Dashboard ที่ใช้งานง่าย สำหรับผู้ที่ต้องการความยืดหยุ่นเพิ่มเติม แพ็กเกจ Enterprise มี API Access" />
           </div>
+        </div>
+      </section>
 
-          {/* Copyright + Attribution */}
-          <div className="pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
-            <span>&copy; 2026 Zentra AI - All Rights Reserved</span>
-            <PerplexityAttribution />
+      {/* ═══ FINAL CTA ═══ */}
+      <section className="relative py-20 md:py-28 px-4 sm:px-6 overflow-hidden">
+        <div className="absolute w-[400px] h-[400px] rounded-full bg-[#18E3C8]/[.08] blur-[120px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="relative max-w-xl mx-auto text-center space-y-5">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>พร้อมเริ่มขายแล้วหรือยัง?</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            เปิดร้านกับ Agentra วันนี้ ฟรี ไม่มีค่าธรรมเนียมแอบแฝง<br />เริ่มขายได้ภายใน 10 นาที
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap pt-2">
+            <Link href="/auth" className="btn-gradient text-[#050816] font-semibold px-8 py-3.5 rounded-xl inline-flex items-center gap-2 hover:shadow-[0_0_30px_rgba(24,227,200,.3)] transition-all text-base">
+              <Rocket className="w-5 h-5" /> เริ่มสร้างร้านฟรี
+            </Link>
+            <Link href="/auth" className="text-muted-foreground hover:text-foreground transition-colors px-6 py-3.5 text-base">
+              พูดคุยกับทีมงาน
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ FOOTER ═══ */}
+      <footer className="bg-card/30 border-t border-border/40 py-12 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-4 gap-8 mb-8">
+            <div className="lg:col-span-1 space-y-3">
+              <Link href="/" className="flex items-center gap-2">
+                <AgentraLogo className="w-8 h-8" />
+                <span className="text-lg font-bold agentra-gradient" style={{ fontFamily: "'Prompt', 'Inter', sans-serif" }}>Agentra</span>
+              </Link>
+              <p className="text-sm text-muted-foreground">Your Commerce Operating System</p>
+            </div>
+            {[
+              { title: "ผลิตภัณฑ์", links: ["หน้าร้าน", "Dashboard", "AI Agents", "Payment"] },
+              { title: "ทรัพยากร", links: ["คู่มือเริ่มต้น", "API Docs", "บล็อก", "Changelog"] },
+              { title: "บริษัท", links: ["เกี่ยวกับเรา", "ติดต่อ", "นโยบายความเป็นส่วนตัว", "เงื่อนไขการใช้งาน"] },
+            ].map(col => (
+              <div key={col.title} className="space-y-3">
+                <h4 className="text-sm font-semibold">{col.title}</h4>
+                {col.links.map(l => (
+                  <a key={l} href="#" className="block text-sm text-muted-foreground hover:text-[#18E3C8] transition-colors">{l}</a>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-border/40 gap-3">
+            <span className="text-xs text-muted-foreground">© 2026 Agentra. All rights reserved.</span>
+            <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-muted-foreground/80 transition-colors">
+              Created with Perplexity Computer
+            </a>
           </div>
         </div>
       </footer>
