@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
-import { storage } from "./storage";
-import { supabaseAdmin, SUPABASE_URL, SUPABASE_ANON_KEY } from "./supabase";
+import { storage, enableStorefrontLayoutColumn } from "./storage";
+import { supabaseAdmin, SUPABASE_URL, SUPABASE_ANON_KEY, ensureStorefrontLayoutColumn } from "./supabase";
 import { getPlanLimits } from "@shared/schema";
 import {
   chatWithAgent,
@@ -147,6 +147,11 @@ async function ensureAgentsExist(storeId: number): Promise<void> {
 }
 
 export async function registerRoutes(server: Server, app: Express): Promise<void> {
+
+  // Auto-migrate: check if storefront_layout column exists
+  ensureStorefrontLayoutColumn().then(exists => {
+    if (exists) enableStorefrontLayoutColumn();
+  });
 
   // DATABASE STATUS
   app.get("/api/db/status", async (_req, res) => {

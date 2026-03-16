@@ -16,6 +16,22 @@ export const supabaseAnon: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_
 
 export { SUPABASE_URL, SUPABASE_ANON_KEY };
 
+// Check if storefront_layout column exists and add it to known cols
+export async function ensureStorefrontLayoutColumn(): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin.from("stores").select("storefront_layout").limit(1);
+    if (error && (error.code === "42703" || error.message.includes("does not exist"))) {
+      console.log("[Supabase] ⚠ storefront_layout column not found. Please run in SQL Editor:");
+      console.log("  ALTER TABLE stores ADD COLUMN IF NOT EXISTS storefront_layout jsonb;");
+      return false;
+    }
+    console.log("[Supabase] storefront_layout column exists ✓");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Auto-migrate: create settings table if it doesn't exist
 export async function ensureSettingsTable(): Promise<void> {
   try {

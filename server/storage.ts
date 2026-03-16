@@ -102,7 +102,15 @@ function filterKnownColumns(data: any, knownCols: string[]): any {
 }
 
 // Known columns per table (what actually exists in Supabase)
-const STORES_COLS = ['id', 'user_id', 'name', 'slug', 'description', 'logo', 'theme', 'currency', 'status'];
+let STORES_COLS = ['id', 'user_id', 'name', 'slug', 'description', 'logo', 'theme', 'currency', 'status'];
+
+// Dynamically add storefront_layout column if it exists in DB
+export function enableStorefrontLayoutColumn() {
+  if (!STORES_COLS.includes('storefront_layout')) {
+    STORES_COLS.push('storefront_layout');
+    console.log('[Storage] storefront_layout column enabled for persistence');
+  }
+}
 const PRODUCTS_COLS = ['id', 'store_id', 'name', 'description', 'price', 'compare_price', 'category', 'image', 'stock', 'status', 'ai_score'];
 const ORDERS_COLS = ['id', 'store_id', 'customer_name', 'customer_email', 'total', 'status', 'items', 'shipping_address', 'created_at'];
 const CUSTOMERS_COLS = ['id', 'store_id', 'name', 'email', 'phone', 'total_orders', 'total_spent', 'segment'];
